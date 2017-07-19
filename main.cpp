@@ -72,7 +72,7 @@ int main()
  double delta_angle = 5;    // Maximal rotation in degrees
  double Rc = 5;             // Cut-off radius in sigma
 
- int nSteps = 150000;            // Total amount of MCS
+ int nSteps = 150000;            // Total amount of MCS !!!
  int nIter = nSteps * nPart;
  int nStepsEq = 50000;          // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
