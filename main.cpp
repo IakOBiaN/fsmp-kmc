@@ -12,6 +12,7 @@
 #include "random/sfmt.cpp"
 #include <cmath>
 #include <float.h>
+#include <valarray>
 using namespace std;
 
 // Random number generator

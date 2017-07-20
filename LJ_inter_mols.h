@@ -12,155 +12,115 @@ double LJ_inter_mols(state molA, state molB, double &Lx, double &Ly)
     const double A = 1.0/(4.0*3.1415926535*eps0)/4.0;   // Coulomb's constant, *4 to meet LJ calculation
     double sigma = 0.3318e-9;
 
-    double l_i[3]={sin(molA.tetta)*cos(molA.phi), sin(molA.tetta)*sin(molA.phi), cos(molA.tetta)};
-    double l_j[3]={sin(molB.tetta)*cos(molB.phi), sin(molB.tetta)*sin(molB.phi), cos(molB.tetta)};
-    double r_ij[3] = {distPBC(Lx,molB.x - molA.x), distPBC(Ly,molB.y - molA.y), 0};
+    valarray<double> l_i={sin(molA.tetta)*cos(molA.phi), sin(molA.tetta)*sin(molA.phi), cos(molA.tetta)};
+    valarray<double> l_j={sin(molB.tetta)*cos(molB.phi), sin(molB.tetta)*sin(molB.phi), cos(molB.tetta)};
+    valarray<double> r_ij={distPBC(Lx,molB.x - molA.x), distPBC(Ly,molB.y - molA.y), 0};
 
     double U_LJ;
 
     //AC
-    double vect[3] = {((dn2/2)*l_i[0]+r_ij[0]-(dn2/2)*l_j[0]),((dn2/2)*l_i[1]+r_ij[1]-(dn2/2)*l_j[1]),((dn2/2)*l_i[2]+r_ij[2]-(dn2/2)*l_j[2])};
-    double dist2 = pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2);
+    valarray<double> vect = dn2/2*l_i+r_ij-dn2/2*l_j;
+    double dist2 = (vect*vect).sum();
     double invDr6 = 1.0/pow(dist2, 3);
     U_LJ = (invDr6 * (invDr6 - 1));
     //BD
-    vect[0] = (-(dn2/2)*l_i[0]+r_ij[0]+(dn2/2)*l_j[0]);
-    vect[1] = (-(dn2/2)*l_i[1]+r_ij[1]+(dn2/2)*l_j[1]);
-    vect[2] = (-(dn2/2)*l_i[2]+r_ij[2]+(dn2/2)*l_j[2]);
-    dist2 = pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2);
+    vect = -dn2/2*l_i+r_ij+dn2/2*l_j;
+    dist2 = (vect*vect).sum();
     invDr6 = 1.0/pow(dist2, 3);
     U_LJ += (invDr6 * (invDr6 - 1));
     //AD
-    vect[0] = ((dn2/2)*l_i[0]+r_ij[0]+(dn2/2)*l_j[0]);
-    vect[1] = ((dn2/2)*l_i[1]+r_ij[1]+(dn2/2)*l_j[1]);
-    vect[2] = ((dn2/2)*l_i[2]+r_ij[2]+(dn2/2)*l_j[2]);
-    dist2 = pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2);
+    vect = dn2/2*l_i+r_ij+dn2/2*l_j;
+    dist2 = (vect*vect).sum();
     invDr6 = 1.0/pow(dist2, 3);
     U_LJ += (invDr6 * (invDr6 - 1));
     //BC
-    vect[0] = (-(dn2/2)*l_i[0]+r_ij[0]-(dn2/2)*l_j[0]);
-    vect[1] = (-(dn2/2)*l_i[1]+r_ij[1]-(dn2/2)*l_j[1]);
-    vect[2] = (-(dn2/2)*l_i[2]+r_ij[2]-(dn2/2)*l_j[2]);
-    dist2 = pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2);
+    vect = -dn2/2*l_i+r_ij-dn2/2*l_j;
+    dist2 = (vect*vect).sum();
     invDr6 = 1.0/pow(dist2, 3);
     U_LJ += (invDr6 * (invDr6 - 1));
 
     double U_QQ;
     double dist;
-    r_ij[0] = distPBC(Lx,molB.x - molA.x)*sigma;
-    r_ij[1] = distPBC(Ly,molB.y - molA.y)*sigma;
-    r_ij[2] = 0;
+    r_ij *= sigma;
 
     // A1A2
-    vect[0] = dq2*l_i[0]+r_ij[0]-dq2*l_j[0];
-    vect[1] = dq2*l_i[1]+r_ij[1]-dq2*l_j[1];
-    vect[2] = dq2*l_i[2]+r_ij[2]-dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = dq2*l_i+r_ij-dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ = A*q2/dist;
 
     // A1B2
     vect[0] = dq2*l_i[0]+r_ij[0]-dq1*l_j[0];
-    vect[1] = dq2*l_i[1]+r_ij[1]-dq1*l_j[1];
-    vect[2] = dq2*l_i[2]+r_ij[2]-dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // A1C2
-    vect[0] = dq2*l_i[0]+r_ij[0]+dq1*l_j[0];
-    vect[1] = dq2*l_i[1]+r_ij[1]+dq1*l_j[1];
-    vect[2] = dq2*l_i[2]+r_ij[2]+dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = dq2*l_i+r_ij+dq1*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // A1D2
-    vect[0] = dq2*l_i[0]+r_ij[0]+dq2*l_j[0];
-    vect[1] = dq2*l_i[1]+r_ij[1]+dq2*l_j[1];
-    vect[2] = dq2*l_i[2]+r_ij[2]+dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = dq2*l_i+r_ij+dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
 
     // B1A2
-    vect[0] = dq1*l_i[0]+r_ij[0]-dq2*l_j[0];
-    vect[1] = dq1*l_i[1]+r_ij[1]-dq2*l_j[1];
-    vect[2] = dq1*l_i[2]+r_ij[2]-dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = dq1*l_i+r_ij-dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // B1B2
-    vect[0] = dq1*l_i[0]+r_ij[0]-dq1*l_j[0];
-    vect[1] = dq1*l_i[1]+r_ij[1]-dq1*l_j[1];
-    vect[2] = dq1*l_i[2]+r_ij[2]-dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = dq1*l_i+r_ij-dq1*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
 
     // B1C2
-    vect[0] = dq1*l_i[0]+r_ij[0]+dq1*l_j[0];
-    vect[1] = dq1*l_i[1]+r_ij[1]+dq1*l_j[1];
-    vect[2] = dq1*l_i[2]+r_ij[2]+dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = dq1*l_i+r_ij+dq1*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
 
     // B1D2
-    vect[0] = dq1*l_i[0]+r_ij[0]+dq2*l_j[0];
-    vect[1] = dq1*l_i[1]+r_ij[1]+dq2*l_j[1];
-    vect[2] = dq1*l_i[2]+r_ij[2]+dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = dq1*l_i+r_ij+dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // C1A2
-    vect[0] = -dq1*l_i[0]+r_ij[0]-dq2*l_j[0];
-    vect[1] = -dq1*l_i[1]+r_ij[1]-dq2*l_j[1];
-    vect[2] = -dq1*l_i[2]+r_ij[2]-dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq1*l_i+r_ij-dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // C1B2
-    vect[0] = -dq1*l_i[0]+r_ij[0]-dq1*l_j[0];
-    vect[1] = -dq1*l_i[1]+r_ij[1]-dq1*l_j[1];
-    vect[2] = -dq1*l_i[2]+r_ij[2]-dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq1*l_i+r_ij-dq1*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
 
     // C1C2
-    vect[0] = -dq1*l_i[0]+r_ij[0]+dq1*l_j[0];
-    vect[1] = -dq1*l_i[1]+r_ij[1]+dq1*l_j[1];
-    vect[2] = -dq1*l_i[2]+r_ij[2]+dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq1*l_i+r_ij+dq1*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
 
     // C1D2
-    vect[0] = -dq1*l_i[0]+r_ij[0]+dq2*l_j[0];
-    vect[1] = -dq1*l_i[1]+r_ij[1]+dq2*l_j[1];
-    vect[2] = -dq1*l_i[2]+r_ij[2]+dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq1*l_i+r_ij+dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // D1A2
-    vect[0] = -dq2*l_i[0]+r_ij[0]-dq2*l_j[0];
-    vect[1] = -dq2*l_i[1]+r_ij[1]-dq2*l_j[1];
-    vect[2] = -dq2*l_i[2]+r_ij[2]-dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq2*l_i+r_ij-dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
 
     // D1B2
-    vect[0] = -dq2*l_i[0]+r_ij[0]-dq1*l_j[0];
-    vect[1] = -dq2*l_i[1]+r_ij[1]-dq1*l_j[1];
-    vect[2] = -dq2*l_i[2]+r_ij[2]-dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq2*l_i+r_ij-dq1*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // D1C2
-    vect[0] = -dq2*l_i[0]+r_ij[0]+dq1*l_j[0];
-    vect[1] = -dq2*l_i[1]+r_ij[1]+dq1*l_j[1];
-    vect[2] = -dq2*l_i[2]+r_ij[2]+dq1*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq2*l_i+r_ij+dq1*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
     // D1D2
-    vect[0] = -dq2*l_i[0]+r_ij[0]+dq2*l_j[0];
-    vect[1] = -dq2*l_i[1]+r_ij[1]+dq2*l_j[1];
-    vect[2] = -dq2*l_i[2]+r_ij[2]+dq2*l_j[2];
-    dist = sqrt(pow(vect[0],2)+pow(vect[1],2)+pow(vect[2],2));
+    vect = -dq2*l_i+r_ij+dq2*l_j;
+    dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
 
     //cout << "r_ij: " << sqrt(pow(r_ij[0],2)+pow(r_ij[1],2)+pow(r_ij[2],2))/sigma << " " << "LJ: " << U_LJ << " " << "QQ: " << U_QQ/eps << endl;
