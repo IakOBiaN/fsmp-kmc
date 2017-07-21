@@ -40,11 +40,11 @@ void state::set_state (double c_x, double c_y, double c_tetta, double c_phi) {
 
 #include "distPBC.h"
 #include "writeConfigPBC.h"
-#include "LJ_inter_mols.h"
+#include "Inter_potential.h"
 #include "initConfig.h"
-#include "LJ_Energy.h"
+#include "PotentialEnergy.h"
 #include "PBC2D.h"
-#include "LJ_EnergyChange.h"
+#include "PotentialEnergyChange.h"
 
 int main()
 {
@@ -67,15 +67,19 @@ int main()
  // P* = P*sigma3/eps
 
  // Set simulation parameters
- double Temp = 0.54945054945054945054945054945055;   // Simulation temperature in units of eps/k
- double beta = 1.0/Temp;    // Inverse temperature
- double delta = 0.5;        // Maximal displacement in LJ units
- double delta_angle = 5;    // Maximal rotation in degrees
- double Rc = 5;             // Cut-off radius in sigma
+ double Temp = 0.54945054945054945054945054945055;      // Simulation temperature in units of eps/k
+ double beta = 1.0/Temp;                                // Inverse temperature
+ double delta = 0.5;                                    // Maximal displacement in LJ units
+ double delta_angle = 5;                                // Maximal rotation in degrees
+ double Rc = 5;                                         // Cut-off radius in sigma
+ double Qn2 = -4.453e-40;                               // Quadrupole moment of N2 molecule
+ const double eps0 = 8.85418781762e-12;                 // The permittivity of free space in C2 m-2 N-1
+ const double A = 1.0/(4.0*3.1415926535*eps0)/4.0;      // Coulomb's constant /4 to meet LJ calculation
+ double C_q=A*3/4*pow(Qn2,2);                           // Coefficient of QQ interaction
 
- int nSteps = 50000;            // Total amount of MCS !!!
+ int nSteps = 10000;            // Total amount of MCS !!!
  int nIter = nSteps * nPart;
- int nStepsEq = 10000;          // MCS for relaxation
+ int nStepsEq = 2000;          // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
 
  // Write the model parameters to data-file
@@ -96,7 +100,7 @@ int main()
 
      // Generate an initial configuraton for a fixed
      // number of particles and calculate required L
-     Lx = initConfig(nPart, density, sigma, coordinates, beta, Rc);
+     Lx = initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);
      Ly = Lx*2/sqrt(3);
      // Write the initial configuration
      writeConfigPBC(nPart, sigma, Lx, coordinates, write_rad, "initial");
@@ -104,7 +108,7 @@ int main()
 
      // Calculate initial energy
      double energy;
-     energy = LJ_Energy(nPart, sigma, Lx, Ly, Rc, coordinates);
+     energy = PotentialEnergy(nPart, sigma, Lx, Ly, Rc, coordinates, A, C_q);
      cout << "E: " << energy << endl;
 
      //////////////////////////////////////////////////
@@ -137,7 +141,7 @@ int main()
 
             // Calculate the change in energy due to this trial move
             double deltaE;
-            deltaE = LJ_EnergyChange(nPart, sigma, Lx, Ly, Rc, coordinates, trial_mol, trialPart);
+            deltaE = PotentialEnergyChange(nPart, sigma, Lx, Ly, Rc, coordinates, trial_mol, trialPart, A, C_q);
 
             if(RanGen.Random() < exp(-beta*deltaE))
               {
@@ -154,7 +158,7 @@ int main()
 
             // Calculate the change in energy due to this trial move
             double deltaE;
-            deltaE = LJ_EnergyChange(nPart, sigma, Lx, Ly, Rc, coordinates, trial_mol, trialPart);
+            deltaE = PotentialEnergyChange(nPart, sigma, Lx, Ly, Rc, coordinates, trial_mol, trialPart, A, C_q);
 
             if(RanGen.Random() < exp(-beta*deltaE))
               {

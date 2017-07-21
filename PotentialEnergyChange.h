@@ -1,7 +1,7 @@
 using namespace std;
 
-double LJ_EnergyChange (int &nPart, double &sigma, double &Lx, double &Ly, double &Rc, vector <state> &coordinates,
-                        state &trial_mol, int &trialPart)
+double PotentialEnergyChange (int &nPart, double &sigma, double &Lx, double &Ly, double &Rc, vector <state> &coordinates,
+                        state &trial_mol, int &trialPart, const double &A, double &C_q)
 {
  double deltaE = 0;
  double eNew = 0, eOld = 0;
@@ -17,8 +17,8 @@ double LJ_EnergyChange (int &nPart, double &sigma, double &Lx, double &Ly, doubl
 
      // Claculate particle-particle distance for both
      // old nad new configurations
-     eNew += LJ_inter_mols(trial_mol, coordinates[otherPart], Lx, Ly);
-     eOld += LJ_inter_mols(coordinates[trialPart], coordinates[otherPart], Lx, Ly);
+     eNew += Inter_potential(trial_mol, coordinates[otherPart], Lx, Ly, A, C_q);
+     eOld += Inter_potential(coordinates[trialPart], coordinates[otherPart], Lx, Ly, A, C_q);
      deltaE = deltaE + (eNew - eOld);
     }
   // For efficiency, we will multiply by 4 only after summing

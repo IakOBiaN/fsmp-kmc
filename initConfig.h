@@ -1,6 +1,6 @@
 using namespace std;
 
-double initConfig (int &nPart, double &density, double &sigma, vector <state> &coordinates, double &beta, double &Rc)
+double initConfig (int &nPart, double &density, double &sigma, vector <state> &coordinates, double &beta, double &Rc, const double &A, double &C_q)
 {
  double L; // Linear size of the box
  double Lx;
@@ -30,7 +30,7 @@ double initConfig (int &nPart, double &density, double &sigma, vector <state> &c
    for(int mol = 0; mol < molecules; mol++)
      {
       if((pow((coordinates[mol].x - test_mol.x), 2) + pow((coordinates[mol].y - test_mol.y), 2)) > Rc2) {continue;}
-      U_LJ += LJ_inter_mols(test_mol, coordinates[mol], Lx, Ly);
+      U_LJ += Inter_potential(test_mol, coordinates[mol], Lx, Ly, A, C_q);
      }
      U_LJ*=4;
      if(RanGen.Random() >= exp(-beta*U_LJ)){continue;}
