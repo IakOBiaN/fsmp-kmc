@@ -42,8 +42,10 @@ void state::set_state (double c_x, double c_y, double c_tetta, double c_phi) {
 #include "writeConfigPBC.h"
 #include "Inter_potential.h"
 #include "initConfig.h"
-#include "PotentialEnergy.h"
 #include "PBC2D.h"
+#include "initConfigHerringbone.h"
+#include "initConfigPinwheel.h"
+#include "PotentialEnergy.h"
 #include "PotentialEnergyChange.h"
 
 int main()
@@ -56,6 +58,9 @@ int main()
  // Set configuration parameters
  int nPart = 400;           // Number of N2 molecules
  double density = 0;        // Density
+                            // in units of the commensurate (C)
+                            // in-plane herringbone structure,
+                            // 0.0636 molecules N2 per A^2
  double sigma = 1;          // LJ Diameter of nitrogen atom
  double write_rad = 0.1098;          // Disp. radius
 
@@ -75,12 +80,7 @@ int main()
  double Qn2 = -4.453e-40;                               // Quadrupole moment of N2 molecule
  const double eps0 = 8.85418781762e-12;                 // The permittivity of free space in C2 m-2 N-1
  const double A = 1.0/(4.0*3.1415926535*eps0)/4.0;      // Coulomb's constant /4 to meet LJ calculation
- double C_q=A*3/4*pow(Qn2,2);                           // Coefficient of QQ interaction
-
- int nSteps = 10000;            // Total amount of MCS !!!
- int nIter = nSteps * nPart;
- int nStepsEq = 2000;          // MCS for relaxation
- int nIterEq = nStepsEq * nPart;
+ double C_q=A*(3/4)*pow(Qn2,2);                           // Coefficient of QQ interaction
 
  // Write the model parameters to data-file
  stringstream name;
@@ -92,24 +92,31 @@ int main()
  fileOutput.close();
 
  // Set initial configuration
- double Lx,Ly;  // Linear size of the system
+ double Lx=0,Ly=0;  // Linear size of the system
  vector <state> coordinates(5000); // Vector of the molecules coordinates and angles
 
- for(density = 1.4; density < 1.41; density += 0.1)
+ for(density = 1.1; density < 1.2; density += 0.1)
     {
 
      // Generate an initial configuraton for a fixed
      // number of particles and calculate required L
-     Lx = initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);
-     Ly = Lx*2/sqrt(3);
+     //Ly = initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);
+     //initConfigHerringbone(nPart, density, sigma, coordinates, Lx, Ly);
+     initConfigPinwheel(nPart, density, sigma, coordinates, Lx, Ly);
      // Write the initial configuration
-     writeConfigPBC(nPart, sigma, Lx, coordinates, write_rad, "initial");
+     writeConfigPBC(nPart, sigma, Lx, Ly, coordinates, write_rad, "initial");
 
 
      // Calculate initial energy
      double energy;
      energy = PotentialEnergy(nPart, sigma, Lx, Ly, Rc, coordinates, A, C_q);
      cout << "E: " << energy << endl;
+
+     // Set the Monte Carlo run
+     int nSteps = 300000;            // Total amount of MCS !!!
+     int nIter = nSteps * nPart;
+     int nStepsEq = 50000;          // MCS for relaxation
+     int nIterEq = nStepsEq * nPart;
 
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
@@ -171,7 +178,7 @@ int main()
         }
 
      // Write the final configuration
-     writeConfigPBC(nPart, sigma, Lx, coordinates, write_rad, "final");
+     writeConfigPBC(nPart, sigma, Lx, Ly, coordinates, write_rad, "final");
 
          /*
          if(iter > nIterEq)

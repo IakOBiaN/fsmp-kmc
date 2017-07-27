@@ -1,8 +1,7 @@
   using namespace std;
 
-  void writeConfigPBC (int &nPart, double &sigma, double &Lx, vector <state> &coordinates, double &write_rad, string config)
+  void writeConfigPBC (int &nPart, double &sigma, double &Lx, double &Ly, vector <state> &coordinates, double &write_rad, string config)
   {
-   double Ly = Lx*2/sqrt(3);
    stringstream name;
    name << "xyz_d" << nPart/Lx/Ly << "_Lx" << Lx << "_Ly" << Ly << "_" << config << ".dat";
    ofstream fileOutput(name.str().c_str(), ios_base::app);

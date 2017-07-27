@@ -8,8 +8,8 @@ double initConfig (int &nPart, double &density, double &sigma, vector <state> &c
 
  // Get the corresponding box size
  L = 2*nPart/density; // Lx*Ly
- Lx = sqrt(L*sqrt(3)/2);
- Ly = Lx*2/sqrt(3);
+ Ly = sqrt(L*sqrt(3)/2);
+ Lx = Ly*2/sqrt(3);
 
  double Rc2 = Rc*Rc;
 

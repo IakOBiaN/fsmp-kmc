@@ -22,7 +22,7 @@ double Inter_potential(state molA, state molB, double &Lx, double &Ly, const dou
 //////////////////////////////////////////////////////////
 
     // Exact calculation of LJ interaction in AB - CD pair
-/*
+
     //AC
     valarray<double> vect = dn2/2*l_i+r_ij-dn2/2*l_j;
     dist2 = (vect*vect).sum();
@@ -43,12 +43,12 @@ double Inter_potential(state molA, state molB, double &Lx, double &Ly, const dou
     dist2 = (vect*vect).sum();
     invDr6 = 1.0/pow(dist2, 3);
     U_LJ += (invDr6 * (invDr6 - 1));
-*/
+
 
 
     // Approximate calculation of the LJ interaction
     // through the point potential
-
+/*
     a=(r_ij*l_i).sum();
     b=(r_ij*l_j).sum();
     c=(l_i*l_j).sum();
@@ -64,7 +64,7 @@ double Inter_potential(state molA, state molB, double &Lx, double &Ly, const dou
     for (int i=0;i<4;i++) {temp_g1=exp(s[i]);g1+=temp_g1;g2+=pow(temp_g1,2);}
 
     U_LJ=g2/pow(dist2,6)-g1/pow(dist2,3);
-
+*/
 
 ///////////////////////////////////////////////////////////////
 ////////CALCULATION OF QQ INTERACTION OF TWO LINEAR QUADRUPOLES
@@ -74,14 +74,14 @@ r_ij *= sigma; //correction for QQ interaction (distance in SI units)
 
     // Exact calculation of QQ interaction
     // in A1B1C1D1 - A2B2C2D2 pair
-/*
+
     // A1A2
     vect = dq2*l_i+r_ij-dq2*l_j;
     dist = sqrt((vect*vect).sum());
     U_QQ = A*q2/dist;
 
     // A1B2
-    vect[0] = dq2*l_i[0]+r_ij[0]-dq1*l_j[0];
+    vect = dq2*l_i+r_ij-dq1*l_j;
     dist = sqrt((vect*vect).sum());
     U_QQ -= A*q2/dist;
 
@@ -154,17 +154,17 @@ r_ij *= sigma; //correction for QQ interaction (distance in SI units)
     vect = -dq2*l_i+r_ij+dq2*l_j;
     dist = sqrt((vect*vect).sum());
     U_QQ += A*q2/dist;
-*/
+
     // Exact calculation of QQ interaction
     // in A1B1C1D1 - A2B2C2D2 pair
-
-    //a=(r_ij*l_i).sum();
-    //b=(r_ij*l_j).sum();
-    //c=(l_i*l_j).sum();
-    //dist2=(r_ij*r_ij).sum();
+/*
+    a=(r_ij*l_i).sum();
+    b=(r_ij*l_j).sum();
+    c=(l_i*l_j).sum();
+    dist2=(r_ij*r_ij).sum();
     U_QQ_appr = C_q*(1+2*pow(c,2)-5*(pow(a,2)+pow(b,2)+4*a*b*c)/dist2+35*pow(a*b,2)/pow(dist2,2))/pow(dist2,2.5);
+*/
+//cout << "r_ij: " << sqrt(pow(r_ij[0],2)+pow(r_ij[1],2)+pow(r_ij[2],2))/sigma /*<< " LJ: " << U_LJ << " "*/ << "LJ: " << U_LJ << " QQ:" << U_QQ/eps << endl;
 
-//cout << "r_ij: " << sqrt(pow(r_ij[0],2)+pow(r_ij[1],2)+pow(r_ij[2],2))/sigma /*<< " LJ: " << U_LJ << " "*/ << "QQ_ex: " << U_QQ/eps << " QQ_ap:" << U_QQ_app/eps << endl;
-
-    return (U_LJ + U_QQ_appr/eps);
+    return (U_LJ + U_QQ/eps);
 }
