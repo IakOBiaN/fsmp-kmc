@@ -1,10 +1,10 @@
   using namespace std;
 
-  void writeConfigPBC (int &nPart, double &sigma, double &Lx, double &Ly, vector <state> &coordinates, double &write_rad, string config)
+  void writeConfigPBC (int &nPart, double &density, double &sigma, double &Lx, double &Ly, vector <state> &coordinates, double &write_rad, string config)
   {
    stringstream name;
-   name << "xyz_d" << nPart/Lx/Ly << "_Lx" << Lx << "_Ly" << Ly << "_" << config << ".dat";
-   ofstream fileOutput(name.str().c_str(), ios_base::app);
+   name << "N" << nPart << "_Lx=" << Lx << "_Ly=" << Ly << "_" << config << ".dat";
+   ofstream fileOutput(name.str().c_str(), ios_base::trunc);
 
    double x_up, x_down, y_up, y_down, z_up, z_down;
    fileOutput << "x" << "\t" << "y" << "\t" << "z" << "\t" << "r" << endl;

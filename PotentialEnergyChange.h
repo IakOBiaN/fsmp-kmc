@@ -17,8 +17,8 @@ double PotentialEnergyChange (int &nPart, double &sigma, double &Lx, double &Ly,
 
      // Claculate particle-particle distance for both
      // old nad new configurations
-     eNew += Inter_potential(trial_mol, coordinates[otherPart], Lx, Ly, A, C_q);
-     eOld += Inter_potential(coordinates[trialPart], coordinates[otherPart], Lx, Ly, A, C_q);
+     eNew += Inter_potential(trial_mol, coordinates[otherPart], Rc, Rc2, Lx, Ly, A, C_q);
+     eOld += Inter_potential(coordinates[trialPart], coordinates[otherPart], Rc, Rc2, Lx, Ly, A, C_q);
      deltaE = deltaE + (eNew - eOld);
     }
   // For efficiency, we will multiply by 4 only after summing

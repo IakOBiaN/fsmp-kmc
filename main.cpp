@@ -28,25 +28,37 @@ double x;
 double y;
 double tetta;
 double phi;
-void set_state(double, double, double, double);
+double energy;
+double mob;
+void set_state(double, double, double, double, double, double);
 };
 
-void state::set_state (double c_x, double c_y, double c_tetta, double c_phi) {
+void state::set_state (double c_x, double c_y, double c_tetta, double c_phi, double c_en, double c_mob) {
   x = c_x;
   y = c_y;
   tetta = c_tetta;
   phi = c_phi;
+  energy = c_en;
+  mob = c_mob;
 }
 
-#include "distPBC.h"
 #include "writeConfigPBC.h"
 #include "Inter_potential.h"
-#include "initConfig.h"
+//#include "initConfig.h"
 #include "PBC2D.h"
 #include "initConfigHerringbone.h"
 #include "initConfigPinwheel.h"
 #include "PotentialEnergy.h"
-#include "PotentialEnergyChange.h"
+#include "Rosenbluth_algorithm_simple.h"
+#include "replace_the_trialParticle_and_update_energies.h"
+#include "Metropolis_iteration.h"
+#include "inter_for_pressure.h"
+#include "virial_pressure.h"
+#include "pressure_balance.h"
+#include "layer_map.h"
+#include "write_xy_matrix.h"
+#include "writeData.h"
+#include "write_xyz_file.h"
 
 int main()
 {
@@ -56,13 +68,14 @@ int main()
  ///////////////////////////////////////
 
  // Set configuration parameters
- int nPart = 400;           // Number of N2 molecules
+ int minPart = 400;
+ int maxPart = 420;
+ int stepPart = 20;
  double density = 0;        // Density
                             // in units of the commensurate (C)
                             // in-plane herringbone structure,
                             // 0.0636 molecules N2 per A^2
- double sigma = 1;          // LJ Diameter of nitrogen atom
- double write_rad = 0.1098;          // Disp. radius
+ double write_rad = 0.1098/0.3318; // Disp. radius
 
  // N-N parameters: eps/k = 36.4 K, sigma = 0.3318 nm, Rc = 5 sigma
  // Temperature: 20 K
@@ -72,155 +85,204 @@ int main()
  // P* = P*sigma3/eps
 
  // Set simulation parameters
- double Temp = 0.54945054945054945054945054945055;      // Simulation temperature in units of eps/k
+ double temperature = 20;
+ double Temp = temperature/36.4;                        // Simulation temperature in units of eps/k
  double beta = 1.0/Temp;                                // Inverse temperature
- double delta = 0.5;                                    // Maximal displacement in LJ units
- double delta_angle = 5;                                // Maximal rotation in degrees
  double Rc = 5;                                         // Cut-off radius in sigma
+ double Rc2 = Rc*Rc;
  double Qn2 = -4.453e-40;                               // Quadrupole moment of N2 molecule
  const double eps0 = 8.85418781762e-12;                 // The permittivity of free space in C2 m-2 N-1
- const double A = 1.0/(4.0*3.1415926535*eps0)/4.0;      // Coulomb's constant /4 to meet LJ calculation
- double C_q=A*(3/4)*pow(Qn2,2);                           // Coefficient of QQ interaction
+ const double A = 1.0/(4.0*3.1415926535*eps0);          // Coulomb's constant /4 to meet LJ calculation
+ double C_q=A*(3/4)*pow(Qn2,2);                         // Coefficient of QQ interaction
 
- // Write the model parameters to data-file
- stringstream name;
- name << "model_parameters" << ".dat";
- ofstream fileOutput(name.str().c_str(), ios_base::app);
- fileOutput << "Number of particles: " << nPart << endl;
- fileOutput << "Diameter of particles: " << sigma << endl;
- fileOutput << "T: " << Temp << endl;
- fileOutput.close();
+ double Pt = 0;
+ double press_N = 0, press_T = 0, press = 0;
+ double p_N, p_T, p_Tot;
 
  // Set initial configuration
  double Lx=0,Ly=0;  // Linear size of the system
  vector <state> coordinates(5000); // Vector of the molecules coordinates and angles
 
- for(density = 1.1; density < 1.2; density += 0.1)
+ // Write the model parameters to data-file
+ stringstream name;
+ name <<  "statistics.dat";
+ ofstream fileOutput(name.str().c_str(), ios_base::trunc);
+ fileOutput << "Density" << "\t" << "Chem. Potential" << "\t" << "p_N" << "\t" << "p_T" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput.close();
+
+ ////////////////////////////////////////////////////////////
+ //         kMC simulation of systems with different N     //
+ ////////////////////////////////////////////////////////////
+
+ //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
+ int nPart = 144;
+ for(double coeff = 1.04; coeff < 1.041; coeff += 0.01)
     {
+     bool rosenbluth = true;
+     bool metropolis = false;
 
-     // Generate an initial configuraton for a fixed
+     int frame = 0;
+     // Generate an initial configuration for a fixed
      // number of particles and calculate required L
-     //Ly = initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);
-     //initConfigHerringbone(nPart, density, sigma, coordinates, Lx, Ly);
-     initConfigPinwheel(nPart, density, sigma, coordinates, Lx, Ly);
-     // Write the initial configuration
-     writeConfigPBC(nPart, sigma, Lx, Ly, coordinates, write_rad, "initial");
 
+     //initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);   // Randomly distributed molecules
+     //initConfigHerringbone(nPart, density, coordinates, Lx, Ly);       // Herringbone structure
+     initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
+
+     // Write the initial configuration
+     //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "initial");
+     write_xyz_file(nPart, Lx, Ly, temperature, coordinates, 0, 0, true);
+
+     vector <vector <double>> xy_matrix(600, vector<double> (600));
+     for(int i = 0; i < 600; i++){for(int j = 0; j < 600; j++){xy_matrix[i][j] = 0;}}
 
      // Calculate initial energy
-     double energy;
-     energy = PotentialEnergy(nPart, sigma, Lx, Ly, Rc, coordinates, A, C_q);
-     cout << "E: " << energy << endl;
+     PotentialEnergy(nPart, Lx, Ly, Rc, Rc2, coordinates, A, C_q, beta);
+     //for(int i = 0; i < nPart; i++){cout << "[" << i << "]: " << coordinates[i].energy << endl;}
 
      // Set the Monte Carlo run
-     int nSteps = 300000;            // Total amount of MCS !!!
+     int nSteps = 100000;            // Total amount of MCS
      int nIter = nSteps * nPart;
      int nStepsEq = 50000;          // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
+     double Time = 0; // Total time of the equilibrium run
+     double Mconf = 0; // Amount of equilibrium configurations
+     double dt = 0;
 
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
      //////////////////////////////////////////////////
 
-     //double vir = 0; // Lennard-Jones energy virial
-     //double accept = 0; // Counter for accepatance rate
-     int step = 0;
-     //double w_sum = 0; // Widom's sum over exp(-dU/kT)
-     //int mu_step = 0; // Counter for chemical potential calculation
-     //int av_step = 0; // Counter for calculating averages
 
      for(int iter = 1; iter <= nIter; iter++)
         {
-         step += 1;
-         // Suggest a trial move for particle "trialPart"
+
+         if(((iter*100)%nIter)==0){cout << iter*100.0/nIter << " %" << endl;}
+
          int trialPart;
-         trialPart = RanGen.IRandom(0,(nPart-1));
-         state trial_mol = coordinates[trialPart]; // Make a clone of trail particle
+         // Choose a particle to be displaced
+         // according to the ROSENBLUTH scheme
+         // and calculate the duration of the current configuration
+         if(rosenbluth){trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}
 
-         if(step%2 == 0) // Move or Rotate a molecule
-           {
-            trial_mol.x = coordinates[trialPart].x + (2 * delta * RanGen.Random() - delta); // random(-delta; delta)
-            trial_mol.y = coordinates[trialPart].y + (2 * delta * RanGen.Random() - delta);
+         // Make a Metropolis iteration
+         if(metropolis){Metropolis_iteration(nPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}
 
-            // Apply periodic boundary conditions
-            trial_mol.x = PBC2D(Lx, trial_mol.x);
-            trial_mol.y = PBC2D(Ly, trial_mol.y);
 
-            // Calculate the change in energy due to this trial move
-            double deltaE;
-            deltaE = PotentialEnergyChange(nPart, sigma, Lx, Ly, Rc, coordinates, trial_mol, trialPart, A, C_q);
+         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Pressure balance
+/*
+        if(iter < nIterEq && (iter%nPart) == 0)
+        {
+            Pt += dt;
+            p_N = 0; p_T = 0;
+            virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_N, p_T, p_Tot, A, C_q);
+            press_N += p_N*dt;
+            press_T += p_T*dt;
 
-            if(RanGen.Random() < exp(-beta*deltaE))
-              {
-               // Accept displacement move
-               coordinates[trialPart] = trial_mol;     // Update coordinates
-               energy = energy + deltaE;   // Update energy
-               //accept = accept + 1;
-              }
-           }
-           else
-           {
-            trial_mol.tetta = coordinates[trialPart].tetta + (2 * delta_angle * RanGen.Random() - delta_angle); // random(-delta; delta)
-            trial_mol.phi = coordinates[trialPart].phi + (2 * delta_angle * RanGen.Random() - delta_angle);
-
-            // Calculate the change in energy due to this trial move
-            double deltaE;
-            deltaE = PotentialEnergyChange(nPart, sigma, Lx, Ly, Rc, coordinates, trial_mol, trialPart, A, C_q);
-
-            if(RanGen.Random() < exp(-beta*deltaE))
-              {
-               // Accept displacement move
-               coordinates[trialPart] = trial_mol;     // Update coordinates
-               energy = energy + deltaE;   // Update energy
-               //accept = accept + 1;
-              }
-           }
+            if((iter%(100*nPart))==0 && iter != 0)
+            {
+                press_N = press_N/Pt;                                 // Average normal pressure
+                press_N = - press_N;
+                press_T = press_T/Pt;                                 // Average normal pressure
+                press_T = - press_T;
+                pressure_balance(press_N, press_T, Lx, Ly, nPart, coordinates, Rc, Rc2, A, C_q, beta);
+                Pt = 0;
+                press_N = 0;
+                press_T = 0;
+            }
         }
+*/
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if((iter-1) % (nIter/300) == 0)
+              {
+                   write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
+                   frame++;
+              }
 
-     // Write the final configuration
-     writeConfigPBC(nPart, sigma, Lx, Ly, coordinates, write_rad, "final");
-
-         /*
+         // Collect the characteristics of interest at equilibrium
          if(iter > nIterEq)
            {
-            // Generate the coordinates of a test particle
-            double test_x, test_y, test_z;
-            test_x = L * RanGen.Random();
-            test_y = L * RanGen.Random();
-            test_z = L * RanGen.Random();
-            w += LJ_Widom(test_x, test_y, test_z, L, nPart, beta, Rc, x, y, z);
-            mu_step += 1;
+            // Update the total time
+            if(rosenbluth == true){Time += dt;}
+            // Update the amount of configurations
+            Mconf += 1;
 
-            // Calculate the presuure virial
+            layer_map(nPart, coordinates, xy_matrix);
+
             if((iter%nPart) == 0)
               {
-               av_step += 1;
-               vir += LJ_EnergyVirial(nPart, L, Rc, x, y, z);
+               if(rosenbluth == true){Pt += dt;}
+               p_N = 0; p_T = 0; p_Tot = 0;
+               virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_N, p_T, p_Tot, A, C_q);
+               if(rosenbluth == true)
+               {
+                press_N += p_N*dt;
+                press_T += p_T*dt;
+                press += p_Tot*dt;
+               }
+               else if(metropolis == true)
+                    {
+                     press_N += p_N;
+                     press_T += p_T;
+                     press += p_Tot;
+                    }
               }
-           }
+            }
 
-         // Tune the acceptance rate
-         if(iter <= nIterEq && (iter%(100*nPart)) == 0){LJAcceptRatioControl(step, accept, delta);}
-        }
+         // A new random position is chosen uniformly over the whole volume of the system
+         // and update the energies of all molecules in the system
+         if(rosenbluth == true){replace_the_trialParticle_and_update_energies(nPart, trialPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}
+       }
+
+     double mu = 0;
+     if(rosenbluth == true){mu = log(Mconf/Lx/Ly) - log(Time);}
 
      // Calculate the virial pressure
-     vir = vir/av_step;             // Averaging the pressure
-     double P = density*Temp + vir/3.0/pow(L, 3);
-
-     // Claculate the chemical potential with Widom's method
-     double mu = - log(w/mu_step)/beta;
-
-     // Write the calculated data to a file
-     writeData(nPart, L, "Density", "Pressure", "Chem. Potential", density, P, mu);
+     press_N = press_N/Pt;                                 // Average normal pressure
+     press_N = density*Temp - press_N;
+     press_T = press_T/Pt;                                 // Average tangential pressure
+     press_T = density*Temp - press_T;
+     press = press/Pt;                                 // Average total pressure
+     press = density*Temp - press/2.0;
 
      // Write the final configuration
-     writeConfigPBC(nPart, sigma, L, x, y, z, "final");
+     //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "final");
 
-     // Calculate the acceptance rate
-     accept = accept/step;
+     // Write the calculated data to a file
+     writeData(density, mu, press, press_N, press_T, Lx, Ly);
 
-     cout << "rho: " << density << "\t" << "P: " << P << "\t" << "AR: " << accept << "\t" << "dr: " << delta << "\t" << "mu: " << mu << endl; */
+     // Write the xy-matrix
+     write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
+
+     double tot_en=0;
+     for(int i = 0; i < nPart; i++){cout << "[" << i << "]: " << coordinates[i].energy << endl;tot_en+=coordinates[i].energy;}
+     tot_en/=nPart;
+
+     cout << "av_ENERGY=" << tot_en << endl;
+     cout << "rho: " << density << "\t" << "mu: " << mu << endl;
+
     }
-
  return 0;
+}
+
+int mainaaa()
+{
+ double temperature = 20;
+ double Temp = temperature/36.4;                        // Simulation temperature in units of eps/k
+ double beta = 1.0/Temp;                                // Inverse temperature
+ double Rc = 5;                                         // Cut-off radius in sigma
+ double Rc2 = Rc*Rc;
+ double Qn2 = -4.453e-40;                               // Quadrupole moment of N2 molecule
+ const double eps0 = 8.85418781762e-12;                 // The permittivity of free space in C2 m-2 N-1
+ const double A = 1.0/(4.0*3.1415926535*eps0);          // Coulomb's constant /4 to meet LJ calculation
+ double C_q=A*(3/4)*pow(Qn2,2);  // Coefficient of QQ interaction
+
+ double Lx=0,Ly=0;
+
+    state mol_one,mol_two;
+    mol_one.set_state(2.88456,3.23114,1.69782,5.51536,0,0);
+    mol_two.set_state(2.19955,4.12981,1.57831,8.51673,0,0);
+    cout << "energy=" << Inter_potential(mol_one, mol_two, Rc, Rc2, Lx, Ly, A, C_q, beta) << endl;
+    return 0;
 }

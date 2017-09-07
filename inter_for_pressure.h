@@ -1,22 +1,25 @@
-double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &Lx, double &Ly, const double &A, double &C_q, double &beta)
+void inter_for_pressure(state molA, state molB, double &Rc, double &Rc2, double &Lx, double &Ly, const double &A, double &C_q,
+                         double &beta, double &p_N, double &p_T, double p_Tot)
 {
-    double dn2 = 0.1098/0.3318;                     // Distance between nitrogen atoms in nm
+    double dn2 = 0.1098;                            // Distance between nitrogen atoms in nm
     double dq1 = 84.7e-12;                          // Distance between "+" charge and center of quadrupole in pm
     double dq2 = 104.4e-12;                         // Distance between "-" charge and center of quadrupole in pm
-    double eps = 0.515e-21;                         // LJ energy for nitrogen in J
-    const double qe = 1.6021766208e-19;             // The charge of one electron in C
+    const double qe = 1.6021766208e-19;                   // The charge of one electron in C
     double q = 0.373*qe;                            // Charge of the quadrupole points in C
     double q2 = q*q;
     double sigma = 0.3318e-9;
-    double dist,dist2,a,b,c;
-    double gm = 50;
+    double dist,dist2,a,b,c,vir_LJ,vir_QQ;
 
     valarray<double> l_i={sin(molA.tetta)*cos(molA.phi), sin(molA.tetta)*sin(molA.phi), cos(molA.tetta)};
     valarray<double> l_j={sin(molB.tetta)*cos(molB.phi), sin(molB.tetta)*sin(molB.phi), cos(molB.tetta)};
     valarray<double> r_ij;//={distPBC(Lx,molB.x - molA.x), distPBC(Ly,molB.y - molA.y), 0};
 
-    double U_LJ=0, U_LJ_appr=0;
-    double U_QQ=0, U_QQ_appr=0;
+    double P_LJ_N=0, P_LJ_appr_N=0;
+    double P_QQ_N=0, P_QQ_appr_N=0;
+    double P_LJ_T=0, P_LJ_appr_T=0;
+    double P_QQ_T=0, P_QQ_appr_T=0;
+    double P_LJ=0, P_LJ_appr=0;
+    double P_QQ=0, P_QQ_appr=0;
     valarray<double> vect;
 
     double xxx  = molA.x;
@@ -26,46 +29,61 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
     double y2 = molB.y;
     for (int id = -1; id < 2; id++)
     {
-       x1 = (x2 - xxx + id*Lx);
-       if (abs(x1)>Rc) {continue;}
+       x1 = abs(x2 + id*Lx - xxx);
+       if (x1>Rc) {continue;}
        for (int jd = -1; jd < 2; jd++)
        {
-          y1 = (y2 - yyy + jd*Ly);
-          if (abs(y1)>Rc) {continue;}
+          y1 = abs(y2 + jd*Ly - yyy);
+          if (y1>Rc) {continue;}
+          double xx = x1*x1;
+          double yy = y1*y1;
              r2 = x1*x1 + y1*y1;
              if (r2 <= Rc2)
              {
                 r_ij = {x1, y1, 0};
 
         //////////////////////////////////////////////////////////
-        ////////CALCULATION OF LJ INTERACTION OF DIATOMIC MOLECULE
+        ////////CALCULATION OF LJ VIRIAL PRESSURE FOR N2
         //////////////////////////////////////////////////////////
 
-                // Exact calculation of LJ interaction in AB - CD pair
+                // Exact calculation of LJ pressure
 
                 //AC
-                vect = dn2/2.0*l_i+r_ij-dn2/2.0*l_j;
+                vect = dn2/2*l_i+r_ij-dn2/2*l_j;
                 dist2 = (vect*vect).sum();
                 double invDr6 = 1.0/pow(dist2, 3);
-                U_LJ += (invDr6 * (invDr6 - 1.0));
+                dist = sqrt((vect*vect).sum());
+                vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
+                P_LJ_N += vir_LJ*xx;
+                P_LJ_T += vir_LJ*yy;
+                P_LJ += vir_LJ*dist2;
                 //BD
-                vect = -dn2/2.0*l_i+r_ij+dn2/2.0*l_j;
+                vect = -dn2/2*l_i+r_ij+dn2/2*l_j;
                 dist2 = (vect*vect).sum();
-                //cout << r_ij[1] << endl;
                 invDr6 = 1.0/pow(dist2, 3);
-                U_LJ += (invDr6 * (invDr6 - 1.0));
+                dist = sqrt((vect*vect).sum());
+                vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
+                P_LJ_N += vir_LJ*xx;
+                P_LJ_T += vir_LJ*yy;
+                P_LJ += vir_LJ*dist2;
                 //AD
-                vect = dn2/2.0*l_i+r_ij+dn2/2.0*l_j;
+                vect = dn2/2*l_i+r_ij+dn2/2*l_j;
                 dist2 = (vect*vect).sum();
                 invDr6 = 1.0/pow(dist2, 3);
-                U_LJ += (invDr6 * (invDr6 - 1.0));
+                dist = sqrt((vect*vect).sum());
+                vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
+                P_LJ_N += vir_LJ*xx;
+                P_LJ_T += vir_LJ*yy;
+                P_LJ += vir_LJ*dist2;
                 //BC
-                vect = -dn2/2.0*l_i+r_ij-dn2/2.0*l_j;
+                vect = -dn2/2*l_i+r_ij-dn2/2*l_j;
                 dist2 = (vect*vect).sum();
                 invDr6 = 1.0/pow(dist2, 3);
-                U_LJ += (invDr6 * (invDr6 - 1.0));
-
-
+                dist = sqrt((vect*vect).sum());
+                vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
+                P_LJ_N += vir_LJ*xx;
+                P_LJ_T += vir_LJ*yy;
+                P_LJ += vir_LJ*dist2;
 
                 // Approximate calculation of the LJ interaction
                 // through the point potential
@@ -87,95 +105,142 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
                 U_LJ+=g2/pow(dist2,6)-g1/pow(dist2,3);
             */
 
-            ////////////////////////////////////////////////////////////////
-            //////// CALCULATION OF QQ INTERACTION OF TWO LINEAR QUADRUPOLES
-            ////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////
+            ////////CALCULATION OF QQ INTERACTION OF TWO LINEAR QUADRUPOLES
+            ///////////////////////////////////////////////////////////////
 
             r_ij *= sigma; //correction for QQ interaction (distance in SI units)
+
                 // Exact calculation of QQ interaction
                 // in A1B1C1D1 - A2B2C2D2 pair
 
                 // A1A2
                 vect = dq2*l_i+r_ij-dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // A1B2
                 vect = dq2*l_i+r_ij-dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // A1C2
                 vect = dq2*l_i+r_ij+dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // A1D2
                 vect = dq2*l_i+r_ij+dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // B1A2
                 vect = dq1*l_i+r_ij-dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // B1B2
                 vect = dq1*l_i+r_ij-dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // B1C2
                 vect = dq1*l_i+r_ij+dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // B1D2
                 vect = dq1*l_i+r_ij+dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // C1A2
                 vect = -dq1*l_i+r_ij-dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // C1B2
                 vect = -dq1*l_i+r_ij-dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // C1C2
                 vect = -dq1*l_i+r_ij+dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // C1D2
                 vect = -dq1*l_i+r_ij+dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // D1A2
                 vect = -dq2*l_i+r_ij-dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // D1B2
                 vect = -dq2*l_i+r_ij-dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // D1C2
                 vect = -dq2*l_i+r_ij+dq1*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ -= A*q2/dist;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N -= vir_QQ*xx;
+                P_QQ_T -= vir_QQ*yy;
+                P_QQ -= vir_QQ*dist2;
 
                 // D1D2
                 vect = -dq2*l_i+r_ij+dq2*l_j;
                 dist = sqrt((vect*vect).sum());
-                U_QQ += A*q2/dist;
-
-                //cout << "r: " << dist << "\t" << "dn2: " << dn2 << endl;
+                vir_QQ = A*q2/dist*log(dist);
+                P_QQ_N += vir_QQ*xx;
+                P_QQ_T += vir_QQ*yy;
+                P_QQ += vir_QQ*dist2;
 
                 // Exact calculation of QQ interaction
                 // in A1B1C1D1 - A2B2C2D2 pair
@@ -192,8 +257,16 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
              }
        }
     }
-    //cout << "LJ=" << 4*beta*U_LJ << " QQ=" << U_QQ/eps << endl;
-    double energy = 4.0*beta*(U_LJ + U_QQ/eps/4.0);
-    if(energy > gm){energy = gm;}
-    return energy;
+
+    P_LJ_N *= 24*beta/Lx/Ly;
+    P_LJ_T *= 24*beta/Lx/Ly;
+    P_LJ *= 24*beta/Lx/Ly;
+    P_QQ_N *= -beta/Lx/Ly;
+    P_QQ_T *= -beta/Lx/Ly;
+    P_QQ *= -beta/Lx/Ly;
+
+
+   p_N += P_LJ_N+P_QQ_N;
+   p_T += P_LJ_T+P_QQ_T;
+   p_Tot += P_LJ + P_QQ;
 }

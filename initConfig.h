@@ -26,11 +26,10 @@ double initConfig (int &nPart, double &density, double &sigma, vector <state> &c
 
    double U_LJ = 0;
 
-   // Loop over all distinct particle pairs
    for(int mol = 0; mol < molecules; mol++)
      {
       if((pow((coordinates[mol].x - test_mol.x), 2) + pow((coordinates[mol].y - test_mol.y), 2)) > Rc2) {continue;}
-      U_LJ += Inter_potential(test_mol, coordinates[mol], Lx, Ly, A, C_q);
+      U_LJ += Inter_potential(test_mol, coordinates[mol], Rc, Rc2, Lx, Ly, A, C_q, beta);
      }
      U_LJ*=4;
      if(RanGen.Random() >= exp(-beta*U_LJ)){continue;}
