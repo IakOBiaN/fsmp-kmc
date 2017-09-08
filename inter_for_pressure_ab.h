@@ -1,9 +1,16 @@
 void inter_for_pressure_ab(state molA, state molB, double &Rc, double &Rc2, double &Lx, double &Ly, const double &A, double &C_q,
                          double &beta, double &p_N, double &p_T, double p_Tot)
 {
-    double dn2 = 0.1098/0.3318;                     // Distance between nitrogen atoms in nm
-    double dq1 = 84.7e-12;                          // Distance between "+" charge and center of quadrupole in pm
-    double dq2 = 104.4e-12;                         // Distance between "-" charge and center of quadrupole in pm
+    //double sigma = 331.8e-12;                 // Sigma in pm
+    //double dn2 = 109.8e-12;                   // Distance between nitrogen atoms in pm
+    //double dq1 = 84.7e-12;                    // Distance between "+" charge and center of quadrupole in pm
+    //double dq2 = 104.4e-12;                   // Distance between "-" charge and center of quadrupole in pm
+
+    double dn2 = 0.33092224232;               // Distance between nitrogen atoms in sigma units
+    double dq1 = 0.25527426160;               // Distance between "+" charge and center of quadrupole in sigma units
+    double dq2 = 0.31464737794;               // Distance between "-" charge and center of quadrupole in sigma units
+
+    double eps = 0.515e-21;                         // LJ energy for nitrogen in J
     const double qe = 1.6021766208e-19;                   // The charge of one electron in C
     double q = 0.373*qe;                            // Charge of the quadrupole points in C
     double q2 = q*q;
@@ -39,7 +46,6 @@ void inter_for_pressure_ab(state molA, state molB, double &Rc, double &Rc2, doub
              if (r2 <= Rc2)
              {
                 r_ij = {x1, y1, 0};
-
         //////////////////////////////////////////////////////////
         ////////CALCULATION OF LJ VIRIAL PRESSURE FOR N2
         //////////////////////////////////////////////////////////
@@ -106,8 +112,6 @@ void inter_for_pressure_ab(state molA, state molB, double &Rc, double &Rc2, doub
             ///////////////////////////////////////////////////////////////
             ////////CALCULATION OF QQ INTERACTION OF TWO LINEAR QUADRUPOLES
             ///////////////////////////////////////////////////////////////
-
-            r_ij *= sigma; //correction for QQ interaction (distance in SI units)
 
                 // Exact calculation of QQ interaction
                 // in A1B1C1D1 - A2B2C2D2 pair
@@ -259,9 +263,9 @@ void inter_for_pressure_ab(state molA, state molB, double &Rc, double &Rc2, doub
     P_LJ_N *= 24*beta/Lx/Ly;
     P_LJ_T *= 24*beta/Lx/Ly;
     P_LJ *= 24*beta/Lx/Ly;
-    P_QQ_N *= -beta/Lx/Ly;
-    P_QQ_T *= -beta/Lx/Ly;
-    P_QQ *= -beta/Lx/Ly;
+    P_QQ_N *= -beta/Lx/Ly/eps;
+    P_QQ_T *= -beta/Lx/Ly/eps;
+    P_QQ *= -beta/Lx/Ly/eps;
 
 
    p_N += P_LJ_N+P_QQ_N;

@@ -141,7 +141,7 @@ int main()
      //for(int i = 0; i < nPart; i++){cout << "[" << i << "]: " << coordinates[i].energy << endl;}
 
      // Set the Monte Carlo run
-     int nSteps = 50000;            // Total amount of MCS
+     int nSteps = 20000;            // Total amount of MCS
      int nIter = nSteps * nPart;
      int nStepsEq = 10000;          // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
