@@ -52,7 +52,8 @@ void state::set_state (double c_x, double c_y, double c_tetta, double c_phi, dou
 #include "Rosenbluth_algorithm_simple.h"
 #include "replace_the_trialParticle_and_update_energies.h"
 #include "Metropolis_iteration.h"
-#include "inter_for_pressure.h"
+//#include "inter_for_pressure.h"
+#include "inter_for_pressure_ab.h"
 #include "virial_pressure.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -116,7 +117,7 @@ int main()
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
  int nPart = 144;
- for(double coeff = 1.04; coeff < 1.041; coeff += 0.01)
+ for(double coeff = 1.06; coeff < 1.061; coeff += 0.01)
     {
      bool rosenbluth = true;    // If rosenbluth = false then Metropolis algorithm works
 
@@ -125,8 +126,8 @@ int main()
      // number of particles and calculate required L
 
      //initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);   // Randomly distributed molecules
-     //initConfigHerringbone(nPart, density, coordinates, Lx, Ly);       // Herringbone structure
-     initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
+     initConfigHerringbone(nPart, density, coordinates, Lx, Ly, coeff);       // Herringbone structure
+     //initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
 
      // Write the initial configuration
      //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "initial");

@@ -29,14 +29,12 @@ void inter_for_pressure_ab(state molA, state molB, double &Rc, double &Rc2, doub
     double y2 = molB.y;
     for (int id = -1; id < 2; id++)
     {
-       x1 = abs(x2 + id*Lx - xxx);
-       if (x1>Rc) {continue;}
+       x1 = (x2 - xxx + id*Lx);
+       if (abs(x1)>Rc) {continue;}
        for (int jd = -1; jd < 2; jd++)
        {
-          y1 = abs(y2 + jd*Ly - yyy);
-          if (y1>Rc) {continue;}
-          double xx = x1*x1;
-          double yy = y1*y1;
+          y1 = (y2 - yyy + jd*Ly);
+          if (abs(y1)>Rc) {continue;}
              r2 = x1*x1 + y1*y1;
              if (r2 <= Rc2)
              {

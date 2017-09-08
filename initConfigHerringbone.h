@@ -1,10 +1,10 @@
 using namespace std;
 
-void initConfigHerringbone (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly)
+void initConfigHerringbone (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &coeff)
 {
 
- double a = 4.04/3.318/2;                       // half of x-unit vector of herringbone unit cell in sigma
- double b = 7.00/3.318/2;                       // half of y-unit vector of herringbone unit cell in sigma
+ double a = coeff*4.04/3.318/2;                       // half of x-unit vector of herringbone unit cell in sigma
+ double b = coeff*7.00/3.318/2;                       // half of y-unit vector of herringbone unit cell in sigma
  double gamma = 88.5*(3.141592653589/180.0);    // angle between unit vectors of the herringbone unit cell
 
  // In herringbone structure there are 2 molecules per unit cell,

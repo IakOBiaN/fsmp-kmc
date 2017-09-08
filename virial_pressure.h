@@ -8,7 +8,7 @@
   {
      for (int molB = molA+1; molB < nPart; molB++)
      {
-         inter_for_pressure(coordinates[molA], coordinates[molB], Rc, Rc2, Lx, Ly, A, C_q, beta, p_N, p_T, p_Tot);
+         inter_for_pressure_ab(coordinates[molA], coordinates[molB], Rc, Rc2, Lx, Ly, A, C_q, beta, p_N, p_T, p_Tot);
          //double e_old = Inter_potential(coordinates[molA], coordinates[molB], Rc, Rc2, Lx, Ly, A, C_q, beta);
          //state trialPart = coordinates[molB];
          //double dist = sqrt(pow(coordinates[molA].x - coordinates[molB].x, 2) + pow(coordinates[molA].y - coordinates[molB].y, 2));
