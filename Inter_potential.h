@@ -1,13 +1,19 @@
 double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &Lx, double &Ly, const double &A, double &C_q, double &beta)
 {
-    double dn2 = 0.1098/0.3318;                     // Distance between nitrogen atoms in nm
-    double dq1 = 84.7e-12;                          // Distance between "+" charge and center of quadrupole in pm
-    double dq2 = 104.4e-12;                         // Distance between "-" charge and center of quadrupole in pm
+    //double sigma = 331.8e-12;                 // Sigma in pm
+    //double dn2 = 109.8e-12;                   // Distance between nitrogen atoms in pm
+    //double dq1 = 84.7e-12;                    // Distance between "+" charge and center of quadrupole in pm
+    //double dq2 = 104.4e-12;                   // Distance between "-" charge and center of quadrupole in pm
+
+    double dn2 = 0.33092224232;               // Distance between nitrogen atoms in sigma units
+    double dq1 = 0.25527426160;               // Distance between "+" charge and center of quadrupole in sigma units
+    double dq2 = 0.31464737794;               // Distance between "-" charge and center of quadrupole in sigma units
+
+
     double eps = 0.515e-21;                         // LJ energy for nitrogen in J
     const double qe = 1.6021766208e-19;             // The charge of one electron in C
     double q = 0.373*qe;                            // Charge of the quadrupole points in C
     double q2 = q*q;
-    double sigma = 0.3318e-9;
     double dist,dist2,a,b,c;
     double gm = 50;
 
@@ -91,7 +97,6 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
             //////// CALCULATION OF QQ INTERACTION OF TWO LINEAR QUADRUPOLES
             ////////////////////////////////////////////////////////////////
 
-            r_ij *= sigma; //correction for QQ interaction (distance in SI units)
                 // Exact calculation of QQ interaction
                 // in A1B1C1D1 - A2B2C2D2 pair
 

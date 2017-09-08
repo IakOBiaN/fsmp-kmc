@@ -86,18 +86,18 @@ int main()
 
  // Set simulation parameters
  double temperature = 20;
- double Temp = temperature/36.4;                        // Simulation temperature in units of eps/k
- double beta = 1.0/Temp;                                // Inverse temperature
- double Rc = 5;                                         // Cut-off radius in sigma
+ double Temp = temperature/36.4;                            // Simulation temperature in units of eps/k
+ double beta = 1.0/Temp;                                    // Inverse temperature
+ double Rc = 5;                                             // Cut-off radius in sigma
  double Rc2 = Rc*Rc;
- double Qn2 = -4.453e-40;                               // Quadrupole moment of N2 molecule
- const double eps0 = 8.85418781762e-12;                 // The permittivity of free space in C2 m-2 N-1
- const double A = 1.0/(4.0*3.1415926535*eps0);          // Coulomb's constant /4 to meet LJ calculation
- double C_q=A*(3/4)*pow(Qn2,2);                         // Coefficient of QQ interaction
+ double Qn2 = -4.453e-40;                                   // Quadrupole moment of N2 molecule
+ const double eps0 = 8.85418781762e-12;                     // The permittivity of free space in C2 m-2 N-1
+ const double A = 1.0/(4.0*3.1415926535*eps0)/331.8e-12;    // Coulomb's constant
+ double C_q=A*(3/4)*pow(Qn2,2);                             // Coefficient of QQ interaction
 
  double Pt = 0;
- double press_N = 0, press_T = 0, press = 0;
- double p_N, p_T, p_Tot;
+ double press_N = 0, press_T = 0, press = 0, Ener = 0;
+ double p_N, p_T, p_Tot, E_per_Part;
 
  // Set initial configuration
  double Lx=0,Ly=0;  // Linear size of the system
@@ -107,7 +107,7 @@ int main()
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Density" << "\t" << "Chem. Potential" << "\t" << "p_N" << "\t" << "p_T" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "Density" << "\t" << "Chem. Potential" << "\t" << "E per molecule" << "\t" << "p" << "\t" << "p_N" << "\t" << "p_T" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -118,8 +118,7 @@ int main()
  int nPart = 144;
  for(double coeff = 1.04; coeff < 1.041; coeff += 0.01)
     {
-     bool rosenbluth = true;
-     bool metropolis = false;
+     bool rosenbluth = true;    // If rosenbluth = false then Metropolis algorithm works
 
      int frame = 0;
      // Generate an initial configuration for a fixed
@@ -141,12 +140,13 @@ int main()
      //for(int i = 0; i < nPart; i++){cout << "[" << i << "]: " << coordinates[i].energy << endl;}
 
      // Set the Monte Carlo run
-     int nSteps = 100000;            // Total amount of MCS
+     int nSteps = 50000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 50000;          // MCS for relaxation
+     int nStepsEq = 10000;          // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
-     double Mconf = 0; // Amount of equilibrium configurations
+     double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
+     double nMetroConf = 0; // Amount of equilibrium configurations in Metropolis run
      double dt = 0;
 
      //////////////////////////////////////////////////
@@ -163,10 +163,10 @@ int main()
          // Choose a particle to be displaced
          // according to the ROSENBLUTH scheme
          // and calculate the duration of the current configuration
-         if(rosenbluth){trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}
 
+         if(rosenbluth == true){trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}
          // Make a Metropolis iteration
-         if(metropolis){Metropolis_iteration(nPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}
+         else {Metropolis_iteration(nPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}
 
 
          //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,19 +213,28 @@ int main()
             if((iter%nPart) == 0)
               {
                if(rosenbluth == true){Pt += dt;}
-               p_N = 0; p_T = 0; p_Tot = 0;
+
+               // Calculate the pressure tensor
+               p_N = 0; p_T = 0; p_Tot = 0; E_per_Part = 0;
                virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_N, p_T, p_Tot, A, C_q);
+
+               // Calculate the energy per molecule
+               for(int i = 0; i < nPart; i++){E_per_Part += coordinates[i].energy;}
+               E_per_Part /= nPart;
+
                if(rosenbluth == true)
-               {
+               { // For calculating time averages with kMC
                 press_N += p_N*dt;
                 press_T += p_T*dt;
                 press += p_Tot*dt;
+                Ener += E_per_Part*dt;
                }
-               else if(metropolis == true)
-                    {
+               else { // For calculating ensemble averages with sMC
                      press_N += p_N;
                      press_T += p_T;
                      press += p_Tot;
+                     Ener += E_per_Part;
+                     nMetroConf += 1;
                     }
               }
             }
@@ -236,53 +245,41 @@ int main()
        }
 
      double mu = 0;
-     if(rosenbluth == true){mu = log(Mconf/Lx/Ly) - log(Time);}
+     if(rosenbluth == true)
+       {
+         mu = log(Mconf/Lx/Ly) - log(Time);
 
-     // Calculate the virial pressure
-     press_N = press_N/Pt;                                 // Average normal pressure
-     press_N = density*Temp - press_N;
-     press_T = press_T/Pt;                                 // Average tangential pressure
-     press_T = density*Temp - press_T;
-     press = press/Pt;                                 // Average total pressure
-     press = density*Temp - press/2.0;
+         // kMC simulation
+         // Calculate the virial pressure
+         press_N = press_N/Pt;                   // Time average normal pressure
+         press_N = Temp*(1.0 - press_N/density)/1000;
+         press_T = press_T/Pt;                   // Time average tangential pressure
+         press_T = Temp*(1.0 - press_T/density)/1000;
+         press = press/Pt;                       // Time average total pressure
+         press = Temp*(1.0 - press/2.0/density)/1000;
+         Ener = Ener/Pt;
+       }
+       else { // Metropolis run
+             press_N = press_N/nMetroConf;       // Ensemble average normal pressure
+             press_N = Temp*(1.0 - press_N/density)/1000;
+             press_T = press_T/nMetroConf;       // Ensemble average tangential pressure
+             press_T = Temp*(1.0 - press_T/density)/1000;
+             press = press/nMetroConf;           // Ensemble average total pressure
+             press = Temp*(1.0 - press/2.0/density)/1000;
+             Ener = Ener/nMetroConf;
+            }
 
      // Write the final configuration
      //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "final");
 
      // Write the calculated data to a file
-     writeData(density, mu, press, press_N, press_T, Lx, Ly);
+     writeData(density, mu, Ener, press, press_N, press_T, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
-     double tot_en=0;
-     for(int i = 0; i < nPart; i++){cout << "[" << i << "]: " << coordinates[i].energy << endl;tot_en+=coordinates[i].energy;}
-     tot_en/=nPart;
-
-     cout << "av_ENERGY=" << tot_en << endl;
-     cout << "rho: " << density << "\t" << "mu: " << mu << endl;
+     cout << "rho: " << density << "\t" << "mu: " << mu << "\t" << "e: " << Ener << endl;
 
     }
  return 0;
-}
-
-int mainaaa()
-{
- double temperature = 20;
- double Temp = temperature/36.4;                        // Simulation temperature in units of eps/k
- double beta = 1.0/Temp;                                // Inverse temperature
- double Rc = 5;                                         // Cut-off radius in sigma
- double Rc2 = Rc*Rc;
- double Qn2 = -4.453e-40;                               // Quadrupole moment of N2 molecule
- const double eps0 = 8.85418781762e-12;                 // The permittivity of free space in C2 m-2 N-1
- const double A = 1.0/(4.0*3.1415926535*eps0);          // Coulomb's constant /4 to meet LJ calculation
- double C_q=A*(3/4)*pow(Qn2,2);  // Coefficient of QQ interaction
-
- double Lx=0,Ly=0;
-
-    state mol_one,mol_two;
-    mol_one.set_state(2.88456,3.23114,1.69782,5.51536,0,0);
-    mol_two.set_state(2.19955,4.12981,1.57831,8.51673,0,0);
-    cout << "energy=" << Inter_potential(mol_one, mol_two, Rc, Rc2, Lx, Ly, A, C_q, beta) << endl;
-    return 0;
 }
