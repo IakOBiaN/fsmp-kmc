@@ -53,7 +53,7 @@ void state::set_state (double c_x, double c_y, double c_tetta, double c_phi, dou
 #include "replace_the_trialParticle_and_update_energies.h"
 #include "Metropolis_iteration.h"
 //#include "inter_for_pressure.h"
-#include "inter_for_pressure_ab.h"
+//#include "inter_for_pressure_ab.h"
 #include "virial_pressure.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -116,8 +116,8 @@ int main()
  ////////////////////////////////////////////////////////////
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
- int nPart = 144;
- for(double coeff = 1.06; coeff < 1.061; coeff += 0.01)
+ int nPart = 256;
+ for(double coeff = 1.05; coeff < 1.051; coeff += 0.01)
     {
      bool rosenbluth = true;    // If rosenbluth = false then Metropolis algorithm works
 
@@ -126,8 +126,8 @@ int main()
      // number of particles and calculate required L
 
      //initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);   // Randomly distributed molecules
-     initConfigHerringbone(nPart, density, coordinates, Lx, Ly, coeff);       // Herringbone structure
-     //initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
+     //initConfigHerringbone(nPart, density, coordinates, Lx, Ly, coeff);       // Herringbone structure
+     initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
 
      // Write the initial configuration
      //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "initial");
@@ -141,9 +141,9 @@ int main()
      //for(int i = 0; i < nPart; i++){cout << "[" << i << "]: " << coordinates[i].energy << endl;}
 
      // Set the Monte Carlo run
-     int nSteps = 20000;            // Total amount of MCS
+     int nSteps = 100000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 10000;          // MCS for relaxation
+     int nStepsEq = 50000;          // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -172,7 +172,7 @@ int main()
 
          //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
-/*
+
         if(iter < nIterEq && (iter%nPart) == 0)
         {
             Pt += dt;
@@ -183,23 +183,18 @@ int main()
 
             if((iter%(100*nPart))==0 && iter != 0)
             {
-                press_N = press_N/Pt;                                 // Average normal pressure
-                press_N = - press_N;
-                press_T = press_T/Pt;                                 // Average normal pressure
-                press_T = - press_T;
+                press_N = - press_N/Pt;                                 // Average normal pressure
+                //cout << "p_N: " << press_N << endl;
+                press_T =  - press_T/Pt;                                 // Average normal pressure
+                //cout << "p_T: " << press_T << endl;
                 pressure_balance(press_N, press_T, Lx, Ly, nPart, coordinates, Rc, Rc2, A, C_q, beta);
                 Pt = 0;
                 press_N = 0;
                 press_T = 0;
             }
         }
-*/
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        if((iter-1) % (nIter/300) == 0)
-              {
-                   write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
-                   frame++;
-              }
 
          // Collect the characteristics of interest at equilibrium
          if(iter > nIterEq)
@@ -210,6 +205,11 @@ int main()
             Mconf += 1;
 
             layer_map(nPart, coordinates, xy_matrix);
+            if((iter-1) % ((nIter-nIterEq)/300) == 0)
+              {
+                   write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
+                   frame++;
+              }
 
             if((iter%nPart) == 0)
               {

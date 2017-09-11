@@ -40,6 +40,7 @@
 		<Unit filename="initConfigHerringbone.h" />
 		<Unit filename="initConfigPinwheel.h" />
 		<Unit filename="inter_for_pressure.h" />
+		<Unit filename="inter_for_pressure_ab.h" />
 		<Unit filename="layer_map.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="pressure_balance.h" />
