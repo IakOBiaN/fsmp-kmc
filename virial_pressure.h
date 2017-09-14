@@ -51,6 +51,8 @@
                  r2 = x1*x1 + y1*y1;
                  if (r2 <= Rc2)
                  {
+                    if(sqrt(r2) > 0.7521){continue;}
+
                     r_ij = {x1, y1, 0};
                     x1 = abs(x1);
                     y1 = abs(y1);
@@ -66,7 +68,6 @@
                     double invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    if(vir_LJ > 50){vir_LJ = 0;}
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
                     P_LJ += vir_LJ*dist2;
@@ -76,7 +77,6 @@
                     invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    if(vir_LJ > 50){vir_LJ = 0;}
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
                     P_LJ += vir_LJ*dist2;
@@ -86,7 +86,6 @@
                     invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    if(vir_LJ > 50){vir_LJ = 0;}
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
                     P_LJ += vir_LJ*dist2;
@@ -96,7 +95,6 @@
                     invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    if(vir_LJ > 50){vir_LJ = 0;}
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
                     P_LJ += vir_LJ*dist2;
@@ -130,160 +128,144 @@
 
                     // A1A2
                     vect = dq2*l_i+r_ij-dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
 
                     // A1B2
                     vect = dq2*l_i+r_ij-dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // A1C2
                     vect = dq2*l_i+r_ij+dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // A1D2
                     vect = dq2*l_i+r_ij+dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
 
                     // B1A2
                     vect = dq1*l_i+r_ij-dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // B1B2
                     vect = dq1*l_i+r_ij-dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
 
                     // B1C2
                     vect = dq1*l_i+r_ij+dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
 
                     // B1D2
                     vect = dq1*l_i+r_ij+dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // C1A2
                     vect = -dq1*l_i+r_ij-dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // C1B2
                     vect = -dq1*l_i+r_ij-dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
 
                     // C1C2
                     vect = -dq1*l_i+r_ij+dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
 
                     // C1D2
                     vect = -dq1*l_i+r_ij+dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // D1A2
                     vect = -dq2*l_i+r_ij-dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
 
                     // D1B2
                     vect = -dq2*l_i+r_ij-dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // D1C2
                     vect = -dq2*l_i+r_ij+dq1*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ -= vir_QQ*dist2;
 
                     // D1D2
                     vect = -dq2*l_i+r_ij+dq2*l_j;
-                    dist = sqrt((vect*vect).sum());
-                    //vir_QQ = A*q2/dist*log(dist);
-                    vir_QQ = A*q2*log(dist);
-                    if(vir_QQ > 50){vir_LJ = 0;}
+                    dist2 = (vect*vect).sum();
+                    dist = sqrt(dist2);
+                    vir_QQ = - A*q2/dist2;
                     P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
                     P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
                     P_QQ += vir_QQ*dist2;
