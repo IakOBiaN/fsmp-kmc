@@ -3,13 +3,21 @@
 int Rosenbluth_algorithm_simple(int &nPart, vector <state> &coordinates, double &dt)
 {
  int trialPart = 0;
+ bool extra_energy=false;
 
  coordinates[0].mob = exp(coordinates[0].energy);
  for(int i = 1; i < nPart; i++){
                                     coordinates[i].mob = coordinates[i-1].mob + exp(coordinates[i].energy);
+                                    if (coordinates[i].energy > 100)
+                                        {
+                                            extra_energy=true;
+                                        }
                                }
 
- dt = 1.0/coordinates[nPart-1].mob;
+ if(extra_energy) //if there are overlaps, then we ignore all summations
+    {dt = 0;}
+ else
+    {dt = 1.0/coordinates[nPart-1].mob;}
 
  double Rp = coordinates[nPart-1].mob*RanGen.Random();
 
