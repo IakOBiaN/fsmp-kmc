@@ -86,7 +86,7 @@ int main()
  // P* = P*sigma3/eps
 
  // Set simulation parameters
- double temperature = 20;
+ double temperature = 15;
  double Temp = temperature/36.4;                            // Simulation temperature in units of eps/k
  double beta = 1.0/Temp;                                    // Inverse temperature
  double Rc = 5;                                             // Cut-off radius in sigma
@@ -95,6 +95,8 @@ int main()
  const double eps0 = 8.85418781762e-12;                     // The permittivity of free space in C2 m-2 N-1
  const double A = 1.0/(4.0*3.1415926535*eps0)/331.8e-12;    // Coulomb's constant
  double C_q=A*(3/4)*pow(Qn2,2);                             // Coefficient of QQ interaction
+ double Lz = 0.62929475588;
+ double R = 8.3144598;
 
  double Pt = 0;
  double press_N = 0, press_T = 0, press = 0, Ener = 0;
@@ -141,7 +143,7 @@ int main()
      //for(int i = 0; i < nPart; i++){cout << "[" << i << "]: " << coordinates[i].energy << endl;}
 
      // Set the Monte Carlo run
-     int nSteps = 100000;            // Total amount of MCS
+     int nSteps = 150000;            // Total amount of MCS
      int nIter = nSteps * nPart;
      int nStepsEq = 50000;          // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
@@ -184,9 +186,9 @@ int main()
             if((iter%(100*nPart))==0 && iter != 0)
             {
                 press_N = - press_N/Pt;                                 // Average normal pressure
-                //cout << "p_N: " << press_N << endl;
+                cout << "p_N: " << press_N << endl;
                 press_T =  - press_T/Pt;                                 // Average normal pressure
-                //cout << "p_T: " << press_T << endl;
+                cout << "p_T: " << press_T << endl;
                 pressure_balance(press_N, press_T, Lx, Ly, nPart, coordinates, Rc, Rc2, A, C_q, beta);
                 Pt = 0;
                 press_N = 0;
@@ -253,20 +255,26 @@ int main()
          // kMC simulation
          // Calculate the virial pressure
          press_N = press_N/Pt;                   // Time average normal pressure
-         press_N = Temp*(1.0 - press_N/density)/1000;
+         //press_N = Temp*(1.0 - press_N/density)/1000/Ly/Lz;
+         //press_N = (temperature*nPart + press_N)/Ly/Lz;
+         press_N = (temperature*R*nPart + press_N*6.02e+23)*Lx/nPart/1000;
          press_T = press_T/Pt;                   // Time average tangential pressure
-         press_T = Temp*(1.0 - press_T/density)/1000;
+         //press_T = Temp*(1.0 - press_T/density)/1000/Lx/Lz;
+         //press_T = (Temp*nPart + press_T)/Lx/Lz;
+         press_T = (temperature*R*nPart + press_T*6.02e+23)*Ly/nPart/1000;
          press = press/Pt;                       // Time average total pressure
-         press = Temp*(1.0 - press/2.0/density)/1000;
+         //press = Temp*(1.0 - press/2.0/density)/1000/Lz;
+         //press = (Temp*nPart + press_T/2.0)/Lz;
+         press = (temperature*R*nPart + press_T*6.02e+23/2.0)*Lz/nPart/1000;
          Ener = Ener/Pt;
        }
        else { // Metropolis run
              press_N = press_N/nMetroConf;       // Ensemble average normal pressure
-             press_N = Temp*(1.0 - press_N/density)/1000;
+             press_N = Temp*(1.0 - press_N/density)/1000/Ly/Lz;
              press_T = press_T/nMetroConf;       // Ensemble average tangential pressure
-             press_T = Temp*(1.0 - press_T/density)/1000;
+             press_T = Temp*(1.0 - press_T/density)/1000/Lx/Lz;
              press = press/nMetroConf;           // Ensemble average total pressure
-             press = Temp*(1.0 - press/2.0/density)/1000;
+             press = Temp*(1.0 - press/2.0/density)/1000/Lz;
              Ener = Ener/nMetroConf;
             }
 

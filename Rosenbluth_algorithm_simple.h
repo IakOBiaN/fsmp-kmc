@@ -12,7 +12,7 @@ int Rosenbluth_algorithm_simple(int &nPart, vector <state> &coordinates, double 
                                     coordinates[i].mob = coordinates[i-1].mob + exp(coordinates[i].energy);
                                     if (coordinates[i].energy > gm)
                                         {
-                                            extra_energy=true;
+                                            extra_energy = true;
                                         }
                                }
 

@@ -51,8 +51,6 @@
                  r2 = x1*x1 + y1*y1;
                  if (r2 <= Rc2)
                  {
-                    if(sqrt(r2) > 0.7521){continue;}
-
                     r_ij = {x1, y1, 0};
                     x1 = abs(x1);
                     y1 = abs(y1);
@@ -67,6 +65,7 @@
                     dist2 = (vect*vect).sum();
                     double invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
+                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
@@ -76,6 +75,7 @@
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
+                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
@@ -85,6 +85,7 @@
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
+                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
@@ -94,6 +95,7 @@
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
                     dist = sqrt((vect*vect).sum());
+                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
                     vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
                     P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
                     P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
@@ -285,14 +287,24 @@
                  }
            }
         }
-
-        P_LJ_N *= 24*beta/Lx/Ly;
-        P_LJ_T *= 24*beta/Lx/Ly;
+/*
+        P_LJ_N *= 24*beta/Lx;
+        P_LJ_T *= 24*beta/Ly;
         P_LJ *= 24*beta/Lx/Ly;
-        P_QQ_N *= -beta/Lx/Ly/eps;
-        P_QQ_T *= -beta/Lx/Ly/eps;
+        P_QQ_N *= -beta/Lx/eps;
+        P_QQ_T *= -beta/Lx/eps;
         P_QQ *= -beta/Lx/Ly/eps;
-
+*/
+        P_LJ_N *= 24*eps/Lx;
+        cout << "P_LJ_N: " << P_LJ_N << endl;
+        P_LJ_T *= 24*eps/Ly;
+        cout << "P_LJ_T: " << P_LJ_T << endl;
+        P_LJ *= 24*eps/Lx/Ly;
+        P_QQ_N *= -1.0/Lx;
+        cout << "P_QQ_N: " << P_QQ_N << endl;
+        P_QQ_T *= -1.0/Lx;
+        cout << "P_QQ_T: " << P_QQ_T << endl;
+        P_QQ *= -1.0/Lx/Ly;
 
         p_N += P_LJ_N+P_QQ_N;
         p_T += P_LJ_T+P_QQ_T;
