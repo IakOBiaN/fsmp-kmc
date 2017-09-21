@@ -6,7 +6,7 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly,
 
  double energy;
 
- for(int i = 0; i < nPart; i++){coordinates[i].energy = (-334.4/((1/beta)*36.4))*abs(sin(coordinates[i].tetta));}
+ for(int i = 0; i < nPart; i++){coordinates[i].energy = 0;}
 
  // Loop over all distinct particle pairs
  for(int molA = 0; molA < (nPart - 1); molA++)

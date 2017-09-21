@@ -17,9 +17,9 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
     double dist,dist2,a,b,c;
     double gm = 50;
 
-    valarray<double> l_i={sin(molA.tetta)*cos(molA.phi), sin(molA.tetta)*sin(molA.phi), cos(molA.tetta)};
-    valarray<double> l_j={sin(molB.tetta)*cos(molB.phi), sin(molB.tetta)*sin(molB.phi), cos(molB.tetta)};
-    valarray<double> r_ij;//={distPBC(Lx,molB.x - molA.x), distPBC(Ly,molB.y - molA.y), 0};
+    valarray<double> l_i={cos(molA.phi), sin(molA.phi)};
+    valarray<double> l_j={cos(molB.phi), sin(molB.phi)};
+    valarray<double> r_ij;
 
     double U_LJ=0, U_LJ_appr=0;
     double U_QQ=0, U_QQ_appr=0;
@@ -41,7 +41,7 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
              r2 = x1*x1 + y1*y1;
              if (r2 <= Rc2)
              {
-                r_ij = {x1, y1, 0};
+                r_ij = {x1, y1};
 
         //////////////////////////////////////////////////////////
         ////////CALCULATION OF LJ INTERACTION OF DIATOMIC MOLECULE
@@ -198,7 +198,7 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
        }
     }
     //cout << "LJ=" << 4*beta*U_LJ << " QQ=" << U_QQ/eps << endl;
-    double energy = 4.0*beta*(U_LJ + U_QQ/eps/4.0);
+    double energy = 4.0*beta*(U_LJ + 331.8e-12*U_QQ/eps/4.0);
     if(energy > gm){energy = gm;}
     return energy;
 }

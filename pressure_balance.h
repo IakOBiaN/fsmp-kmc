@@ -6,7 +6,7 @@ void pressure_balance(double &press_N, double &press_T, double &Lx, double &Ly, 
     dL = 0.005;
     double eps = 0.515e-21;
 
-    cout << "delta P: " << abs(press_N - press_T) << endl;
+    //cout << "delta P: " << abs(press_N - press_T) << endl;
     if(abs(press_N - press_T)/eps > 0.05)
     {
        if(press_T > press_N)

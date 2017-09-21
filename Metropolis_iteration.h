@@ -45,7 +45,6 @@ void Metropolis_iteration(int &nPart, double &Rc, double &Rc2, double &Lx, doubl
       }
     else
       {
-       new_coordinates.tetta = coordinates[trialPart].tetta + delta_angle*(2.0 * RanGen.Random() - 1.0);
        new_coordinates.phi = coordinates[trialPart].phi + delta_angle*(2.0 * RanGen.Random() - 1.0);
 
        for (int l = 0; l < nPart; l++)
@@ -58,9 +57,7 @@ void Metropolis_iteration(int &nPart, double &Rc, double &Rc2, double &Lx, doubl
             add_E[l] = delta_E_new - delta_E_old;
             add_E[trialPart] += add_E[l];
           }
-       double dE_tetta = (-334.4/((1/beta)*36.4))*(abs(sin(new_coordinates.tetta)) - abs(sin(coordinates[trialPart].tetta)));
-       add_E[trialPart] += dE_tetta;
-       deltaE = newE - oldE + dE_tetta;
+       deltaE = newE - oldE;
 
        if(RanGen.Random() < exp(-deltaE))
          {

@@ -29,14 +29,12 @@ void initConfigPinwheel (int &nPart, double &density, vector <state> &coordinate
                          coordinates[molecule].x = PBC2D(Lx, j*a - i*b*cos(gamma));
                          coordinates[molecule].y = PBC2D(Ly, i*b);
                          coordinates[molecule].phi = -150.0*(3.141592653589/180.0);
-                         coordinates[molecule].tetta = 80.0*(3.141592653589/180.0);
                          molecule++;
                         }
                     else{
                          coordinates[molecule].x = PBC2D(Lx, j*a - i*b*cos(gamma));
                          coordinates[molecule].y = PBC2D(Ly, i*b);
                          coordinates[molecule].phi = 0.0;
-                         coordinates[molecule].tetta = 0;
                          molecule++;
                         }
            }
@@ -46,14 +44,12 @@ void initConfigPinwheel (int &nPart, double &density, vector <state> &coordinate
                         coordinates[molecule].x = PBC2D(Lx, j*a - i*b*cos(gamma));
                         coordinates[molecule].y = PBC2D(Ly, i*b);
                         coordinates[molecule].phi = 90.0*(3.141592653589/180.0);
-                        coordinates[molecule].tetta = 80.0*(3.141592653589/180.0);
                         molecule++;
                        }
                    else{
                          coordinates[molecule].x = PBC2D(Lx, j*a - i*b*cos(gamma));
                          coordinates[molecule].y = PBC2D(Ly, i*b);
                          coordinates[molecule].phi = -30.0*(3.141592653589/180.0);
-                         coordinates[molecule].tetta = 80.0*(3.141592653589/180.0);
                          molecule++;
                         }
           }

@@ -8,7 +8,6 @@ void replace_the_trialParticle_and_update_energies(int &nPart, int &trialPart, d
  // PBC is automatically satisfied
  new_coordinates.x = Lx * RanGen.Random();
  new_coordinates.y = Ly * RanGen.Random();
- new_coordinates.tetta = coordinates[trialPart].tetta + (3.141592653589/36)*(2.0 * RanGen.Random() - 1.0);
  new_coordinates.phi = coordinates[trialPart].phi + (3.141592653589/36)*(2.0 * RanGen.Random() - 1.0);
  new_coordinates.energy = 0;
 
@@ -27,7 +26,5 @@ void replace_the_trialParticle_and_update_energies(int &nPart, int &trialPart, d
 
  coordinates[trialPart].x = new_coordinates.x;
  coordinates[trialPart].y = new_coordinates.y;
- coordinates[trialPart].tetta = new_coordinates.tetta;
  coordinates[trialPart].phi = new_coordinates.phi;
- coordinates[trialPart].energy += (-334.4/((1/beta)*36.4))*abs(sin(coordinates[trialPart].tetta));
 }

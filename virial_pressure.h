@@ -23,9 +23,9 @@
         state molA = coordinates[i];
         state molB = coordinates[j];
 
-        valarray<double> l_i={sin(molA.tetta)*cos(molA.phi), sin(molA.tetta)*sin(molA.phi), cos(molA.tetta)};
-        valarray<double> l_j={sin(molB.tetta)*cos(molB.phi), sin(molB.tetta)*sin(molB.phi), cos(molB.tetta)};
-        valarray<double> r_ij;//={distPBC(Lx,molB.x - molA.x), distPBC(Ly,molB.y - molA.y), 0};
+        valarray<double> l_i={cos(molA.phi), sin(molA.phi)};
+        valarray<double> l_j={cos(molB.phi), sin(molB.phi)};
+        valarray<double> r_ij;
 
         double P_LJ_N=0, P_LJ_appr_N=0;
         double P_QQ_N=0, P_QQ_appr_N=0;
@@ -51,7 +51,7 @@
                  r2 = x1*x1 + y1*y1;
                  if (r2 <= Rc2)
                  {
-                    r_ij = {x1, y1, 0};
+                    r_ij = {x1, y1};
                     x1 = abs(x1);
                     y1 = abs(y1);
             //////////////////////////////////////////////////////////
@@ -296,15 +296,15 @@
         P_QQ *= -beta/Lx/Ly/eps;
 */
         P_LJ_N *= 24*eps/Lx;
-        cout << "P_LJ_N: " << P_LJ_N << endl;
+        //cout << "P_LJ_N: " << P_LJ_N << endl;
         P_LJ_T *= 24*eps/Ly;
-        cout << "P_LJ_T: " << P_LJ_T << endl;
+        //cout << "P_LJ_T: " << P_LJ_T << endl;
         P_LJ *= 24*eps/Lx/Ly;
-        P_QQ_N *= -1.0/Lx;
-        cout << "P_QQ_N: " << P_QQ_N << endl;
-        P_QQ_T *= -1.0/Lx;
-        cout << "P_QQ_T: " << P_QQ_T << endl;
-        P_QQ *= -1.0/Lx/Ly;
+        P_QQ_N *= 1.0/Lx*331.8e-12;
+        //cout << "P_QQ_N: " << P_QQ_N << endl;
+        P_QQ_T *= 1.0/Lx*331.8e-12;
+        //cout << "P_QQ_T: " << P_QQ_T << endl;
+        P_QQ *= 1.0/Lx/Ly*331.8e-12;
 
         p_N += P_LJ_N+P_QQ_N;
         p_T += P_LJ_T+P_QQ_T;

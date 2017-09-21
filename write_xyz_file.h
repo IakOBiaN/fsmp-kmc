@@ -10,17 +10,9 @@
         fileOutput << frame << endl;
         for(int i = 0; i < nPart; i++)
           {
-            if (abs(sin(coordinates[i].tetta))<0.7)
-            {
-            fileOutput << "O " << coordinates[i].x+sin(coordinates[i].tetta)*cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y+sin(coordinates[i].tetta)*sin(coordinates[i].phi)*distance/2 << " " << cos(coordinates[i].tetta)*distance/2 << endl;
-            fileOutput << "O " << coordinates[i].x-sin(coordinates[i].tetta)*cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y-sin(coordinates[i].tetta)*sin(coordinates[i].phi)*distance/2 << " " << -cos(coordinates[i].tetta)*distance/2 << endl;
-            }
-            else
-            {
-            fileOutput << "N " << coordinates[i].x+sin(coordinates[i].tetta)*cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y+sin(coordinates[i].tetta)*sin(coordinates[i].phi)*distance/2 << " " << cos(coordinates[i].tetta)*distance/2 << endl;
-            fileOutput << "N " << coordinates[i].x-sin(coordinates[i].tetta)*cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y-sin(coordinates[i].tetta)*sin(coordinates[i].phi)*distance/2 << " " << -cos(coordinates[i].tetta)*distance/2 << endl;
-            }
+            fileOutput << "N " << coordinates[i].x+cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y+sin(coordinates[i].phi)*distance/2 << " " << 0 << endl;
+            fileOutput << "N " << coordinates[i].x-cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y-sin(coordinates[i].phi)*distance/2 << " " << 0 << endl;
           }
-       fileOutput.close();
-       }
+        fileOutput.close();
+        }
 }

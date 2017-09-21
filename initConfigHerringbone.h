@@ -30,7 +30,6 @@ void initConfigHerringbone (int &nPart, double &density, vector <state> &coordin
                           coordinates[molecule].x = PBC2D(Lx, j*a - i*b*cos(gamma));
                           coordinates[molecule].y = PBC2D(Ly, i*b);
                           coordinates[molecule].phi = 135.0*(3.141592653589/180.0);
-                          coordinates[molecule].tetta = 70.0*(3.141592653589/180.0);
                           molecule++;
                          }
             }
@@ -40,7 +39,6 @@ void initConfigHerringbone (int &nPart, double &density, vector <state> &coordin
                         coordinates[molecule].x = PBC2D(Lx, j*a - i*b*cos(gamma));
                         coordinates[molecule].y = PBC2D(Ly, i*b);
                         coordinates[molecule].phi = -135.0*(3.141592653589/180.0);
-                        coordinates[molecule].tetta = 70.0*(3.141592653589/180.0);
                         molecule++;
                        }
             }
