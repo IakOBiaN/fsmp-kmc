@@ -274,14 +274,19 @@
 
                     // Exact calculation of QQ interaction
                     // in A1B1C1D1 - A2B2C2D2 pair
-                /*
-                    a=(r_ij*l_i).sum();
-                    b=(r_ij*l_j).sum();
-                    c=(l_i*l_j).sum();
-                    dist2=(r_ij*r_ij).sum();
-                    U_QQ_appr += C_q*(1+2*pow(c,2)-5*(pow(a,2)+pow(b,2)+4*a*b*c)/dist2+35*pow(a*b,2)/pow(dist2,2))/pow(dist2,2.5);
-                */
-                //cout << "r_ij: " << sqrt(pow(r_ij[0],2)+pow(r_ij[1],2)+pow(r_ij[2],2))/sigma /*<< " LJ: " << U_LJ << " "*/ << "LJ: " << U_LJ << " QQ:" << U_QQ/eps << endl;
+                    /*
+                    double b1 = (r_ij*l_i).sum();
+                    double b2 = (r_ij*l_j).sum();
+                    double g = (l_i*l_j).sum();
+                    dist2 = (r_ij*r_ij).sum();
+                    dist = sqrt(dist2);
+                    double h1 = 1.0 + 2.0*pow(g,2) - 7.0*(pow(b1,2) + pow(b2,2) + 4.0*g*b1*b2)/dist2 + 63.0*pow(b1,2)*pow(b2,2)/pow(dist2,2);
+                    double h2 = b1 + 2.0*g*b2 - 7.0*b1*pow(b2,2)/dist2;
+                    double h3 = b2 + 2.0*g*b1 - 7.0*pow(b1,2)*b2/dist2;
+
+                    P_QQ_appr_N += 5*C_q*r_ij[0]/pow(dist2,3)/dist*(h1*r_ij[0] + 2.0*(h2*l_i[0] + h3*l_j[0]))/Lx*331.8e-12;
+                    P_QQ_appr_T += 5*C_q*r_ij[1]/pow(dist2,3)/dist*(h1*r_ij[1] + 2.0*(h2*l_i[1] + h3*l_j[1]))/Ly*331.8e-12;
+                    */
 
 
                  }
@@ -302,7 +307,7 @@
         P_LJ *= 24*eps/Lx/Ly;
         P_QQ_N *= 1.0/Lx*331.8e-12;
         //cout << "P_QQ_N: " << P_QQ_N << endl;
-        P_QQ_T *= 1.0/Lx*331.8e-12;
+        P_QQ_T *= 1.0/Ly*331.8e-12;
         //cout << "P_QQ_T: " << P_QQ_T << endl;
         P_QQ *= 1.0/Lx/Ly*331.8e-12;
 

@@ -89,10 +89,10 @@ int main()
  double beta = 1.0/Temp;                                    // Inverse temperature
  double Rc = 5;                                             // Cut-off radius in sigma
  double Rc2 = Rc*Rc;
- double Qn2 = -4.453e-40;                                   // Quadrupole moment of N2 molecule
+ double Qn2 = -4.453e-40/(331.8e-12*331.8e-12);                                   // Quadrupole moment of N2 molecule
  const double eps0 = 8.85418781762e-12;                     // The permittivity of free space in C2 m-2 N-1
  const double A = 1.0/(4.0*3.1415926535*eps0)/(331.8e-12*331.8e-12);    // Coulomb's constant
- double C_q=A*(3/4)*pow(Qn2,2);
+ double C_q = A*(3.0/4.0)*pow(Qn2,2);
  double R = 8.3144598;
 
  double Pt = 0;
@@ -118,7 +118,7 @@ int main()
  int nPart = 128;
  for(double coeff = 1.06; coeff < 1.061; coeff += 0.01)
     {
-     bool rosenbluth = true;    // If rosenbluth = false then Metropolis algorithm works
+     bool rosenbluth = false;    // If rosenbluth = false then Metropolis algorithm works
 
      int frame = 0;
      // Generate an initial configuration for a fixed
