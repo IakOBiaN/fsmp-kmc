@@ -164,9 +164,8 @@ int main()
          // according to the ROSENBLUTH scheme
          // and calculate the duration of the current configuration
 
-         if(rosenbluth == true){trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}
-         // Make a Metropolis iteration
-         else {Metropolis_iteration(nPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}
+         if(rosenbluth) {trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}  // kMC trial particle and dt calculation
+         else {Metropolis_iteration(nPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}    // Make a MC iteration
 
 
          //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,19 +173,35 @@ int main()
 
         if(iter < nIterEq && (iter%nPart) == 0)
         {
-            Pt += dt;
-            p_N = 0; p_T = 0;
-            virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_N, p_T, p_Tot, A, C_q);
-            press_N += p_N*dt;
-            press_T += p_T*dt;
+                p_N = 0; p_T = 0;
+                virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_N, p_T, p_Tot, A, C_q);
+                if (rosenbluth)
+                {
+                    Pt += dt;
+                    press_N += p_N*dt;
+                    press_T += p_T*dt;
+                }
+                else
+                {
+                    nMetroConf++;
+                    press_N += p_N;
+                    press_T += p_T;
+                }
 
-            if((iter%(100*nPart))==0 && iter != 0)
+            if((iter%(200*nPart))==0 && iter != 0)
             {
-                press_N = - press_N/Pt;                                 // Average normal pressure
-                //cout << "p_N: " << press_N << endl;
-                press_T =  - press_T/Pt;                                 // Average normal pressure
-                //cout << "p_T: " << press_T << endl;
+                if (rosenbluth)
+                {
+                    press_N /= Pt;          //average normal pressure for kMC
+                    press_T /= Pt;          //average tangential pressure for MC
+                }
+                else
+                {
+                    press_N /= nMetroConf;  //average normal pressure for MC
+                    press_T /= nMetroConf;  //average tangential pressure for MC
+                }
                 pressure_balance(press_N, press_T, Lx, Ly, nPart, coordinates, Rc, Rc2, A, C_q, beta);
+                nMetroConf = 0;
                 Pt = 0;
                 press_N = 0;
                 press_T = 0;
@@ -198,12 +213,20 @@ int main()
          // Collect the characteristics of interest at equilibrium
          if(iter > nIterEq)
            {
-            // Update the total time
-            if(rosenbluth == true){Time += dt;}
-            // Update the amount of configurations
-            Mconf += 1;
+            if (iter == nIterEq+1)
+            {
+                press_N = 0;
+                press_T = 0;
+                press = 0;
+                Ener = 0;
+                Pt = 0;
+                nMetroConf = 0;
+            }
+            // Update the total time and the amount of configurations for kMC (chemical potential calculation)
+            if(rosenbluth) {Time += dt; Mconf++;}
 
             layer_map(nPart, coordinates, xy_matrix);
+            //create xyz animation
             if((iter-1) % ((nIter-nIterEq)/300) == 0)
               {
                    write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
@@ -212,7 +235,7 @@ int main()
 
             if((iter%nPart) == 0)
               {
-               if(rosenbluth == true){Pt += dt;}
+               if(rosenbluth) {Pt += dt;} else {nMetroConf++;}
 
                // Calculate the pressure tensor
                p_N = 0; p_T = 0; p_Tot = 0; E_per_Part = 0;
@@ -222,58 +245,53 @@ int main()
                for(int i = 0; i < nPart; i++){E_per_Part += coordinates[i].energy;}
                E_per_Part /= nPart;
 
-               if(rosenbluth == true)
-               { // For calculating time averages with kMC
-                press_N += p_N*dt;
-                press_T += p_T*dt;
-                press += p_Tot*dt;
-                Ener += E_per_Part*dt;
-               }
-               else { // For calculating ensemble averages with sMC
-                     press_N += p_N;
-                     press_T += p_T;
-                     press += p_Tot;
-                     Ener += E_per_Part;
-                     nMetroConf += 1;
-                    }
+               if(rosenbluth)
+                { // For calculating time averages with kMC
+                    press_N += p_N*dt;
+                    press_T += p_T*dt;
+                    press += p_Tot*dt;
+                    Ener += E_per_Part*dt;
+                }
+               else
+                { // For calculating ensemble averages with sMC
+                    press_N += p_N;
+                    press_T += p_T;
+                    press += p_Tot;
+                    Ener += E_per_Part;
+                }
               }
             }
 
          // A new random position is chosen uniformly over the whole volume of the system
          // and update the energies of all molecules in the system
-         if(rosenbluth == true){replace_the_trialParticle_and_update_energies(nPart, trialPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}
+         if(rosenbluth) {replace_the_trialParticle_and_update_energies(nPart, trialPart, Rc, Rc2, Lx, Ly, beta, A, C_q, coordinates);}
        }
 
      double mu = 0;
-     if(rosenbluth == true)
-       {
+     if(rosenbluth)
+        {
          mu = log(Mconf/Lx/Ly) - log(Time);
 
          // kMC simulation
          // Calculate the virial pressure
          press_N = press_N/Pt;                   // Time average normal pressure
-         //press_N = Temp*(1.0 - press_N/density)/1000/Ly/Lz;
-         //press_N = (temperature*nPart + press_N)/Ly/Lz;
          press_N = (temperature*R*nPart + press_N*6.02e+23)/nPart/1000;
          press_T = press_T/Pt;                   // Time average tangential pressure
-         //press_T = Temp*(1.0 - press_T/density)/1000/Lx/Lz;
-         //press_T = (Temp*nPart + press_T)/Lx/Lz;
          press_T = (temperature*R*nPart + press_T*6.02e+23)/nPart/1000;
          press = press/Pt;                       // Time average total pressure
-         //press = Temp*(1.0 - press/2.0/density)/1000/Lz;
-         //press = (Temp*nPart + press_T/2.0)/Lz;
          press = (temperature*R*nPart + press*6.02e+23/2.0)/nPart/1000;
          Ener = Ener/Pt;
-       }
-       else { // Metropolis run
-             press_N = press_N/nMetroConf;       // Ensemble average normal pressure
-             press_N = (temperature*R*nPart + press_N*6.02e+23)/nPart/1000;
-             press_T = press_T/nMetroConf;       // Ensemble average tangential pressure
-             press_T = (temperature*R*nPart + press_T*6.02e+23)/nPart/1000;
-             press = press/nMetroConf;           // Ensemble average total pressure
-             press = (temperature*R*nPart + press*6.02e+23/2.0)/nPart/1000;
-             Ener = Ener/nMetroConf;
-            }
+        }
+       else
+        { // Metropolis run
+            press_N = press_N/nMetroConf;       // Ensemble average normal pressure
+            press_N = (temperature*R*nPart + press_N*6.02e+23)/nPart/1000;
+            press_T = press_T/nMetroConf;       // Ensemble average tangential pressure
+            press_T = (temperature*R*nPart + press_T*6.02e+23)/nPart/1000;
+            press = press/nMetroConf;           // Ensemble average total pressure
+            press = (temperature*R*nPart + press*6.02e+23/2.0)/nPart/1000;
+            Ener = Ener/nMetroConf;
+        }
 
      // Write the final configuration
      //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "final");
