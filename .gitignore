@@ -4,6 +4,9 @@
 *.o
 *.obj
 *.dat
+*.depend
+*.layout
+*.xyz
 
 # Precompiled Headers
 *.gch
