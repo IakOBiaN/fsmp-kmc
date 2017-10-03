@@ -197,8 +197,8 @@ double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &
              }
        }
     }
-    //cout << "LJ=" << 4*beta*U_LJ << " QQ=" << U_QQ/eps << endl;
+
     double energy = 4.0*beta*(U_LJ + 331.8e-12*U_QQ/eps/4.0);
-    if(energy > gm){energy = gm;}
+    //if(energy > gm){energy = gm;}
     return energy;
 }

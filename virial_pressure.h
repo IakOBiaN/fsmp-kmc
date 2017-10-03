@@ -1,5 +1,5 @@
  void virial_pressure (int &nPart, double &Lx, double &Ly, double &beta, double &Rc, double &Rc2, vector <state> &coordinates,
-                         double &p_N, double &p_T, double &p_Tot, const double &A, double &C_q)
+                         double &p_X_LJ, double &p_X_QQ, double &p_Y_LJ, double &p_Y_QQ, const double &A, double &C_q)
  {
 
   double dn2 = 0.33092224232;               // Distance between nitrogen atoms in sigma units
@@ -27,12 +27,10 @@
         valarray<double> l_j={cos(molB.phi), sin(molB.phi)};
         valarray<double> r_ij;
 
-        double P_LJ_N=0, P_LJ_appr_N=0;
-        double P_QQ_N=0, P_QQ_appr_N=0;
-        double P_LJ_T=0, P_LJ_appr_T=0;
-        double P_QQ_T=0, P_QQ_appr_T=0;
-        double P_LJ=0, P_LJ_appr=0;
-        double P_QQ=0, P_QQ_appr=0;
+        double P_LJ_X=0;
+        double P_QQ_X=0, P_QQ_appr_X=0;
+        double P_LJ_Y=0;
+        double P_QQ_Y=0, P_QQ_appr_Y=0;
         valarray<double> vect;
 
         double xxx  = molA.x;
@@ -61,45 +59,37 @@
                     // Exact calculation of LJ pressure
 
                     //AC
-                    vect = dn2/2*l_i+r_ij-dn2/2*l_j;
+                    vect = dn2/2.0*l_i+r_ij-dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     double invDr6 = 1.0/pow(dist2, 3);
-                    dist = sqrt((vect*vect).sum());
-                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
-                    vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
-                    P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
-                    P_LJ += vir_LJ*dist2;
+                    if(dist < 0.7521) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
+                    P_LJ_X += vir_LJ*abs(vect[0])*x1;
+                    P_LJ_Y += vir_LJ*abs(vect[1])*y1;
                     //BD
-                    vect = -dn2/2*l_i+r_ij+dn2/2*l_j;
+                    vect = -dn2/2.0*l_i+r_ij+dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
-                    dist = sqrt((vect*vect).sum());
-                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
-                    vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
-                    P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
-                    P_LJ += vir_LJ*dist2;
+                    if(dist < 0.7521) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
+                    P_LJ_X += vir_LJ*abs(vect[0])*x1;
+                    P_LJ_Y += vir_LJ*abs(vect[1])*y1;
                     //AD
-                    vect = dn2/2*l_i+r_ij+dn2/2*l_j;
+                    vect = dn2/2.0*l_i+r_ij+dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
-                    dist = sqrt((vect*vect).sum());
-                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
-                    vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
-                    P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
-                    P_LJ += vir_LJ*dist2;
+                    if(dist < 0.7521) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
+                    P_LJ_X += vir_LJ*abs(vect[0])*x1;
+                    P_LJ_Y += vir_LJ*abs(vect[1])*y1;
                     //BC
-                    vect = -dn2/2*l_i+r_ij-dn2/2*l_j;
+                    vect = -dn2/2.0*l_i+r_ij-dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
-                    dist = sqrt((vect*vect).sum());
-                    if(dist < 0.7521){p_N = 0; p_T = 0; p_Tot = 0; return;}
-                    vir_LJ = invDr6 * (2*invDr6 - 1)/dist;
-                    P_LJ_N += vir_LJ*(abs(vect[0])/dist)*x1;
-                    P_LJ_T += vir_LJ*(abs(vect[1])/dist)*y1;
-                    P_LJ += vir_LJ*dist2;
+                    if(dist < 0.7521) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
+                    P_LJ_X += vir_LJ*abs(vect[0])*x1;
+                    P_LJ_Y += vir_LJ*abs(vect[1])*y1;
 
                     // Approximate calculation of the LJ interaction
                     // through the point potential
@@ -132,145 +122,129 @@
                     vect = dq2*l_i+r_ij-dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // A1B2
                     vect = dq2*l_i+r_ij-dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // A1C2
                     vect = dq2*l_i+r_ij+dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // A1D2
                     vect = dq2*l_i+r_ij+dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // B1A2
                     vect = dq1*l_i+r_ij-dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // B1B2
                     vect = dq1*l_i+r_ij-dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // B1C2
                     vect = dq1*l_i+r_ij+dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // B1D2
                     vect = dq1*l_i+r_ij+dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // C1A2
                     vect = -dq1*l_i+r_ij-dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // C1B2
                     vect = -dq1*l_i+r_ij-dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // C1C2
                     vect = -dq1*l_i+r_ij+dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // C1D2
                     vect = -dq1*l_i+r_ij+dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // D1A2
                     vect = -dq2*l_i+r_ij-dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // D1B2
                     vect = -dq2*l_i+r_ij-dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // D1C2
                     vect = -dq2*l_i+r_ij+dq1*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N -= vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T -= vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ -= vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X -= vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y -= vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // D1D2
                     vect = -dq2*l_i+r_ij+dq2*l_j;
                     dist2 = (vect*vect).sum();
                     dist = sqrt(dist2);
-                    vir_QQ = - A*q2/dist2;
-                    P_QQ_N += vir_QQ*(abs(vect[0])/dist)*x1;
-                    P_QQ_T += vir_QQ*(abs(vect[1])/dist)*y1;
-                    P_QQ += vir_QQ*dist2;
+                    vir_QQ =  A*q2/dist2;
+                    P_QQ_X += vir_QQ*(abs(vect[0])/dist)*x1;
+                    P_QQ_Y += vir_QQ*(abs(vect[1])/dist)*y1;
 
                     // Exact calculation of QQ interaction
                     // in A1B1C1D1 - A2B2C2D2 pair
@@ -292,28 +266,22 @@
                  }
            }
         }
-/*
-        P_LJ_N *= 24*beta/Lx;
-        P_LJ_T *= 24*beta/Ly;
-        P_LJ *= 24*beta/Lx/Ly;
-        P_QQ_N *= -beta/Lx/eps;
-        P_QQ_T *= -beta/Lx/eps;
-        P_QQ *= -beta/Lx/Ly/eps;
-*/
-        P_LJ_N *= 24*eps/Lx;
-        //cout << "P_LJ_N: " << P_LJ_N << endl;
-        P_LJ_T *= 24*eps/Ly;
-        //cout << "P_LJ_T: " << P_LJ_T << endl;
-        P_LJ *= 24*eps/Lx/Ly;
-        P_QQ_N *= 1.0/Lx*331.8e-12;
-        //cout << "P_QQ_N: " << P_QQ_N << endl;
-        P_QQ_T *= 1.0/Ly*331.8e-12;
-        //cout << "P_QQ_T: " << P_QQ_T << endl;
-        P_QQ *= 1.0/Lx/Ly*331.8e-12;
 
-        p_N += P_LJ_N+P_QQ_N;
-        p_T += P_LJ_T+P_QQ_T;
-        p_Tot += P_LJ + P_QQ;
+        P_LJ_X *= 24*eps/Lx;
+        P_LJ_Y *= 24*eps/Ly;
+        P_QQ_X *= 1.0/Lx*331.8e-12;
+        P_QQ_Y *= 1.0/Ly*331.8e-12;
+
+        //TEST_pressureN_LJ += P_LJ_N;
+        //TEST_pressureN_QQ += P_QQ_N;
+        //TEST_pressureT_LJ += P_LJ_T;
+        //TEST_pressureT_QQ += P_QQ_T;
+
+        p_X_LJ += P_LJ_X;
+        p_X_QQ += P_QQ_X;
+        p_Y_LJ += P_LJ_Y;
+        p_Y_QQ += P_QQ_Y;
      }
   }
+
 }
