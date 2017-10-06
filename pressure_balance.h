@@ -1,4 +1,4 @@
-void pressure_balance(double &press_N, double &press_T, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &Rc,
+void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &Rc,
                      double &Rc2, const double &A, double &C_q, double &beta)
 {
     double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
@@ -6,7 +6,7 @@ void pressure_balance(double &press_N, double &press_T, double &Lx, double &Ly, 
     dL = 0.005;
     double eps = 0.515e-21;
 
-       if(press_T > press_N)
+       if(press_X > press_Y)
        {
         Lx_new = Lx - dL;
         Ly_new = S/Lx_new;  // Area of the adlayer is kept constant

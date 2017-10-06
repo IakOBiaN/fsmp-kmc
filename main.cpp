@@ -52,6 +52,7 @@ double TEST_pressureT_QQ;
 #include "initConfigHerringbone.h"
 #include "initConfigPinwheel.h"
 #include "PotentialEnergy.h"
+#include "PotentialEnergy_SEP.h"
 #include "Rosenbluth_algorithm_simple.h"
 #include "replace_the_trialParticle_and_update_energies.h"
 #include "Metropolis_iteration.h"
@@ -105,8 +106,8 @@ int main()
  double k_B = 1.38e-23;
 
  double Pt = 0;
- double press_X_LJ = 0, press_X_QQ = 0, press_Y_LJ = 0, press_Y_QQ = 0, press_X, press_Y, Ener = 0;
- double p_X_LJ, p_X_QQ, p_Y_LJ, p_Y_QQ, E_per_Part;
+ double press_X_LJ = 0, press_X_QQ = 0, press_Y_LJ = 0, press_Y_QQ = 0, press_X=0, press_Y=0, Energy_LJ=0, Energy_QQ=0, AV_Energy_LJ=0, AV_Energy_QQ=0;
+ double p_X_LJ=0, p_X_QQ=0, p_Y_LJ=0, p_Y_QQ=0, E_per_Part=0;
 
  // Set initial configuration
  double Lx=0,Ly=0;  // Linear size of the system
@@ -153,7 +154,7 @@ int main()
      // Set the Monte Carlo run
      int nSteps = 50000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 20000;          // MCS for relaxation
+     int nStepsEq = 25000;          // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -181,37 +182,45 @@ int main()
 
          //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
-/*
+
         if(iter < nIterEq && (iter%nPart) == 0)
         {
-                p_N = 0; p_T = 0;
-                virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_N, p_T, A, C_q);
+                p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0;
+                virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_X_LJ, p_X_QQ, p_Y_LJ, p_Y_QQ, A, C_q);
                 if (rosenbluth)
                 {
                     Pt += dt;
-                    press_N += p_N*dt;
-                    press_T += p_T*dt;
+                    press_X_LJ += p_X_LJ*dt;
+                    press_X_QQ += p_X_QQ*dt;
+                    press_Y_LJ += p_Y_LJ*dt;
+                    press_Y_QQ += p_Y_QQ*dt;
                 }
                 else
                 {
                     nMetroConf++;
-                    press_N += p_N;
-                    press_T += p_T;
+                    press_X_LJ += p_X_LJ;
+                    press_X_QQ += p_X_QQ;
+                    press_Y_LJ += p_Y_LJ;
+                    press_Y_QQ += p_Y_QQ;
                 }
 
             if((iter%(500*nPart))==0 && iter != 0)
             {
                 if (rosenbluth)
                 {
-                    press_N /= Pt;          //average normal pressure for kMC
-                    press_T /= Pt;          //average tangential pressure for MC
+                    press_X_LJ /= Pt;
+                    press_X_QQ /= Pt;
+                    press_Y_LJ /= Pt;
+                    press_Y_QQ /= Pt;
                 }
                 else
                 {
-                    press_N /= nMetroConf;  //average normal pressure for MC
-                    press_T /= nMetroConf;  //average tangential pressure for MC
+                    press_X_LJ /= nMetroConf;
+                    press_X_QQ /= nMetroConf;
+                    press_Y_LJ /= nMetroConf;
+                    press_Y_QQ /= nMetroConf;
                 }
-
+/*
                 TEST_pressureN_LJ = 0;
                 TEST_pressureN_QQ = 0;
                 TEST_pressureT_LJ = 0;
@@ -225,15 +234,17 @@ int main()
                 cout << "T_LJ:" << TEST_pressureT_LJ/Lx/Ly/sigma/sigma*1000 << " T_QQ:" << TEST_pressureT_QQ/Lx/Ly/sigma/sigma*1000 << endl;
                 cout << "N:" << k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000+TEST_pressureN_LJ/Ly/sigma/sigma*1000+TEST_pressureN_QQ/Ly/Lx/sigma/sigma*1000;
                 cout << " T:" << k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000+TEST_pressureT_LJ/Lx/sigma/sigma*1000+TEST_pressureT_QQ/Lx/Ly/sigma/sigma*1000 << endl;
-
-                //pressure_balance(press_N, press_T, Lx, Ly, nPart, coordinates, Rc, Rc2, A, C_q, beta);
+*/
+                pressure_balance((press_X_LJ + press_X_QQ), (press_Y_LJ + press_Y_QQ), Lx, Ly, nPart, coordinates, Rc, Rc2, A, C_q, beta);
                 nMetroConf = 0;
                 Pt = 0;
-                press_N = 0;
-                press_T = 0;
+                press_X_LJ = 0;
+                press_X_QQ = 0;
+                press_Y_LJ = 0;
+                press_Y_QQ = 0;
             }
         }
-*/
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
@@ -245,7 +256,8 @@ int main()
                 press_X_QQ = 0;
                 press_Y_LJ = 0;
                 press_Y_QQ = 0;
-                Ener = 0;
+                AV_Energy_LJ = 0;
+                AV_Energy_QQ = 0;
                 Pt = 0;
                 nMetroConf = 0;
             }
@@ -267,10 +279,11 @@ int main()
                // Calculate the pressure tensor
                p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; E_per_Part = 0;
                virial_pressure(nPart, Lx, Ly, beta, Rc, Rc2, coordinates, p_X_LJ, p_X_QQ, p_Y_LJ, p_Y_QQ,  A, C_q);
-
-               // Calculate the energy per molecule
-               for(int i = 0; i < nPart; i++){E_per_Part += coordinates[i].energy;}
-               E_per_Part /= nPart;
+               Energy_LJ = 0;
+               Energy_QQ = 0;
+               PotentialEnergy_SEP(nPart, Lx, Ly, Rc, Rc2, coordinates, A, C_q, beta, Energy_LJ, Energy_QQ);
+               Energy_LJ /= nPart;
+               Energy_QQ /= nPart;
 
                if(rosenbluth)
                 { // For calculating time averages with kMC
@@ -278,7 +291,8 @@ int main()
                     press_X_QQ += p_X_QQ*dt;
                     press_Y_LJ += p_Y_LJ*dt;
                     press_Y_QQ += p_Y_QQ*dt;
-                    Ener += E_per_Part*dt;
+                    AV_Energy_LJ += Energy_LJ*dt;
+                    AV_Energy_QQ += Energy_QQ*dt;
                 }
                else
                 { // For calculating ensemble averages with sMC
@@ -286,7 +300,8 @@ int main()
                     press_X_QQ += p_X_QQ;
                     press_Y_LJ += p_Y_LJ;
                     press_Y_QQ += p_Y_QQ;
-                    Ener += E_per_Part;
+                    AV_Energy_LJ += Energy_LJ;
+                    AV_Energy_QQ += Energy_QQ;
                 }
               }
             }
@@ -318,27 +333,28 @@ int main()
             press_Y_LJ = press_Y_LJ/nMetroConf;
             press_Y_QQ = press_Y_QQ/nMetroConf;
 
-            press_X_LJ = press_X_LJ/Ly/Lx/sigma/sigma*1000;
-            press_X_QQ = press_X_QQ/Ly/Lx/sigma/sigma*1000;
-            press_Y_LJ = press_Y_LJ/Ly/Lx/sigma/sigma*1000;
-            press_Y_QQ = press_Y_QQ/Ly/Lx/sigma/sigma*1000;
+            press_X_LJ = press_X_LJ/Ly/sigma/sigma*1000/2.0;
+            press_X_QQ = press_X_QQ/Ly/sigma/sigma*1000/2.0;
+            press_Y_LJ = press_Y_LJ/Lx/sigma/sigma*1000/2.0;
+            press_Y_QQ = press_Y_QQ/Lx/sigma/sigma*1000/2.0;
 
             press_X = k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000 + press_X_LJ + press_X_QQ;
             press_Y = k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000 + press_Y_LJ + press_Y_QQ;
 
-            Ener = Ener/nMetroConf;
+            AV_Energy_LJ = AV_Energy_LJ/nMetroConf;
+            AV_Energy_QQ = AV_Energy_QQ/nMetroConf;
         }
 
      // Write the final configuration
      //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "final");
 
      // Write the calculated data to a file
-     writeData(density, mu, Ener, press_X, press_Y, press_X_LJ, press_X_QQ, press_Y_LJ, press_Y_QQ, Lx, Ly);
+     writeData(density, mu, (AV_Energy_LJ+AV_Energy_QQ)*k_B*temperature*N_a/1000.0, AV_Energy_LJ*k_B*temperature*N_a/1000.0, AV_Energy_QQ*k_B*temperature*N_a/1000.0, press_X, press_Y, press_X_LJ, press_X_QQ, press_Y_LJ, press_Y_QQ, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
-     cout << "rho: " << density << "\t" << "mu: " << mu << "\t" << "en(kJ/mol): " << Ener*eps*N_a/1000.0 << endl;
+     cout << "rho: " << density << "\t" << "mu: " << mu << "\t" << "en(kJ/mol): " << (AV_Energy_LJ+AV_Energy_QQ)*k_B*temperature*N_a/1000.0 << endl;
 
     }
  return 0;
