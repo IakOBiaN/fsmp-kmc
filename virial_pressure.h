@@ -62,7 +62,7 @@
                     vect = dn2/2.0*l_i+r_ij-dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     double invDr6 = 1.0/pow(dist2, 3);
-                    //if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
                     vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
                     P_LJ_X += vir_LJ*vect[0]*x1;
                     P_LJ_Y += vir_LJ*vect[1]*y1;
@@ -70,7 +70,7 @@
                     vect = -dn2/2.0*l_i+r_ij+dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
-                    //if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
                     vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
                     P_LJ_X += vir_LJ*vect[0]*x1;
                     P_LJ_Y += vir_LJ*vect[1]*y1;
@@ -78,7 +78,7 @@
                     vect = dn2/2.0*l_i+r_ij+dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
-                    //if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
                     vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
                     P_LJ_X += vir_LJ*vect[0]*x1;
                     P_LJ_Y += vir_LJ*vect[1]*y1;
@@ -86,7 +86,7 @@
                     vect = -dn2/2.0*l_i+r_ij-dn2/2.0*l_j;
                     dist2 = (vect*vect).sum();
                     invDr6 = 1.0/pow(dist2, 3);
-                    //if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
+                    if(dist2 < 0.56565441) {p_X_LJ = 0; p_X_QQ = 0; p_Y_LJ = 0; p_Y_QQ = 0; return;}
                     vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
                     P_LJ_X += vir_LJ*vect[0]*x1;
                     P_LJ_Y += vir_LJ*vect[1]*y1;

@@ -189,7 +189,7 @@ int main()
                 press_Y_LJ /= Pt;
                 press_Y_QQ /= Pt;
 
-                //pressure_balance((press_X_LJ + press_X_QQ), (press_Y_LJ + press_Y_QQ), Lx, Ly, nPart, coordinates, beta);
+                pressure_balance((press_X_LJ + press_X_QQ), (press_Y_LJ + press_Y_QQ), Lx, Ly, nPart, coordinates, beta);
                 Pt = 0;
                 press_X_LJ = 0;
                 press_X_QQ = 0;
