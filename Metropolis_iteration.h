@@ -1,5 +1,4 @@
-void Metropolis_iteration(int &nPart, double &Rc, double &Rc2, double &Lx, double &Ly,
-                          double &beta, const double &A, double &C_q, vector <state> &coordinates)
+void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates)
 {
     double delta = 0.5;
     double delta_angle = 3.141592653589/36; // Maximal rotation in rad
@@ -19,51 +18,31 @@ void Metropolis_iteration(int &nPart, double &Rc, double &Rc2, double &Lx, doubl
       {
        new_coordinates.x = coordinates[trialPart].x + (2 * delta * RanGen.Random() - delta); // random(-delta; delta)
        new_coordinates.y = coordinates[trialPart].y + (2 * delta * RanGen.Random() - delta);
-
        // Apply periodic boundary conditions
        new_coordinates.x = PBC2D(Lx, new_coordinates.x);
        new_coordinates.y = PBC2D(Ly, new_coordinates.y);
-
-       for (int l = 0; l < nPart; l++)
-          {
-            if (l == trialPart){continue;}
-            delta_E_old = Inter_potential(coordinates[l], coordinates[trialPart], Rc, Rc2, Lx, Ly, A, C_q, beta);
-            oldE += delta_E_old;
-            delta_E_new = Inter_potential(coordinates[l], new_coordinates, Rc, Rc2, Lx, Ly, A, C_q, beta);
-            newE += delta_E_new;
-            add_E[l] = delta_E_new - delta_E_old;
-            add_E[trialPart] += add_E[l];
-          }
-       deltaE = newE - oldE;
-
-       if(RanGen.Random() < exp(-beta*deltaE))
-         {
-          // Accept displacement move
-          coordinates[trialPart] = new_coordinates;     // Update coordinates
-          for(int l = 0; l < nPart; l++){coordinates[l].energy = coordinates[l].energy + add_E[l];}
-         }
       }
     else
       {
        new_coordinates.phi = coordinates[trialPart].phi + delta_angle*(2.0 * RanGen.Random() - 1.0);
+      }
 
-       for (int l = 0; l < nPart; l++)
-          {
-            if (l == trialPart){continue;}
-            delta_E_old = Inter_potential(coordinates[l], coordinates[trialPart], Rc, Rc2, Lx, Ly, A, C_q, beta);
-            oldE += delta_E_old;
-            delta_E_new = Inter_potential(coordinates[l], new_coordinates, Rc, Rc2, Lx, Ly, A, C_q, beta);
-            newE += delta_E_new;
-            add_E[l] = delta_E_new - delta_E_old;
-            add_E[trialPart] += add_E[l];
-          }
-       deltaE = newE - oldE;
+    for (int l = 0; l < nPart; l++)
+      {
+       if (l == trialPart){continue;}
+       delta_E_old = Inter_potential(coordinates[l], coordinates[trialPart], Lx, Ly, beta);
+       oldE += delta_E_old;
+       delta_E_new = Inter_potential(coordinates[l], new_coordinates, Lx, Ly, beta);
+       newE += delta_E_new;
+       add_E[l] = delta_E_new - delta_E_old;
+       add_E[trialPart] += add_E[l];
+      }
+      deltaE = newE - oldE;
 
-       if(RanGen.Random() < exp(-deltaE))
-         {
-          // Accept rotation move
-          coordinates[trialPart] = new_coordinates;     // Update angles
-          for(int l = 0; l < nPart; l++){coordinates[l].energy = coordinates[l].energy + add_E[l];}
-         }
+      if(RanGen.Random() < exp(-deltaE))
+      {
+       // Accept rotation move
+       coordinates[trialPart] = new_coordinates;     // Update angles
+       for(int l = 0; l < nPart; l++){coordinates[l].energy = coordinates[l].energy + add_E[l];}
       }
 }

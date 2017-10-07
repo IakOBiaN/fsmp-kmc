@@ -1,5 +1,5 @@
- void virial_pressure (int &nPart, double &Lx, double &Ly, double &beta, double &Rc, double &Rc2, vector <state> &coordinates,
-                         double &p_X_LJ, double &p_X_QQ, double &p_Y_LJ, double &p_Y_QQ, const double &A, double &C_q)
+ void virial_pressure (int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates,
+                         double &p_X_LJ, double &p_X_QQ, double &p_Y_LJ, double &p_Y_QQ)
  {
 
   double dn2 = 0.33092224232;               // Distance between nitrogen atoms in sigma units
@@ -269,13 +269,8 @@
 
         P_LJ_X *= 24*eps/Lx;
         P_LJ_Y *= 24*eps/Ly;
-        //P_QQ_X *= 1.0/Lx*331.8e-12;
-        //P_QQ_Y *= 1.0/Ly*331.8e-12;
-
-        //TEST_pressureN_LJ += P_LJ_N;
-        //TEST_pressureN_QQ += P_QQ_N;
-        //TEST_pressureT_LJ += P_LJ_T;
-        //TEST_pressureT_QQ += P_QQ_T;
+        P_QQ_X *= 1.0/Lx*331.8e-12;
+        P_QQ_Y *= 1.0/Ly*331.8e-12;
 
         p_X_LJ += P_LJ_X;
         p_X_QQ += P_QQ_X;

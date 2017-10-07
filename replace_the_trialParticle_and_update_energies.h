@@ -1,5 +1,5 @@
-void replace_the_trialParticle_and_update_energies(int &nPart, int &trialPart, double &Rc, double &Rc2, double &Lx, double &Ly,
-                                                  double &beta, const double &A, double &C_q, vector <state> &coordinates)
+void replace_the_trialParticle_and_update_energies(int &nPart, int &trialPart, double &Lx, double &Ly,
+                                                  double &beta, vector <state> &coordinates)
 {
  state new_coordinates; // Make a clone of trail particle
 
@@ -17,9 +17,9 @@ void replace_the_trialParticle_and_update_energies(int &nPart, int &trialPart, d
  {
     double g;
     if (l == trialPart){continue;}
-    g = Inter_potential(coordinates[l], coordinates[trialPart], Rc, Rc2, Lx, Ly, A, C_q, beta);
+    g = Inter_potential(coordinates[l], coordinates[trialPart], Lx, Ly, beta);
     coordinates[l].energy -= g;
-    g = Inter_potential(coordinates[l], new_coordinates, Rc, Rc2, Lx, Ly, A, C_q, beta);
+    g = Inter_potential(coordinates[l], new_coordinates, Lx, Ly, beta);
     coordinates[l].energy += g;
     coordinates[trialPart].energy += g;
  }

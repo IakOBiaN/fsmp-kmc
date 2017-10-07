@@ -1,7 +1,6 @@
 using namespace std;
 
-void PotentialEnergy(int &nPart, double &Lx, double &Ly,
-                     double &Rc, double &Rc2, vector <state> &coordinates, const double &A, double &C_q, double &beta)
+void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordinates, double &beta)
 {
 
  double energy;
@@ -13,7 +12,7 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly,
     {
      for(int molB = (molA + 1); molB < nPart; molB++)
       {
-       energy = Inter_potential(coordinates[molA], coordinates[molB], Rc, Rc2, Lx, Ly, A, C_q, beta);
+       energy = Inter_potential(coordinates[molA], coordinates[molB], Lx, Ly, beta);
        coordinates[molA].energy += energy;
        coordinates[molB].energy += energy;
       }

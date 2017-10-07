@@ -1,4 +1,4 @@
-double Inter_potential(state molA, state molB, double &Rc, double &Rc2, double &Lx, double &Ly, const double &A, double &C_q, double &beta)
+double Inter_potential(state molA, state molB, double &Lx, double &Ly, double &beta)
 {
     //double sigma = 331.8e-12;                 // Sigma in pm
     //double dn2 = 109.8e-12;                   // Distance between nitrogen atoms in pm
