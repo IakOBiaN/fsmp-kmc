@@ -1,18 +1,5 @@
 double Inter_potential(state molA, state molB, double &Lx, double &Ly, double &beta)
 {
-    //double sigma = 331.8e-12;                 // Sigma in pm
-    //double dn2 = 109.8e-12;                   // Distance between nitrogen atoms in pm
-    //double dq1 = 84.7e-12;                    // Distance between "+" charge and center of quadrupole in pm
-    //double dq2 = 104.4e-12;                   // Distance between "-" charge and center of quadrupole in pm
-
-    double dn2 = 0.33092224232;               // Distance between nitrogen atoms in sigma units
-    double dq1 = 0.25527426160;               // Distance between "+" charge and center of quadrupole in sigma units
-    double dq2 = 0.31464737794;               // Distance between "-" charge and center of quadrupole in sigma units
-
-
-    double eps = 0.515e-21;                         // LJ energy for nitrogen in J
-    const double qe = 1.6021766208e-19;             // The charge of one electron in C
-    double q = 0.373*qe;                            // Charge of the quadrupole points in C
     double q2 = q*q;
     double dist,dist2,a,b,c;
     double gm = 50;
@@ -180,17 +167,16 @@ double Inter_potential(state molA, state molB, double &Lx, double &Ly, double &b
                 dist = sqrt((vect*vect).sum());
                 U_QQ += A*q2/dist;
 
-                //cout << "r: " << dist << "\t" << "dn2: " << dn2 << endl;
 
                 // Exact calculation of QQ interaction
                 // in A1B1C1D1 - A2B2C2D2 pair
-            /*
+/*
                 a=(r_ij*l_i).sum();
                 b=(r_ij*l_j).sum();
                 c=(l_i*l_j).sum();
                 dist2=(r_ij*r_ij).sum();
                 U_QQ_appr += C_q*(1+2*pow(c,2)-5*(pow(a,2)+pow(b,2)+4*a*b*c)/dist2+35*pow(a*b,2)/pow(dist2,2))/pow(dist2,2.5);
-            */
+*/
             //cout << "r_ij: " << sqrt(pow(r_ij[0],2)+pow(r_ij[1],2)+pow(r_ij[2],2))/sigma /*<< " LJ: " << U_LJ << " "*/ << "LJ: " << U_LJ << " QQ:" << U_QQ/eps << endl;
 
 

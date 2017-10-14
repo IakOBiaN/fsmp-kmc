@@ -2,9 +2,7 @@ using namespace std;
 
 void initConfigHerringbone (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
-double sigma = 331.8e-12;
-double N_a = 6.02214e+23;
-double ratio_x_to_y = 26.926/21.34;
+double ratio_x_to_y = 26.826/21.34;//26.826/21.34;
 double area = nPart*1000000/(state_dens*pow(sigma,2)*N_a);
 Lx = sqrt(area*ratio_x_to_y);
 Ly = Lx/ratio_x_to_y;
@@ -26,7 +24,7 @@ int molecule = 0; // Molecules counter
             if((j%2)==0){
                           coordinates[molecule].x = PBC2D(Lx, j*a/2.0);
                           coordinates[molecule].y = PBC2D(Ly, i*b);
-                          coordinates[molecule].phi = 135.0*(3.141592653589/180.0);
+                          coordinates[molecule].phi = -45.0*(3.141592653589/180.0);
                           molecule++;
                          }
             }
@@ -35,7 +33,7 @@ int molecule = 0; // Molecules counter
             if((j%2)!=0){
                         coordinates[molecule].x = PBC2D(Lx, j*a/2.0);
                         coordinates[molecule].y = PBC2D(Ly, i*b);
-                        coordinates[molecule].phi = -135.0*(3.141592653589/180.0);
+                        coordinates[molecule].phi = 45.0*(3.141592653589/180.0);
                         molecule++;
                        }
             }

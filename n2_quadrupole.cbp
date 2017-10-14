@@ -31,22 +31,16 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="Inter_potential.h" />
 		<Unit filename="Metropolis_iteration.h" />
 		<Unit filename="PBC2D.h" />
 		<Unit filename="PotentialEnergy.h" />
 		<Unit filename="Rosenbluth_algorithm_simple.h" />
-		<Unit filename="initConfig.h" />
+		<Unit filename="energies_and_forces.h" />
 		<Unit filename="initConfigHerringbone.h" />
-		<Unit filename="initConfigPinwheel.h" />
-		<Unit filename="inter_for_pressure.h" />
-		<Unit filename="inter_for_pressure_ab.h" />
 		<Unit filename="layer_map.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="pressure_balance.h" />
 		<Unit filename="replace_the_trialParticle_and_update_energies.h" />
-		<Unit filename="virial_pressure.h" />
-		<Unit filename="writeConfigPBC.h" />
 		<Unit filename="writeData.h" />
 		<Unit filename="write_xy_matrix.h" />
 		<Unit filename="write_xyz_file.h" />

@@ -3,18 +3,28 @@ using namespace std;
 void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordinates, double &beta)
 {
 
- double energy;
+ results en_and_press;
 
- for(int i = 0; i < nPart; i++){coordinates[i].energy = 0;}
+EN_AND_PR_counter.energy = 0;
+EN_AND_PR_counter.p.X_LJ = 0;
+EN_AND_PR_counter.p.X_QQ = 0;
+EN_AND_PR_counter.p.Y_LJ = 0;
+EN_AND_PR_counter.p.Y_QQ = 0;
+
+if (rosenbluth) {for(int i = 0; i < nPart; i++) {coordinates[i].energy = 0;}}
 
  // Loop over all distinct particle pairs
  for(int molA = 0; molA < (nPart - 1); molA++)
     {
      for(int molB = (molA + 1); molB < nPart; molB++)
       {
-       energy = Inter_potential(coordinates[molA], coordinates[molB], Lx, Ly, beta);
-       coordinates[molA].energy += energy;
-       coordinates[molB].energy += energy;
+           en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta);
+           if (rosenbluth)
+           {
+                coordinates[molA].energy += en_and_press.energy;
+                coordinates[molB].energy += en_and_press.energy;
+           }
+           EN_AND_PR_counter = EN_AND_PR_counter + en_and_press;
       }
     }
 }
