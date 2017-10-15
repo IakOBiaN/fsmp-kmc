@@ -25,31 +25,51 @@ double X_LJ;
 double X_QQ;
 double Y_LJ;
 double Y_QQ;
+pressure operator+(pressure& b) {
+         pressure press;
+         press.X_LJ = this->X_LJ + b.X_LJ;
+         press.X_QQ = this->X_QQ + b.X_QQ;
+         press.Y_LJ = this->Y_LJ + b.Y_LJ;
+         press.Y_QQ = this->Y_QQ + b.Y_QQ;
+         return press;
+      }
+pressure operator-(pressure& b) {
+         pressure press;
+         press.X_LJ = this->X_LJ - b.X_LJ;
+         press.X_QQ = this->X_QQ - b.X_QQ;
+         press.Y_LJ = this->Y_LJ - b.Y_LJ;
+         press.Y_QQ = this->Y_QQ - b.Y_QQ;
+         return press;
+      }
 };
 
 class results {
 public:
 double energy;
 pressure p;
+results();      //constructor
 results operator+(results& b) {
          results res;
          res.energy = this->energy + b.energy;
-         res.p.X_LJ = this->p.X_LJ + b.p.X_LJ;
-         res.p.X_QQ = this->p.X_QQ + b.p.X_QQ;
-         res.p.Y_LJ = this->p.Y_LJ + b.p.Y_LJ;
-         res.p.Y_QQ = this->p.Y_QQ + b.p.Y_QQ;
+         res.p = this->p + b.p;
          return res;
       }
 results operator-(results& b) {
          results res;
          res.energy = this->energy - b.energy;
-         res.p.X_LJ = this->p.X_LJ - b.p.X_LJ;
-         res.p.X_QQ = this->p.X_QQ - b.p.X_QQ;
-         res.p.Y_LJ = this->p.Y_LJ - b.p.Y_LJ;
-         res.p.Y_QQ = this->p.Y_QQ - b.p.Y_QQ;
+         res.p = this->p - b.p;
          return res;
       }
 };
+
+//constructor
+results::results(void) {
+   energy = 0;
+   p.X_LJ = 0;
+   p.X_QQ = 0;
+   p.Y_LJ = 0;
+   p.Y_QQ = 0;
+}
 
 // Class contains the function descrabing the state of the molecule:
 // 1) coordinates
@@ -75,9 +95,12 @@ void state::set_state (double c_x, double c_y, double c_phi, double c_en, double
 bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then Metropolis algorithm works
 bool energy_QQ_exact = false;
 bool pressure_QQ_exact = false;
-results EN_AND_PR_counter;         //pressures in the system.
+results EN_AND_PR_counter;                           //pressures in the system.
+double ACCEPTANCE_RATIO[2] = {0, 0};                          //0 - not accepted steps of rotation, 1 - accepted steps of rotation
+double delta = 0.5;                                  //MC parameter
+double delta_angle = 5.0*(3.141592653589/180.0);     //MC parameter. Maximal rotation in rad
 double R = 8.3144598;
-double eps = 0.502e-21;                         // LJ energy for nitrogen in J
+double eps = 0.502e-21;                              // LJ energy for nitrogen in J
 double N_a = 6.02214e+23;
 double sigma = 331.8e-12;
 double k_B = 1.38e-23;
@@ -183,9 +206,9 @@ int main()
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 
      // Set the Monte Carlo run
-     int nSteps = 100000;            // Total amount of MCS
+     int nSteps = 30000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 70000;           // MCS for relaxation
+     int nStepsEq = 20000;           // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -228,12 +251,15 @@ int main()
                 press.Y_QQ /= Pt;
 
                 pressure_balance ((press.X_LJ + press.X_QQ), (press.Y_LJ + press.Y_QQ), Lx, Ly, nPart, coordinates, beta);
+                cout << "acceptance_ration(rotation)=" << ACCEPTANCE_RATIO[1]/(ACCEPTANCE_RATIO[0]+ACCEPTANCE_RATIO[1]) << endl;
                 Pt = 0;
                 press.X_LJ = 0;
                 press.X_QQ = 0;
                 press.Y_LJ = 0;
                 press.Y_QQ = 0;
                 balanceEq = 0;
+                ACCEPTANCE_RATIO[0] = 0;
+                ACCEPTANCE_RATIO[1] = 0;
             }
         }
 

@@ -1,19 +1,15 @@
 void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates)
 {
-    double delta = 0.5;
-    double delta_angle = 3.141592653589/36; // Maximal rotation in rad
 
     //vector <double> add_E(nPart);
     //for (int l = 0; l < nPart; l++){add_E[l] = 0;}
 
     int trialPart = RanGen.IRandom(0,(nPart-1));
+    bool angle_change = false;
 
     state new_coordinates = coordinates[trialPart]; // Make a clone of trail particle
 
-    results delta_EP;
-    delta_EP.energy = 0; delta_EP.p.X_LJ = 0; delta_EP.p.X_QQ = 0; delta_EP.p.Y_LJ = 0; delta_EP.p.Y_QQ = 0;
-    results old_EP = delta_EP, delta_EP_old = delta_EP;
-    results new_EP = delta_EP, delta_EP_new = delta_EP;
+    results delta_EP, old_EP, delta_EP_old, new_EP, delta_EP_new;
 
     if(RanGen.Random() < 0.5) // Move or Rotate a molecule
       {
@@ -26,6 +22,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
     else
       {
        new_coordinates.phi = coordinates[trialPart].phi + delta_angle*(2.0 * RanGen.Random() - 1.0);
+       angle_change = true;
       }
 
     for (int l = 0; l < nPart; l++)
@@ -47,5 +44,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        coordinates[trialPart] = new_coordinates;     // Update angles
        //for(int l = 0; l < nPart; l++){coordinates[l].energy = coordinates[l].energy + add_E[l];}
        EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
+       if (angle_change) {ACCEPTANCE_RATIO[1] += 1.0;}
       }
+      else
+        {if(angle_change) {ACCEPTANCE_RATIO[0] +=1.0;}}
 }

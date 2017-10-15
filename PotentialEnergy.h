@@ -5,11 +5,7 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordin
 
  results en_and_press;
 
-EN_AND_PR_counter.energy = 0;
-EN_AND_PR_counter.p.X_LJ = 0;
-EN_AND_PR_counter.p.X_QQ = 0;
-EN_AND_PR_counter.p.Y_LJ = 0;
-EN_AND_PR_counter.p.Y_QQ = 0;
+EN_AND_PR_counter = en_and_press;
 
 if (rosenbluth) {for(int i = 0; i < nPart; i++) {coordinates[i].energy = 0;}}
 
