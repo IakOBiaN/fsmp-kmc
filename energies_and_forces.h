@@ -272,9 +272,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                             en_and_press.p.Y_QQ += vir_QQ*vect[1]*y1/dist;
                         }
                 }
-                else
+                else    //Approximate calculation of QQ interaction and pressure in A1B1C1D1 - A2B2C2D2 pair
                 {
-                        //Approximate calculation of QQ interaction and pressure in A1B1C1D1 - A2B2C2D2 pair
                         b1 = (r_ij*l_i).sum();
                         b2 = (r_ij*l_j).sum();
                         g = (l_i*l_j).sum();

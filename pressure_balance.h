@@ -25,6 +25,9 @@ void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, in
        Ly = Ly_new;
        // Recalculate energies after compressing or expanding the box
        PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-       if (ACCEPTANCE_RATIO[1]/(ACCEPTANCE_RATIO[0]+ACCEPTANCE_RATIO[1]) < 0.25) {delta_angle -= 5.0*(3.141592653589/180.0);}
-       if (ACCEPTANCE_RATIO[1]/(ACCEPTANCE_RATIO[0]+ACCEPTANCE_RATIO[1]) > 0.3) {delta_angle += 5.0*(3.141592653589/180.0);}
+       double AR = ACCEPTANCE_RATIO[1]/(ACCEPTANCE_RATIO[0]+ACCEPTANCE_RATIO[1]);
+       if (AR < 0.25 && delta_angle > 10.0*(3.141592653589/180.0) && delta_angle <= 90.0*(3.141592653589/180.0))
+        {delta_angle -= 5.0*(3.141592653589/180.0);}
+       if (AR > 0.3 && delta_angle >= 5.0*(3.141592653589/180.0) && delta_angle < 85.0*(3.141592653589/180.0))
+        {delta_angle += 5.0*(3.141592653589/180.0);}
 }

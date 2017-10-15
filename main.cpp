@@ -96,9 +96,9 @@ bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then M
 bool energy_QQ_exact = false;
 bool pressure_QQ_exact = false;
 results EN_AND_PR_counter;                           //pressures in the system.
-double ACCEPTANCE_RATIO[2] = {0, 0};                          //0 - not accepted steps of rotation, 1 - accepted steps of rotation
+double ACCEPTANCE_RATIO[2] = {0, 0};                 //0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double delta = 0.5;                                  //MC parameter
-double delta_angle = 5.0*(3.141592653589/180.0);     //MC parameter. Maximal rotation in rad
+double delta_angle = 90.0*(3.141592653589/180.0);     //MC parameter. Maximal rotation in rad
 double R = 8.3144598;
 double eps = 0.502e-21;                              // LJ energy for nitrogen in J
 double N_a = 6.02214e+23;
@@ -141,7 +141,7 @@ int main()
  ///////////////////////////////////////
 
  // Set configuration parameters
-  double density = 0;                // Density
+ double density = 0;                // Density
  double write_rad = 0.1098/0.3318;   // Disp. radius
 
  // N-N parameters: eps/k = 36.4 K, sigma = 0.3318 nm, Rc = 5 sigma
@@ -184,7 +184,11 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
  for(double state_dens = 10.5; state_dens < 10.6; state_dens += 1)
     {
-     EN_AND_PR_counter.energy = 0; EN_AND_PR_counter.p.X_LJ = 0; EN_AND_PR_counter.p.X_QQ = 0; EN_AND_PR_counter.p.Y_LJ = 0; EN_AND_PR_counter.p.Y_QQ = 0;
+     EN_AND_PR_counter.energy = 0;
+     EN_AND_PR_counter.p.X_LJ = 0;
+     EN_AND_PR_counter.p.X_QQ = 0;
+     EN_AND_PR_counter.p.Y_LJ = 0;
+     EN_AND_PR_counter.p.Y_QQ = 0;
      int frame = 0;
      // Generate an initial configuration for a fixed
      // number of particles and calculate required L
@@ -194,9 +198,8 @@ int main()
      //initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
 
      // Write the initial configuration
-     //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "initial");
-     write_xyz_file(nPart, Lx, Ly, temperature, coordinates, 0, 0, true);
-     write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
+     write_xyz_file(nPart, Lx, Ly, temperature, coordinates, 0, 0, true); // Clear the xyz-file
+     write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame, write_rad, false); // Write a current frame
      frame++;
 
      vector <vector <double>> xy_matrix(600, vector<double> (600));
@@ -205,7 +208,10 @@ int main()
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 
-     // Set the Monte Carlo run
+
+     /////////////////////////////
+     // Set the Monte Carlo run //
+     /////////////////////////////
      int nSteps = 30000;            // Total amount of MCS
      int nIter = nSteps * nPart;
      int nStepsEq = 20000;           // MCS for relaxation
@@ -214,10 +220,10 @@ int main()
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
      double dt = 0;
      int balanceEq = 0;
+
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
      //////////////////////////////////////////////////
-
 
      for(int iter = 1; iter <= nIter; iter++)
         {
@@ -228,14 +234,14 @@ int main()
          // according to the ROSENBLUTH scheme
          // and calculate the duration of the current configuration
 
-         if(!rosenbluth) {Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);dt = 1.0;}     // Make a MC iteration
-         //else {trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}                // kMC trial particle and dt calculation
+         if(!rosenbluth) {Metropolis_iteration(nPart, Lx, Ly, beta, coordinates); dt = 1.0;}     // Make a MC iteration
+         //else {trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}                 // kMC trial particle and dt calculation
 
 
-         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
         balanceEq++;
-        if((iter < nIterEq) && (balanceEq > nPart*10))
+        if((iter < nIterEq) && (balanceEq > nPart*100))
         {
                 Pt += dt;
                 press.X_LJ += EN_AND_PR_counter.p.X_LJ*dt;
@@ -243,7 +249,7 @@ int main()
                 press.Y_LJ += EN_AND_PR_counter.p.Y_LJ*dt;
                 press.Y_QQ += EN_AND_PR_counter.p.Y_QQ*dt;
 
-            if((iter%(300*nPart))==0 && iter != 0)
+            if((iter%(500*nPart))==0 && iter != 0)
             {
                 press.X_LJ /= Pt;
                 press.X_QQ /= Pt;
@@ -251,7 +257,8 @@ int main()
                 press.Y_QQ /= Pt;
 
                 pressure_balance ((press.X_LJ + press.X_QQ), (press.Y_LJ + press.Y_QQ), Lx, Ly, nPart, coordinates, beta);
-                cout << "acceptance_ration(rotation)=" << ACCEPTANCE_RATIO[1]/(ACCEPTANCE_RATIO[0]+ACCEPTANCE_RATIO[1]) << endl;
+                //cout << "acceptance_ration(rotation)=" << ACCEPTANCE_RATIO[1]/(ACCEPTANCE_RATIO[0]+ACCEPTANCE_RATIO[1])
+                //<< "\t" << "delta_Deg: " << delta_angle/(3.141592653589/180.0) << endl;
                 Pt = 0;
                 press.X_LJ = 0;
                 press.X_QQ = 0;

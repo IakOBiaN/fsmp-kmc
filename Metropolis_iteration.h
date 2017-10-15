@@ -1,15 +1,16 @@
 void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates)
 {
 
-    //vector <double> add_E(nPart);
-    //for (int l = 0; l < nPart; l++){add_E[l] = 0;}
-
     int trialPart = RanGen.IRandom(0,(nPart-1));
     bool angle_change = false;
 
     state new_coordinates = coordinates[trialPart]; // Make a clone of trail particle
 
-    results delta_EP, old_EP, delta_EP_old, new_EP, delta_EP_new;
+    results delta_EP;
+    results old_EP;
+    results delta_EP_old;
+    results new_EP;
+    results delta_EP_new;
 
     if(RanGen.Random() < 0.5) // Move or Rotate a molecule
       {
