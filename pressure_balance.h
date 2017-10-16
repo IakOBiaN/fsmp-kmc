@@ -3,6 +3,17 @@ void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, in
     double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
     double S = Lx*Ly;
     dL = 0.005;
+    double pressure_dif = abs((press_X-press_Y)/Lx/Ly/sigma/sigma*1000);
+
+    if (pressure_dif >= 2.0) {BALANCE_STEPS = 100;}
+    if (pressure_dif < 2.0 && pressure_dif >= 1.5) {BALANCE_STEPS = 200;}
+    if (pressure_dif < 1.5 && pressure_dif >= 1.25) {BALANCE_STEPS = 300;}
+    if (pressure_dif < 1.25 && pressure_dif >= 1.0) {BALANCE_STEPS = 500;}
+    if (pressure_dif < 1.0 && pressure_dif >= 0.7) {BALANCE_STEPS = 1000;}
+    if (pressure_dif < 0.7 && pressure_dif >= 0.5) {BALANCE_STEPS = 1500;}
+    if (pressure_dif < 0.5) {BALANCE_STEPS = 2500;}
+
+    cout << "press_dif=" << pressure_dif << " balance_steps=" << BALANCE_STEPS << endl;
 
        if(press_X < press_Y)
        {

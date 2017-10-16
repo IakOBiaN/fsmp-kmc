@@ -95,8 +95,9 @@ void state::set_state (double c_x, double c_y, double c_phi, double c_en, double
 bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then Metropolis algorithm works
 bool energy_QQ_exact = false;
 bool pressure_QQ_exact = false;
-results EN_AND_PR_counter;                           //pressures in the system.
+results EN_AND_PR_counter;                           //energy and pressures in the system.
 double ACCEPTANCE_RATIO[2] = {0, 0};                 //0 - not accepted steps of rotation, 1 - accepted steps of rotation
+int BALANCE_STEPS = 100;                             //steps for balance statistics
 double delta = 0.5;                                  //MC parameter
 double delta_angle = 90.0*(3.141592653589/180.0);     //MC parameter. Maximal rotation in rad
 double R = 8.3144598;
@@ -212,9 +213,9 @@ int main()
      /////////////////////////////
      // Set the Monte Carlo run //
      /////////////////////////////
-     int nSteps = 30000;            // Total amount of MCS
+     int nSteps = 150000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 20000;           // MCS for relaxation
+     int nStepsEq = 100000;           // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -241,15 +242,14 @@ int main()
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
         balanceEq++;
-        if((iter < nIterEq) && (balanceEq > nPart*100))
+        if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
                 Pt += dt;
                 press.X_LJ += EN_AND_PR_counter.p.X_LJ*dt;
                 press.X_QQ += EN_AND_PR_counter.p.X_QQ*dt;
                 press.Y_LJ += EN_AND_PR_counter.p.Y_LJ*dt;
                 press.Y_QQ += EN_AND_PR_counter.p.Y_QQ*dt;
-
-            if((iter%(500*nPart))==0 && iter != 0)
+            if((iter%(BALANCE_STEPS*nPart))==0 && iter != 0)
             {
                 press.X_LJ /= Pt;
                 press.X_QQ /= Pt;
@@ -257,8 +257,6 @@ int main()
                 press.Y_QQ /= Pt;
 
                 pressure_balance ((press.X_LJ + press.X_QQ), (press.Y_LJ + press.Y_QQ), Lx, Ly, nPart, coordinates, beta);
-                //cout << "acceptance_ration(rotation)=" << ACCEPTANCE_RATIO[1]/(ACCEPTANCE_RATIO[0]+ACCEPTANCE_RATIO[1])
-                //<< "\t" << "delta_Deg: " << delta_angle/(3.141592653589/180.0) << endl;
                 Pt = 0;
                 press.X_LJ = 0;
                 press.X_QQ = 0;
