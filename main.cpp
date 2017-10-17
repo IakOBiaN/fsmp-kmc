@@ -81,16 +81,7 @@ double y;
 double phi;
 double energy;
 double mob;
-void set_state(double, double, double, double, double);
 };
-
-void state::set_state (double c_x, double c_y, double c_phi, double c_en, double c_mob) {
-  x = c_x;
-  y = c_y;
-  phi = c_phi;
-  energy = c_en;
-  mob = c_mob;
-}
 
 bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then Metropolis algorithm works
 bool energy_QQ_exact = false;
@@ -136,7 +127,7 @@ double gm = 50;
 
 int main()
 {
-
+clock_t begin_time = clock();
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -213,9 +204,9 @@ int main()
      /////////////////////////////
      // Set the Monte Carlo run //
      /////////////////////////////
-     int nSteps = 150000;            // Total amount of MCS
+     int nSteps = 1000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 100000;           // MCS for relaxation
+     int nStepsEq = 500;           // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -257,6 +248,8 @@ int main()
                 press.Y_QQ /= Pt;
 
                 pressure_balance ((press.X_LJ + press.X_QQ), (press.Y_LJ + press.Y_QQ), Lx, Ly, nPart, coordinates, beta);
+                cout << float(clock ()-begin_time) /  CLOCKS_PER_SEC << endl;
+                begin_time = clock();
                 Pt = 0;
                 press.X_LJ = 0;
                 press.X_QQ = 0;
