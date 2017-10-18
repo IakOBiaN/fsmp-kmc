@@ -149,7 +149,7 @@ clock_t begin_time = clock();
 
  double Pt = 0;
  double press_X=0, press_Y=0, Energy=0;
- double E_per_Part=0;
+ double en_2_av = 0;
  pressure press;
  press.X_LJ = 0;
  press.X_QQ = 0;
@@ -165,7 +165,7 @@ clock_t begin_time = clock();
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Temperature" << "\t" << "Chem. Potential" << "\t" << "E per molecule" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_X_LJ" << "\t" << "p_X_QQ" << "\t" << "p_Y_LJ" << "\t" << "p_Y_QQ" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "Temperature" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_X_LJ" << "\t" << "p_X_QQ" << "\t" << "p_Y_LJ" << "\t" << "p_Y_QQ" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -203,9 +203,9 @@ clock_t begin_time = clock();
      /////////////////////////////
      // Set the Monte Carlo run //
      /////////////////////////////
-     int nSteps = 10000;            // Total amount of MCS
+     int nSteps = 50000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 5000;           // MCS for relaxation
+     int nStepsEq = 25000;           // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -274,6 +274,8 @@ clock_t begin_time = clock();
 
             if (iter == nIterEq+1)
             {
+                Energy = 0;
+                en_2_av = 0;
                 press.X_LJ = 0;
                 press.X_QQ = 0;
                 press.Y_LJ = 0;
@@ -295,7 +297,8 @@ clock_t begin_time = clock();
 
 
                Pt += dt;
-               Energy += EN_AND_PR_counter.energy/nPart*dt;
+               Energy += EN_AND_PR_counter.energy*dt;
+               en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
                press.X_LJ += EN_AND_PR_counter.p.X_LJ*dt;
                press.X_QQ += EN_AND_PR_counter.p.X_QQ*dt;
                press.Y_LJ += EN_AND_PR_counter.p.Y_LJ*dt;
@@ -323,12 +326,13 @@ clock_t begin_time = clock();
             press_Y = k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000 + press.Y_LJ + press.Y_QQ;
 
             Energy = Energy/Pt;
+            en_2_av = en_2_av/Pt;
 
      // Write the final configuration
      //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "final");
 
      // Write the calculated data to a file
-     writeData(temperature, mu, Energy*k_B*temperature*N_a/1000.0, press_X, press_Y, press.X_LJ, press.X_QQ, press.Y_LJ, press.Y_QQ, Lx, Ly);
+     writeData(temperature, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, press.X_LJ, press.X_QQ, press.Y_LJ, press.Y_QQ, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
