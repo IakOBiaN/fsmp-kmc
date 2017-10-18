@@ -12,7 +12,6 @@
 #include "random/sfmt.cpp"
 #include <cmath>
 #include <float.h>
-#include <valarray>
 using namespace std;
 
 // Random number generator
@@ -114,9 +113,9 @@ double gm = 50;
 //#include "initConfig.h"
 #include "PBC2D.h"
 #include "initConfigHerringbone.h"
-#include "initConfigPinwheel.h"
+//#include "initConfigPinwheel.h"
 #include "PotentialEnergy.h"
-#include "Rosenbluth_algorithm_simple.h"
+//#include "Rosenbluth_algorithm_simple.h"
 //#include "replace_the_trialParticle_and_update_energies.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
@@ -204,9 +203,9 @@ clock_t begin_time = clock();
      /////////////////////////////
      // Set the Monte Carlo run //
      /////////////////////////////
-     int nSteps = 1000;            // Total amount of MCS
+     int nSteps = 10000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 500;           // MCS for relaxation
+     int nStepsEq = 5000;           // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -240,12 +239,17 @@ clock_t begin_time = clock();
                 press.X_QQ += EN_AND_PR_counter.p.X_QQ*dt;
                 press.Y_LJ += EN_AND_PR_counter.p.Y_LJ*dt;
                 press.Y_QQ += EN_AND_PR_counter.p.Y_QQ*dt;
-            if((iter%(BALANCE_STEPS*nPart))==0 && iter != 0)
+            if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
             {
                 press.X_LJ /= Pt;
                 press.X_QQ /= Pt;
                 press.Y_LJ /= Pt;
                 press.Y_QQ /= Pt;
+                if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
+                if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
+                if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
+                if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
+                if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
 
                 pressure_balance ((press.X_LJ + press.X_QQ), (press.Y_LJ + press.Y_QQ), Lx, Ly, nPart, coordinates, beta);
                 cout << float(clock ()-begin_time) /  CLOCKS_PER_SEC << endl;

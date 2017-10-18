@@ -3,11 +3,11 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     double q2 = q*q;
     double dist,dist2,dist4,b1,b1_2,b2_2,b2,b1b2,g,g_2,invDr6,h1,h2,h3,vir_LJ,vir_QQ;
 
-    static valarray<double> l_i={cos(molA.phi), sin(molA.phi)};
-    static valarray<double> l_j={cos(molB.phi), sin(molB.phi)};
-    static valarray<double> dn2l_i=dn2/2.0*l_i;
-    static valarray<double> dn2l_j=dn2/2.0*l_j;
-    static valarray<double> r_ij, vect;
+    double l_i[2]={cos(molA.phi), sin(molA.phi)};
+    double l_j[2]={cos(molB.phi), sin(molB.phi)};
+    double r_ij[2], vect[2];
+
+    //cout << l_i[0] << " " << l_i[1] << endl;
 
     double U_LJ=0;
     double U_QQ=0;
@@ -29,7 +29,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
              r2 = x1*x1 + y1*y1;
              if (r2 <= Rc2)
              {
-                        r_ij = {x1, y1};
+                        r_ij[0] = x1;
+                        r_ij[1] = y1;
 
                         //////////////////////////////////////////////////////////
                         ////////CALCULATION OF LJ INTERACTION OF DIATOMIC MOLECULE
@@ -37,32 +38,36 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 
                         //Exact calculation of LJ interaction and/or pressure in AB - CD pair
                         //AC
-                        vect = dn2l_i+r_ij-dn2l_j;
-                        dist2 = (vect*vect).sum();
+                        vect[0] = dn2/2.0*l_i[0]+r_ij[0]-dn2/2.0*l_j[0];
+                        vect[1] = dn2/2.0*l_i[1]+r_ij[1]-dn2/2.0*l_j[1];
+                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
                         en_and_press.p.X_LJ += vir_LJ*vect[0]*x1;
                         en_and_press.p.Y_LJ += vir_LJ*vect[1]*y1;
                         //BD
-                        vect = -dn2l_i+r_ij+dn2l_j;
-                        dist2 = (vect*vect).sum();
+                        vect[0] = -dn2/2.0*l_i[0]+r_ij[0]+dn2/2.0*l_j[0];
+                        vect[1] = -dn2/2.0*l_i[1]+r_ij[1]+dn2/2.0*l_j[1];
+                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
                         en_and_press.p.X_LJ += vir_LJ*vect[0]*x1;
                         en_and_press.p.Y_LJ += vir_LJ*vect[1]*y1;
                         //AD
-                        vect = dn2l_i+r_ij+dn2l_j;
-                        dist2 = (vect*vect).sum();
+                        vect[0] = dn2/2.0*l_i[0]+r_ij[0]+dn2/2.0*l_j[0];
+                        vect[1] = dn2/2.0*l_i[1]+r_ij[1]+dn2/2.0*l_j[1];
+                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
                         en_and_press.p.X_LJ += vir_LJ*vect[0]*x1;
                         en_and_press.p.Y_LJ += vir_LJ*vect[1]*y1;
                         //BC
-                        vect = -dn2l_i+r_ij-dn2l_j;
-                        dist2 = (vect*vect).sum();
+                        vect[0] = -dn2/2.0*l_i[0]+r_ij[0]-dn2/2.0*l_j[0];
+                        vect[1] = -dn2/2.0*l_i[1]+r_ij[1]-dn2/2.0*l_j[1];
+                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
@@ -77,8 +82,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                 {
                         //Exact calculation of QQ interaction in A1B1C1D1 - A2B2C2D2 pair
                         // A1A2
-                        vect = dq2*l_i+r_ij-dq2*l_j;
-                        dist2 = (vect*vect).sum();
+                        vect[0] = dq2*l_i[0] + r_ij[0] - dq2*l_j[0];
+						vect[1] = dq2*l_i[1] + r_ij[1] - dq2*l_j[1];
+                        dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -89,8 +95,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // A1B2
-                        vect = dq2*l_i+r_ij-dq1*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = dq2*l_i[0] + r_ij[0] - dq1*l_j[0];
+						vect[1] = dq2*l_i[1] + r_ij[1] - dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -101,8 +108,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // A1C2
-                        vect = dq2*l_i+r_ij+dq1*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = dq2*l_i[0] + r_ij[0] + dq1*l_j[0];
+						vect[1] = dq2*l_i[1] + r_ij[1] + dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -113,8 +121,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // A1D2
-                        vect = dq2*l_i+r_ij+dq2*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = dq2*l_i[0] + r_ij[0] + dq2*l_j[0];
+						vect[1] = dq2*l_i[1] + r_ij[1] + dq2*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -125,8 +134,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // B1A2
-                        vect = dq1*l_i+r_ij-dq2*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = dq1*l_i[0] + r_ij[0] - dq2*l_j[0];
+						vect[1] = dq1*l_i[1] + r_ij[1] - dq2*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -137,8 +147,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // B1B2
-                        vect = dq1*l_i+r_ij-dq1*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = dq1*l_i[0] + r_ij[0] - dq1*l_j[0];
+						vect[1] = dq1*l_i[1] + r_ij[1] - dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -149,8 +160,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // B1C2
-                        vect = dq1*l_i+r_ij+dq1*l_j;
-                        dist2 = (vect*vect).sum();
+                        vect[0] = dq1*l_i[0]+r_ij[0]+dq1*l_j[0];
+						vect[1] = dq1*l_i[1] + r_ij[1] + dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -161,8 +173,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // B1D2
-                        vect = dq1*l_i+r_ij+dq2*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = dq1*l_i[0] + r_ij[0] + dq2*l_j[0];
+						vect[1] = dq1*l_i[1] + r_ij[1] + dq2*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -173,8 +186,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // C1A2
-                        vect = -dq1*l_i+r_ij-dq2*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq1*l_i[0] + r_ij[0] - dq2*l_j[0];
+						vect[1] = -dq1*l_i[1] + r_ij[1] - dq2*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -185,8 +199,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // C1B2
-                        vect = -dq1*l_i+r_ij-dq1*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq1*l_i[0] + r_ij[0] - dq1*l_j[0];
+						vect[1] = -dq1*l_i[1] + r_ij[1] - dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -197,8 +212,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // C1C2
-                        vect = -dq1*l_i+r_ij+dq1*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq1*l_i[0] + r_ij[0] + dq1*l_j[0];
+						vect[1] = -dq1*l_i[1] + r_ij[1] + dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -209,8 +225,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // C1D2
-                        vect = -dq1*l_i+r_ij+dq2*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq1*l_i[0] + r_ij[0] + dq2*l_j[0];
+						vect[1] = -dq1*l_i[1] + r_ij[1] + dq2*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -221,8 +238,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // D1A2
-                        vect = -dq2*l_i+r_ij-dq2*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq2*l_i[0] + r_ij[0] - dq2*l_j[0];
+						vect[1] = -dq2*l_i[1] + r_ij[1] - dq2*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -233,8 +251,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // D1B2
-                        vect = -dq2*l_i+r_ij-dq1*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq2*l_i[0] + r_ij[0] - dq1*l_j[0];
+						vect[1] = -dq2*l_i[1] + r_ij[1] - dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -245,8 +264,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // D1C2
-                        vect = -dq2*l_i+r_ij+dq1*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq2*l_i[0] + r_ij[0] + dq1*l_j[0];
+						vect[1] = -dq2*l_i[1] + r_ij[1] + dq1*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ -= A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -257,8 +277,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                         }
 
                         // D1D2
-                        vect = -dq2*l_i+r_ij+dq2*l_j;
-                        dist2 = (vect*vect).sum();
+						vect[0] = -dq2*l_i[0] + r_ij[0] + dq2*l_j[0];
+						vect[1] = -dq2*l_i[1] + r_ij[1] + dq2*l_j[1];
+						dist2 = vect[0] * vect[0] + vect[1] * vect[1];
                         dist = sqrt(dist2);
                         if (energy_QQ_exact) {U_QQ += A*q2/dist;}
                         if (pressure_QQ_exact)
@@ -268,33 +289,28 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                             en_and_press.p.Y_QQ += vir_QQ*vect[1]*y1/dist;
                         }
                 }
-                else    //Approximate calculation of QQ interaction and pressure in A1B1C1D1 - A2B2C2D2 pair
-                {
-                        b1 = (r_ij*l_i).sum();
-                        b2 = (r_ij*l_j).sum();
-                        g = (l_i*l_j).sum();
-                        dist = sqrt(dist2);
-                        dist2 = (r_ij*r_ij).sum();
-                        dist4 = dist2*dist2;
-                        g_2 =g*g;
-                        b1_2 = b1*b2;
-                        b2_2 = b2*b2;
-                        b1b2 = b1*b2;
+                //Approximate calculation of QQ interaction and pressure in A1B1C1D1 - A2B2C2D2 pair
 
+                        b1 = r_ij[0] * l_i[0] + r_ij[1] * l_i[1];
+                        b2 = r_ij[0] * l_j[0] + r_ij[1] * l_j[1];
+                        g = l_i[0] * l_j[0] + l_i[1] * l_j[1];
+                        dist2 = r2;
+                        dist = sqrt(dist2);
+                        dist4 = dist2*dist2;
+                        g_2 = g*g;
+                        b1_2 = b1*b1;
+                        b2_2 = b2*b2;
+                        b1b2 = b1*b2;
                         if (!energy_QQ_exact)
                         {
-                            U_QQ += C_q*(1.0+2.0*g_2-5.0*(b1_2+b2_2+4.0*b1b2*g)/dist2+35.0*(b1b2*b1b2))/(dist4*dist4*dist);
+                            U_QQ += C_q*(1.0 + 2.0*g_2 - 5.0*(b1_2 + b2_2 + 4.0*b1b2*g) / dist2 + 35.0*b1b2*b1b2/ dist4) / (dist4*dist);
                         }
 
                         if (!pressure_QQ_exact)
                         {
-                            h1 = 1.0 + 2.0*g_2 - 7.0*(b1_2+b2_2+4.0*b1b2*g)/dist2 + 63.0*b1_2*b2_2/dist4;
-                            h2 = b1 + 2.0*g*b2 - 7.0*b1*b2_2/dist2;
-                            h3 = b2 + 2.0*g*b1 - 7.0*b1_2*b2/dist2;
-                            en_and_press.p.X_QQ += 5*C_q*r_ij[0]/(dist4*dist2)/dist*(h1*r_ij[0] + 2.0*(h2*l_i[0] + h3*l_j[0]));
-                            en_and_press.p.Y_QQ += 5*C_q*r_ij[1]/(dist4*dist2)/dist*(h1*r_ij[1] + 2.0*(h2*l_i[1] + h3*l_j[1]));
+							h1 = 1.0 + 2.0*g_2 - 7.0*(b1_2 + b2_2 + 4.0*b1b2*g) / dist2 + 63.0*b1_2*b2_2 / dist4;							h2 = b1 + 2.0*g*b2 - 7.0*b1*b2_2 / dist2;							h3 = b2 + 2.0*g*b1 - 7.0*b1_2*b2 / dist2;							en_and_press.p.X_QQ += 5 * C_q*r_ij[0] / (dist4*dist2) / dist*(h1*r_ij[0] + 2.0*(h2*l_i[0] + h3*l_j[0]));							en_and_press.p.Y_QQ += 5 * C_q*r_ij[1] / (dist4*dist2) / dist*(h1*r_ij[1] + 2.0*(h2*l_i[1] + h3*l_j[1]));
                         }
-                }
+
 
              }
        }
