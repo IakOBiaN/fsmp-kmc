@@ -10,8 +10,8 @@
         fileOutput << frame << endl;
         for(int i = 0; i < nPart; i++)
           {
-            fileOutput << "N " << coordinates[i].x+cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y+sin(coordinates[i].phi)*distance/2 << " " << 0 << endl;
-            fileOutput << "N " << coordinates[i].x-cos(coordinates[i].phi)*distance/2 << " " << coordinates[i].y-sin(coordinates[i].phi)*distance/2 << " " << 0 << endl;
+            fileOutput << "N " << coordinates[i].x+coordinates[i].cos_phi*distance/2 << " " << coordinates[i].y+coordinates[i].sin_phi*distance/2 << " " << 0 << endl;
+            fileOutput << "N " << coordinates[i].x-coordinates[i].cos_phi*distance/2 << " " << coordinates[i].y-coordinates[i].sin_phi*distance/2 << " " << 0 << endl;
           }
         fileOutput.close();
         }
