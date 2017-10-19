@@ -25,6 +25,8 @@ int molecule = 0; // Molecules counter
                           coordinates[molecule].x = PBC2D(Lx, j*a/2.0);
                           coordinates[molecule].y = PBC2D(Ly, i*b);
                           coordinates[molecule].phi = -45.0*(3.141592653589/180.0);
+                          coordinates[molecule].sin_phi = sin(coordinates[molecule].phi);
+                          coordinates[molecule].cos_phi = cos(coordinates[molecule].phi);
                           molecule++;
                          }
             }
@@ -34,6 +36,8 @@ int molecule = 0; // Molecules counter
                         coordinates[molecule].x = PBC2D(Lx, j*a/2.0);
                         coordinates[molecule].y = PBC2D(Ly, i*b);
                         coordinates[molecule].phi = 45.0*(3.141592653589/180.0);
+                        coordinates[molecule].sin_phi = sin(coordinates[molecule].phi);
+                        coordinates[molecule].cos_phi = cos(coordinates[molecule].phi);
                         molecule++;
                        }
             }

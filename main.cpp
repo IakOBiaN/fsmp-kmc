@@ -78,6 +78,8 @@ public:
 double x;
 double y;
 double phi;
+double sin_phi;
+double cos_phi;
 double energy;
 double mob;
 };
@@ -203,9 +205,9 @@ clock_t begin_time = clock();
      /////////////////////////////
      // Set the Monte Carlo run //
      /////////////////////////////
-     int nSteps = 50000;            // Total amount of MCS
+     int nSteps = 5000;            // Total amount of MCS
      int nIter = nSteps * nPart;
-     int nStepsEq = 25000;           // MCS for relaxation
+     int nStepsEq = 2000;           // MCS for relaxation
      int nIterEq = nStepsEq * nPart;
      double Time = 0; // Total time of the equilibrium run
      double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
@@ -337,7 +339,7 @@ clock_t begin_time = clock();
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
-     cout << "rho: " << density << "\t" << "mu: " << mu << "\t" << "en(kJ/mol): " << Energy*k_B*temperature*N_a/1000.0 << endl;
+     cout << "rho: " << density << "\t" << "mu: " << mu << "\t" << "en(kJ/mol): " << Energy/nPart*k_B*temperature*N_a/1000.0 << endl;
 
     }
  return 0;

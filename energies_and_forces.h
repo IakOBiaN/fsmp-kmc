@@ -3,8 +3,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     double q2 = q*q;
     double dist,dist2,dist4,b1,b1_2,b2_2,b2,b1b2,g,g_2,invDr6,h1,h2,h3,vir_LJ,vir_QQ;
 
-    double l_i[2]={cos(molA.phi), sin(molA.phi)};
-    double l_j[2]={cos(molB.phi), sin(molB.phi)};
+    double l_i[2]={molA.cos_phi, molA.sin_phi};
+    double l_j[2]={molB.cos_phi, molB.sin_phi};
     double r_ij[2], vect[2];
 
     //cout << l_i[0] << " " << l_i[1] << endl;

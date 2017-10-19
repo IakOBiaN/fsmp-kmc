@@ -23,6 +23,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
     else
       {
        new_coordinates.phi = coordinates[trialPart].phi + delta_angle*(2.0 * RanGen.Random() - 1.0);
+       new_coordinates.sin_phi = sin(new_coordinates.phi);
+       new_coordinates.cos_phi = cos(new_coordinates.phi);
        angle_change = true;
       }
 
@@ -41,7 +43,6 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
 
       if(RanGen.Random() < exp(-delta_EP.energy))
       {
-       // Accept rotation move
        coordinates[trialPart] = new_coordinates;     // Update angles
        //for(int l = 0; l < nPart; l++){coordinates[l].energy = coordinates[l].energy + add_E[l];}
        EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
