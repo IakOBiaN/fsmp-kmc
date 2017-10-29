@@ -2,7 +2,6 @@
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
-#include <time.h>
 #include <math.h>
 #include <string>
 #include <sstream>
@@ -45,17 +44,20 @@ pressure operator-(pressure& b) {
 class results {
 public:
 double energy;
+double energy_QQ;
 pressure p;
 results();      //constructor
 results operator+(results& b) {
          results res;
          res.energy = this->energy + b.energy;
+         res.energy_QQ = this->energy_QQ + b.energy_QQ;
          res.p = this->p + b.p;
          return res;
       }
 results operator-(results& b) {
          results res;
          res.energy = this->energy - b.energy;
+         res.energy_QQ = this->energy_QQ - b.energy_QQ;
          res.p = this->p - b.p;
          return res;
       }
@@ -64,6 +66,7 @@ results operator-(results& b) {
 //constructor
 results::results(void) {
    energy = 0;
+   energy_QQ = 0;
    p.X_LJ = 0;
    p.X_QQ = 0;
    p.Y_LJ = 0;
@@ -128,7 +131,6 @@ double gm = 50;
 
 int main()
 {
-clock_t begin_time = clock();
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -150,8 +152,11 @@ clock_t begin_time = clock();
  double beta = 1.0/Temp;                       // Inverse temperature
 
  double Pt = 0;
- double press_X=0, press_Y=0, Energy=0;
+ double press_X=0, press_Y=0, Energy=0, Energy_QQ=0;
  double en_2_av = 0;
+ double cap_n = 1.0;
+ double fluent_capacity = 0;
+
  pressure press;
  press.X_LJ = 0;
  press.X_QQ = 0;
@@ -167,7 +172,7 @@ clock_t begin_time = clock();
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Temperature" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_X_LJ" << "\t" << "p_X_QQ" << "\t" << "p_Y_LJ" << "\t" << "p_Y_QQ" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "Temperature" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "E_per_molecule_QQ" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_X_LJ" << "\t" << "p_X_QQ" << "\t" << "p_Y_LJ" << "\t" << "p_Y_QQ" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -254,8 +259,6 @@ clock_t begin_time = clock();
                 if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
 
                 pressure_balance ((press.X_LJ + press.X_QQ), (press.Y_LJ + press.Y_QQ), Lx, Ly, nPart, coordinates, beta);
-                cout << float(clock ()-begin_time) /  CLOCKS_PER_SEC << endl;
-                begin_time = clock();
                 Pt = 0;
                 press.X_LJ = 0;
                 press.X_QQ = 0;
@@ -270,13 +273,14 @@ clock_t begin_time = clock();
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
-         if(iter > nIterEq)
+         if(iter > nIterEq + nPart * 1000)
            {
 
 
             if (iter == nIterEq+1)
             {
                 Energy = 0;
+                Energy_QQ = 0;
                 en_2_av = 0;
                 press.X_LJ = 0;
                 press.X_QQ = 0;
@@ -297,9 +301,12 @@ clock_t begin_time = clock();
                    frame++;
               }
 
+               if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter.energy)*(Energy/(Pt+1) - EN_AND_PR_counter.energy);}
 
+               cap_n++;
                Pt += dt;
                Energy += EN_AND_PR_counter.energy*dt;
+               Energy_QQ += EN_AND_PR_counter.energy_QQ*dt;
                en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
                press.X_LJ += EN_AND_PR_counter.p.X_LJ*dt;
                press.X_QQ += EN_AND_PR_counter.p.X_QQ*dt;
@@ -328,13 +335,14 @@ clock_t begin_time = clock();
             press_Y = k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000 + press.Y_LJ + press.Y_QQ;
 
             Energy = Energy/Pt;
+            Energy_QQ = Energy_QQ/Pt;
             en_2_av = en_2_av/Pt;
 
      // Write the final configuration
      //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "final");
 
      // Write the calculated data to a file
-     writeData(temperature, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, press.X_LJ, press.X_QQ, press.Y_LJ, press.Y_QQ, Lx, Ly);
+     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, Energy_QQ/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, press.X_LJ, press.X_QQ, press.Y_LJ, press.Y_QQ, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
