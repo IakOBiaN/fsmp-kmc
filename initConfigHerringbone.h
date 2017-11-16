@@ -2,7 +2,17 @@ using namespace std;
 
 void initConfigHerringbone (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
-double ratio_x_to_y = 26.826/21.34;//26.826/21.34;
+double ratio_x_to_y = 26.826/21.34; //good for 20 K and p = 10.5
+
+if (abs(state_dens-10.1)<0.01) {ratio_x_to_y = 1/0.76973;}
+if (abs(state_dens-10.2)<0.01) {ratio_x_to_y = 1/0.77238;}
+if (abs(state_dens-10.3)<0.01) {ratio_x_to_y = 1/0.77565;}
+if (abs(state_dens-10.4)<0.01) {ratio_x_to_y = 1/0.77783;}
+if (abs(state_dens-10.5)<0.01) {ratio_x_to_y = 1/0.77832;}
+if (abs(state_dens-10.6)<0.01) {ratio_x_to_y = 1/0.77997;}
+if (abs(state_dens-10.7)<0.01) {ratio_x_to_y = 1/0.7828;}
+if (abs(state_dens-10.8)<0.01) {ratio_x_to_y = 1/0.78274;}
+if (abs(state_dens-10.9)<0.01) {ratio_x_to_y = 1/0.78328;}
 double area = nPart*1000000/(state_dens*pow(sigma,2)*N_a);
 Lx = sqrt(area*ratio_x_to_y);
 Ly = Lx/ratio_x_to_y;

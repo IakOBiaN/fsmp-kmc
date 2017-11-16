@@ -146,16 +146,12 @@ int main()
  // F* = F*sigma/eps
  // P* = P*sigma3/eps
 
- // Set simulation parameters
- double temperature = 20;
- double Temp = temperature/36.4;               // Simulation temperature in units of eps/k
- double beta = 1.0/Temp;                       // Inverse temperature
-
  double Pt = 0;
  double press_X=0, press_Y=0, Energy=0, Energy_QQ=0;
  double en_2_av = 0;
  double cap_n = 1.0;
  double fluent_capacity = 0;
+ double persent = 0;
 
  pressure press;
  press.X_LJ = 0;
@@ -163,9 +159,16 @@ int main()
  press.Y_LJ = 0;
  press.Y_QQ = 0;
 
- // Set initial configuration
- double Lx=0,Ly=0;  // Linear size of the system
+ /////////////////////////////
+ // Set the Monte Carlo run //
+ /////////////////////////////
  int nPart = 400;
+ int nSteps = 600000;            // Total amount of MCS
+ int nIter = nSteps * nPart;
+ int nStepsEq = 400000;           // MCS for relaxation
+ int nIterEq = nStepsEq * nPart;
+ double Lx=0,Ly=0;  // Linear size of the system
+ double state_dens = 10.5;
  vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
@@ -180,25 +183,43 @@ int main()
  ////////////////////////////////////////////////////////////
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
- for(double state_dens = 10.5; state_dens < 10.6; state_dens += 1)
+ initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);       //Generete herringbone structure
+
+for(double temperature = 15; temperature > 5; temperature -= 1.0)
     {
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.p.X_LJ = 0;
      EN_AND_PR_counter.p.X_QQ = 0;
      EN_AND_PR_counter.p.Y_LJ = 0;
      EN_AND_PR_counter.p.Y_QQ = 0;
-     int frame = 0;
+	 Pt = 0;
+	 press.X_LJ = 0;
+	 press.X_QQ = 0;
+	 press.Y_LJ = 0;
+	 press.Y_QQ = 0;
+	 ACCEPTANCE_RATIO[0] = 0;
+	 ACCEPTANCE_RATIO[1] = 0;
+	 double Time = 0; // Total time of the equilibrium run
+	 double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
+	 double dt = 0;
+	 int balanceEq = 0;
+     persent = 0;
+     //int frame = 0;
+
+     double Temp = temperature / 36.4;               // Simulation temperature in units of eps/k
+	 double beta = 1.0 / Temp;                       // Inverse temperature
+
      // Generate an initial configuration for a fixed
      // number of particles and calculate required L
 
      //initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);   // Randomly distributed molecules
-     initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);       // Herringbone structure
+     //initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);       // Herringbone structure
      //initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
 
      // Write the initial configuration
-     write_xyz_file(nPart, Lx, Ly, temperature, coordinates, 0, 0, true); // Clear the xyz-file
-     write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame, write_rad, false); // Write a current frame
-     frame++;
+     //write_xyz_file(nPart, Lx, Ly, temperature, coordinates, 0, 0, true); // Clear the xyz-file
+     //write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame, write_rad, false); // Write a current frame
+     //frame++;
 
      vector <vector <double>> xy_matrix(600, vector<double> (600));
      for(int i = 0; i < 600; i++){for(int j = 0; j < 600; j++){xy_matrix[i][j] = 0;}}
@@ -206,26 +227,14 @@ int main()
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 
-
-     /////////////////////////////
-     // Set the Monte Carlo run //
-     /////////////////////////////
-     int nSteps = 5000;            // Total amount of MCS
-     int nIter = nSteps * nPart;
-     int nStepsEq = 2000;           // MCS for relaxation
-     int nIterEq = nStepsEq * nPart;
-     double Time = 0; // Total time of the equilibrium run
-     double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
-     double dt = 0;
-     int balanceEq = 0;
-
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
      //////////////////////////////////////////////////
 
      for(int iter = 1; iter <= nIter; iter++)
         {
-         if(((iter*100)%nIter)==0){cout << iter*100.0/nIter << " %" << endl;}
+         persent += 1;
+         if(persent > nIter/100.0){cout << int(iter*100.0/nIter) << " %" << endl;persent = 0;}
 
          int trialPart;
          // Choose a particle to be displaced
@@ -295,11 +304,11 @@ int main()
 
             layer_map(nPart, coordinates, xy_matrix, Lx, Ly);
             //create xyz animation
-            if((iter-1) % ((nIter-nIterEq)/300) == 0)
-              {
-                   write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
-                   frame++;
-              }
+            //if((iter-1) % ((nIter-nIterEq)/300) == 0)
+            //  {
+            //       write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
+            //       frame++;
+            //  }
 
                if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter.energy)*(Energy/(Pt+1) - EN_AND_PR_counter.energy);}
 
