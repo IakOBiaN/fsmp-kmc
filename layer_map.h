@@ -1,4 +1,4 @@
-void layer_map(int &nPart, vector <state> &coordinates, vector <vector <double>> &xy_matrix, double &Lx, double &Ly)
+void layer_map(int &nPart, vector <state> &coordinates, vector <vector <double> > &xy_matrix, double &Lx, double &Ly)
 {
     double dn2 = 0.5;
 

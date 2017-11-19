@@ -1,4 +1,4 @@
-void write_xy_matrix(int &nPart, double &Lx, double &Ly, double &temperature, vector <vector <double>> &xy_matrix)
+void write_xy_matrix(int &nPart, double &Lx, double &Ly, double &temperature, vector <vector <double> > &xy_matrix)
 {
    stringstream name;
    name <<  "N" << nPart << "_Lx" << Lx << "_Ly" << Ly << "_T" << temperature << ".dat";

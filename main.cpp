@@ -221,7 +221,7 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
      //write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame, write_rad, false); // Write a current frame
      //frame++;
 
-     vector <vector <double>> xy_matrix(600, vector<double> (600));
+     vector <vector <double> > xy_matrix(600, vector<double> (600));
      for(int i = 0; i < 600; i++){for(int j = 0; j < 600; j++){xy_matrix[i][j] = 0;}}
 
      // Calculate initial energy
