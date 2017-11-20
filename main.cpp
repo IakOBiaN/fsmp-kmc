@@ -91,7 +91,8 @@ bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then M
 bool energy_QQ_exact = false;
 bool pressure_QQ_exact = false;
 results EN_AND_PR_counter;                           //energy and pressures in the system.
-double ACCEPTANCE_RATIO[2] = {0, 0};                 //0 - not accepted steps of rotation, 1 - accepted steps of rotation
+double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of rotation, 1 - accepted steps of rotation
+double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;                             //steps for balance statistics
 double delta = 0.5;                                  //MC parameter
 double delta_angle = 90.0*(3.141592653589/180.0);     //MC parameter. Maximal rotation in rad
@@ -197,8 +198,10 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
 	 press.X_QQ = 0;
 	 press.Y_LJ = 0;
 	 press.Y_QQ = 0;
-	 ACCEPTANCE_RATIO[0] = 0;
-	 ACCEPTANCE_RATIO[1] = 0;
+	 ACCEPTANCE_RATIO_r[0] = 0;
+	 ACCEPTANCE_RATIO_r[1] = 0;
+	 ACCEPTANCE_RATIO_m[0] = 0;
+	 ACCEPTANCE_RATIO_m[1] = 0;
 	 double Time = 0; // Total time of the equilibrium run
 	 double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
 	 double dt = 0;
@@ -274,8 +277,10 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
                 press.Y_LJ = 0;
                 press.Y_QQ = 0;
                 balanceEq = 0;
-                ACCEPTANCE_RATIO[0] = 0;
-                ACCEPTANCE_RATIO[1] = 0;
+                ACCEPTANCE_RATIO_r[0] = 0;
+                ACCEPTANCE_RATIO_r[1] = 0;
+                ACCEPTANCE_RATIO_m[0] = 0;
+                ACCEPTANCE_RATIO_m[1] = 0;
             }
         }
 

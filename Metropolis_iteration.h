@@ -43,11 +43,16 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
 
       if(RanGen.Random() < exp(-delta_EP.energy))
       {
-       coordinates[trialPart] = new_coordinates;     // Update angles
-       //for(int l = 0; l < nPart; l++){coordinates[l].energy = coordinates[l].energy + add_E[l];}
-       EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
-       if (angle_change) {ACCEPTANCE_RATIO[1] += 1.0;}
+          coordinates[trialPart] = new_coordinates;     // Update position
+          //for(int l = 0; l < nPart; l++){coordinates[l].energy = coordinates[l].energy + add_E[l];}
+          EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
+          if (angle_change) {ACCEPTANCE_RATIO_r[1] += 1.0;} else {ACCEPTANCE_RATIO_m[1] += 1.0;}
       }
       else
-        {if(angle_change) {ACCEPTANCE_RATIO[0] +=1.0;}}
+      {
+          if(angle_change)
+          {ACCEPTANCE_RATIO_r[0] += 1.0;}
+          else
+          {ACCEPTANCE_RATIO_m[0] += 1.0;}
+      }
 }
