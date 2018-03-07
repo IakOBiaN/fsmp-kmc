@@ -17,48 +17,23 @@ using namespace std;
 int seed = (int)time(0);
 CRandomSFMT0 RanGen(seed);
 
-class pressure {
-public:
-double X_LJ;
-double X_QQ;
-double Y_LJ;
-double Y_QQ;
-pressure operator+(pressure& b) {
-         pressure press;
-         press.X_LJ = this->X_LJ + b.X_LJ;
-         press.X_QQ = this->X_QQ + b.X_QQ;
-         press.Y_LJ = this->Y_LJ + b.Y_LJ;
-         press.Y_QQ = this->Y_QQ + b.Y_QQ;
-         return press;
-      }
-pressure operator-(pressure& b) {
-         pressure press;
-         press.X_LJ = this->X_LJ - b.X_LJ;
-         press.X_QQ = this->X_QQ - b.X_QQ;
-         press.Y_LJ = this->Y_LJ - b.Y_LJ;
-         press.Y_QQ = this->Y_QQ - b.Y_QQ;
-         return press;
-      }
-};
-
 class results {
 public:
 double energy;
-double energy_QQ;
-pressure p;
+double p_X, p_Y;
 results();      //constructor
 results operator+(results& b) {
          results res;
          res.energy = this->energy + b.energy;
-         res.energy_QQ = this->energy_QQ + b.energy_QQ;
-         res.p = this->p + b.p;
+         res.p_X = this->p_X + b.p_X;
+         res.p_Y = this->p_Y + b.p_Y;
          return res;
       }
 results operator-(results& b) {
          results res;
          res.energy = this->energy - b.energy;
-         res.energy_QQ = this->energy_QQ - b.energy_QQ;
-         res.p = this->p - b.p;
+         res.p_X = this->p_X - b.p_X;
+         res.p_Y = this->p_Y - b.p_Y;
          return res;
       }
 };
@@ -66,11 +41,7 @@ results operator-(results& b) {
 //constructor
 results::results(void) {
    energy = 0;
-   energy_QQ = 0;
-   p.X_LJ = 0;
-   p.X_QQ = 0;
-   p.Y_LJ = 0;
-   p.Y_QQ = 0;
+   p = 0;
 }
 
 // Class contains the function descrabing the state of the molecule:
@@ -88,8 +59,6 @@ double mob;
 };
 
 bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then Metropolis algorithm works
-bool energy_QQ_exact = false;
-bool pressure_QQ_exact = false;
 results EN_AND_PR_counter;                           //energy and pressures in the system.
 double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
@@ -118,7 +87,7 @@ double gm = 50;
 #include "energies_and_forces.h"
 //#include "initConfig.h"
 #include "PBC2D.h"
-#include "initConfigHerringbone.h"
+#include "initConfigRandomTMA.h"
 //#include "initConfigPinwheel.h"
 #include "PotentialEnergy.h"
 //#include "Rosenbluth_algorithm_simple.h"
@@ -138,45 +107,31 @@ int main()
 
  // Set configuration parameters
  double density = 0;                // Density
- double write_rad = 0.1098/0.3318;   // Disp. radius
-
- // N-N parameters: eps/k = 36.4 K, sigma = 0.3318 nm, Rc = 5 sigma
- // Temperature: 20 K
- // Reduced forms:
- // T* = kT/eps
- // F* = F*sigma/eps
- // P* = P*sigma3/eps
 
  double Pt = 0;
- double press_X=0, press_Y=0, Energy=0, Energy_QQ=0;
+ double press_X=0, press_Y=0, Energy=0;
  double en_2_av = 0;
  double cap_n = 1.0;
  double fluent_capacity = 0;
  double persent = 0;
 
- pressure press;
- press.X_LJ = 0;
- press.X_QQ = 0;
- press.Y_LJ = 0;
- press.Y_QQ = 0;
-
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 400;
- int nSteps = 600000;            // Total amount of MCS
+ int nSteps = 60000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 400000;           // MCS for relaxation
+ int nStepsEq = 40000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
- double state_dens = 10.5;
+ double state_dens = 5.0; // mkMol of TMA per A^2
  vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Temperature" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "E_per_molecule_QQ" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_X_LJ" << "\t" << "p_X_QQ" << "\t" << "p_Y_LJ" << "\t" << "p_Y_QQ" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "Temperature" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -184,20 +139,18 @@ int main()
  ////////////////////////////////////////////////////////////
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
- initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);       //Generete herringbone structure
+
+ //Generete a random distribution of TMA molecules at fixed density
+ initConfigRandomTMA(nPart, density, coordinates, Lx, Ly, state_dens);
 
 for(double temperature = 15; temperature > 5; temperature -= 1.0)
     {
      EN_AND_PR_counter.energy = 0;
-     EN_AND_PR_counter.p.X_LJ = 0;
-     EN_AND_PR_counter.p.X_QQ = 0;
-     EN_AND_PR_counter.p.Y_LJ = 0;
-     EN_AND_PR_counter.p.Y_QQ = 0;
+     EN_AND_PR_counter.p_X = 0;
+     EN_AND_PR_counter.p_Y = 0;
 	 Pt = 0;
-	 press.X_LJ = 0;
-	 press.X_QQ = 0;
-	 press.Y_LJ = 0;
-	 press.Y_QQ = 0;
+	 press_X = 0;
+	 press_Y = 0;
 	 ACCEPTANCE_RATIO_r[0] = 0;
 	 ACCEPTANCE_RATIO_r[1] = 0;
 	 ACCEPTANCE_RATIO_m[0] = 0;
@@ -209,20 +162,7 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
      persent = 0;
      //int frame = 0;
 
-     double Temp = temperature / 36.4;               // Simulation temperature in units of eps/k
-	 double beta = 1.0 / Temp;                       // Inverse temperature
-
-     // Generate an initial configuration for a fixed
-     // number of particles and calculate required L
-
-     //initConfig(nPart, density, sigma, coordinates, beta, Rc, A, C_q);   // Randomly distributed molecules
-     //initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);       // Herringbone structure
-     //initConfigPinwheel(nPart, density, coordinates, Lx, Ly, coeff);          // Pinwheel structure
-
-     // Write the initial configuration
-     //write_xyz_file(nPart, Lx, Ly, temperature, coordinates, 0, 0, true); // Clear the xyz-file
-     //write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame, write_rad, false); // Write a current frame
-     //frame++;
+	 double beta = 1.0 / R*Temp;  // Inverse temperature in units of mol/J
 
      vector <vector <double> > xy_matrix(600, vector<double> (600));
      for(int i = 0; i < 600; i++){for(int j = 0; j < 600; j++){xy_matrix[i][j] = 0;}}
@@ -253,29 +193,23 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
         balanceEq++;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
-                Pt += dt;
-                press.X_LJ += EN_AND_PR_counter.p.X_LJ*dt;
-                press.X_QQ += EN_AND_PR_counter.p.X_QQ*dt;
-                press.Y_LJ += EN_AND_PR_counter.p.Y_LJ*dt;
-                press.Y_QQ += EN_AND_PR_counter.p.Y_QQ*dt;
+            Pt += dt;
+            press_X += EN_AND_PR_counter.p_X*dt;
+            press_Y += EN_AND_PR_counter.p_Y*dt;
             if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
             {
-                press.X_LJ /= Pt;
-                press.X_QQ /= Pt;
-                press.Y_LJ /= Pt;
-                press.Y_QQ /= Pt;
+                press_X /= Pt;
+                press_Y /= Pt;
                 if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
                 if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
                 if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
                 if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
                 if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
 
-                pressure_balance ((press.X_LJ + press.X_QQ), (press.Y_LJ + press.Y_QQ), Lx, Ly, nPart, coordinates, beta);
+                pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
                 Pt = 0;
-                press.X_LJ = 0;
-                press.X_QQ = 0;
-                press.Y_LJ = 0;
-                press.Y_QQ = 0;
+                press_X = 0;
+                press_Y = 0;
                 balanceEq = 0;
                 ACCEPTANCE_RATIO_r[0] = 0;
                 ACCEPTANCE_RATIO_r[1] = 0;
@@ -289,44 +223,29 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
          // Collect the characteristics of interest at equilibrium
          if(iter > nIterEq + nPart * 1000)
            {
-
-
             if (iter == nIterEq+1)
             {
                 Energy = 0;
-                Energy_QQ = 0;
                 en_2_av = 0;
-                press.X_LJ = 0;
-                press.X_QQ = 0;
-                press.Y_LJ = 0;
-                press.Y_QQ = 0;
+                press_X = 0;
+                press_Y = 0;
                 Pt = 0;
             }
 
-            //if (iter%(1000*nPart) == 0) {PotentialEnergy(nPart, Lx, Ly, coordinates, beta);}      //EN_AND_PR_counter correction
             // Update the total time and the amount of configurations for kMC (chemical potential calculation)
             if(rosenbluth) {Time += dt; Mconf++;}
 
             layer_map(nPart, coordinates, xy_matrix, Lx, Ly);
-            //create xyz animation
-            //if((iter-1) % ((nIter-nIterEq)/300) == 0)
-            //  {
-            //       write_xyz_file(nPart, Lx, Ly, temperature, coordinates, frame,  write_rad, false);
-            //       frame++;
-            //  }
 
-               if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter.energy)*(Energy/(Pt+1) - EN_AND_PR_counter.energy);}
+            if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter.energy)*(Energy/(Pt+1) - EN_AND_PR_counter.energy);}
 
-               cap_n++;
-               Pt += dt;
-               Energy += EN_AND_PR_counter.energy*dt;
-               Energy_QQ += EN_AND_PR_counter.energy_QQ*dt;
-               en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
-               press.X_LJ += EN_AND_PR_counter.p.X_LJ*dt;
-               press.X_QQ += EN_AND_PR_counter.p.X_QQ*dt;
-               press.Y_LJ += EN_AND_PR_counter.p.Y_LJ*dt;
-               press.Y_QQ += EN_AND_PR_counter.p.Y_QQ*dt;
-            }
+            cap_n++;
+            Pt += dt;
+            Energy += EN_AND_PR_counter.energy*dt;
+            en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
+            press_X += EN_AND_PR_counter.p_X*dt;
+            press_Y += EN_AND_PR_counter.p_Y*dt;
+           }
          // A new random position is chosen uniformly over the whole volume of the system
          // and update the energies of all molecules in the system
          //if(rosenbluth) {replace_the_trialParticle_and_update_energies(nPart, trialPart, Lx, Ly, beta, coordinates);}
@@ -335,28 +254,20 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
      double mu = 0;
      if(rosenbluth) {mu = log(Mconf/Lx/Ly) - log(Time);}
 
-            press.X_LJ = press.X_LJ/Pt;
-            press.X_QQ = press.X_QQ/Pt;
-            press.Y_LJ = press.Y_LJ/Pt;
-            press.Y_QQ = press.Y_QQ/Pt;
+            press_X = press_X/Pt;
+            press_Y = press_Y/Pt;
 
-            press.X_LJ = press.X_LJ/Lx/Ly/sigma/sigma*1000;
-            press.X_QQ = press.X_QQ/Lx/Ly/sigma/sigma*1000;
-            press.Y_LJ = press.Y_LJ/Lx/Ly/sigma/sigma*1000;
-            press.Y_QQ = press.Y_QQ/Lx/Ly/sigma/sigma*1000;
+            press_X = press_X/Lx/Ly;
+            press_Y = press_Y/Lx/Ly;
 
-            press_X = k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000 + press.X_LJ + press.X_QQ;
-            press_Y = k_B*temperature*nPart/Ly/Lx/sigma/sigma*1000 + press.Y_LJ + press.Y_QQ;
+            press_X = R*temperature*nPart/Ly/Lx + press_X;
+            press_Y = R*temperature*nPart/Ly/Lx + press_Y;
 
             Energy = Energy/Pt;
-            Energy_QQ = Energy_QQ/Pt;
             en_2_av = en_2_av/Pt;
 
-     // Write the final configuration
-     //writeConfigPBC(nPart, density, sigma, Lx, Ly, coordinates, write_rad, "final");
-
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, Energy_QQ/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, press.X_LJ, press.X_QQ, press.Y_LJ, press.Y_QQ, Lx, Ly);
+     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);

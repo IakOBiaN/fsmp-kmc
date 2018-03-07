@@ -1,6 +1,6 @@
 using namespace std;
 
-void initConfigHerringbone (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
+void initConfigRandomTMA (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 double ratio_x_to_y = 26.826/21.34; //good for 20 K and p = 10.5
 
