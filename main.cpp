@@ -51,9 +51,7 @@ class state {
 public:
 double x;
 double y;
-double phi;
-double sin_phi;
-double cos_phi;
+double ang;
 double energy;
 double mob;
 };
@@ -66,21 +64,10 @@ int BALANCE_STEPS = 100;                             //steps for balance statist
 double delta = 0.5;                                  //MC parameter
 double delta_angle = 90.0*(3.141592653589/180.0);     //MC parameter. Maximal rotation in rad
 double R = 8.3144598;
-double eps = 0.502e-21;                              // LJ energy for nitrogen in J
 double N_a = 6.02214e+23;
-double sigma = 331.8e-12;
 double k_B = 1.38e-23;
-double Rc = 5;                                             // Cut-off radius in sigma
+double Rc = 15;                                             // Cut-off radius in sigma
 double Rc2 = Rc*Rc;
-double Qn2 = -4.453e-40/(sigma*sigma);             // Quadrupole moment of N2 molecule
-const double eps0 = 8.85418781762e-12;                     // The permittivity of free space in C2 m-2 N-1
-const double A = 1.0/(4.0*3.1415926535*eps0)/(sigma*sigma);    // Coulomb's constant
-double C_q = A*(3.0/4.0)*pow(Qn2,2);
-double dn2 = 0.33092224232;               // Distance between nitrogen atoms in sigma units
-double dq1 = 0.25527426160;               // Distance between "+" charge and center of quadrupole in sigma units
-double dq2 = 0.31464737794;               // Distance between "-" charge and center of quadrupole in sigma units
-const double qe = 1.6021766208e-19;                   // The charge of one electron in C
-double q = 0.373*qe;                            // Charge of the quadrupole points in C
 double gm = 50;
 
 //#include "writeConfigPBC.h"
@@ -141,7 +128,7 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete a random distribution of TMA molecules at fixed density
- initConfigRandomTMA(nPart, density, coordinates, Lx, Ly, state_dens);
+initConfigRandomTMA(nPart, density, coordinates, Lx, Ly, state_dens);
 
 for(double temperature = 15; temperature > 5; temperature -= 1.0)
     {
