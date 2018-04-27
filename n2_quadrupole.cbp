@@ -36,7 +36,7 @@
 		<Unit filename="PotentialEnergy.h" />
 		<Unit filename="Rosenbluth_algorithm_simple.h" />
 		<Unit filename="energies_and_forces.h" />
-		<Unit filename="initConfigHerringbone.h" />
+		<Unit filename="initConfigRandomTMA.h" />
 		<Unit filename="layer_map.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="pressure_balance.h" />

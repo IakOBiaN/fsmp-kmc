@@ -70,6 +70,20 @@ double Rc = 15;                                             // Cut-off radius in
 double Rc2 = Rc*Rc;
 double gm = 50;
 
+// Forcefield for TMA-TMA pair
+vector <vector <vector <double>> > TMA_forcefield(600, vector<vector<double>> (600));
+// Fill in the forcefield
+// First dimension is distance
+// Second dimension is angle of first molecule
+// Third dimension is angle of second molecule
+// Delta between neighbor distances in the forcefield in A
+double dr = 0.1;
+// Delta between orientation angle of the single molecule
+double da = 1.0;
+
+
+
+
 //#include "writeConfigPBC.h"
 #include "energies_and_forces.h"
 //#include "initConfig.h"
