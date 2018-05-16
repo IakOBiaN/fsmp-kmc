@@ -13,6 +13,23 @@
 #include <float.h>
 using namespace std;
 
+//#include "writeConfigPBC.h"
+#include "energies_and_forces.h"
+//#include "initConfig.h"
+#include "PBC2D.h"
+#include "initConfigRandomTMA.h"
+//#include "initConfigPinwheel.h"
+#include "PotentialEnergy.h"
+//#include "Rosenbluth_algorithm_simple.h"
+//#include "replace_the_trialParticle_and_update_energies.h"
+#include "Metropolis_iteration.h"
+#include "pressure_balance.h"
+#include "layer_map.h"
+#include "write_xy_matrix.h"
+#include "writeData.h"
+#include "write_xyz_file.h"
+#include "read_forcefield.h"
+
 // Random number generator
 int seed = (int)time(0);
 CRandomSFMT0 RanGen(seed);
@@ -71,34 +88,30 @@ double Rc2 = Rc*Rc;
 double gm = 50;
 
 // Forcefield for TMA-TMA pair
-vector <vector <vector <double>> > TMA_forcefield(600, vector<vector<double>> (600));
+vector <vector <vector <double>> > TMA_forcefield;
+for (int i = 0; i < 110; i++) {
+    vector< vector<double> > mat; // Create an empty matrix
+    for (int j = 0; j < 361; j++) {
+        vector<double> row; // Create an empty row
+            for (int k =0; k <361; k++) {
+                row.push_back(0);
+            }
+        mat.push_back(row); // Add an element (column) to the row
+    }
+    TMA_forcefield.push_back(mat); // Add the row to the main vector
+}
 // Fill in the forcefield
 // First dimension is distance
 // Second dimension is angle of first molecule
 // Third dimension is angle of second molecule
+// Minimal distance between the molecules (hard core distance)
+double min_dist;
 // Delta between neighbor distances in the forcefield in A
-double dr = 0.1;
+double dr;
 // Delta between orientation angle of the single molecule
-double da = 1.0;
-
-
-
-
-//#include "writeConfigPBC.h"
-#include "energies_and_forces.h"
-//#include "initConfig.h"
-#include "PBC2D.h"
-#include "initConfigRandomTMA.h"
-//#include "initConfigPinwheel.h"
-#include "PotentialEnergy.h"
-//#include "Rosenbluth_algorithm_simple.h"
-//#include "replace_the_trialParticle_and_update_energies.h"
-#include "Metropolis_iteration.h"
-#include "pressure_balance.h"
-#include "layer_map.h"
-#include "write_xy_matrix.h"
-#include "writeData.h"
-#include "write_xyz_file.h"
+double da;
+// Read the forcefield from "forcefield.dat"
+read_forcefield (TMA_forcefield, min_dist, dr, da);
 
 int main()
 {
