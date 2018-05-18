@@ -68,7 +68,9 @@ class state {
 public:
 double x;
 double y;
-double ang;
+double phi;
+double sin_phi;
+double cos_phi;
 double energy;
 double mob;
 };
@@ -79,11 +81,11 @@ double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of
 double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;                             //steps for balance statistics
 double delta = 0.5;                                  //MC parameter
-double delta_angle = 90.0*(3.141592653589/180.0);     //MC parameter. Maximal rotation in rad
+double delta_angle = 90.0*(3.141592653589/180.0);    //MC parameter. Maximal rotation in rad
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 double k_B = 1.38e-23;
-double Rc = 15;                                             // Cut-off radius in sigma
+double Rc = 15;                                      // Cut-off radius in Angstrems
 double Rc2 = Rc*Rc;
 double gm = 50;
 
@@ -157,7 +159,7 @@ int main()
  //Generete a random distribution of TMA molecules at fixed density
 initConfigRandomTMA(nPart, density, coordinates, Lx, Ly, state_dens);
 
-for(double temperature = 15; temperature > 5; temperature -= 1.0)
+for(double temperature = 300; temperature < 500; temperature += 10.0)
     {
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.p_X = 0;
@@ -176,7 +178,7 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
      persent = 0;
      //int frame = 0;
 
-	 double beta = 1.0 / R*Temp;  // Inverse temperature in units of mol/J
+	 double beta = 1.0 / R*temperature;  // Inverse temperature in units of mol/J
 
      vector <vector <double> > xy_matrix(600, vector<double> (600));
      for(int i = 0; i < 600; i++){for(int j = 0; j < 600; j++){xy_matrix[i][j] = 0;}}
@@ -204,6 +206,7 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
+        /*
         balanceEq++;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
@@ -231,7 +234,7 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
                 ACCEPTANCE_RATIO_m[1] = 0;
             }
         }
-
+        */
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
@@ -241,8 +244,8 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
             {
                 Energy = 0;
                 en_2_av = 0;
-                press_X = 0;
-                press_Y = 0;
+                //press_X = 0;
+                //press_Y = 0;
                 Pt = 0;
             }
 
@@ -257,8 +260,8 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
             Pt += dt;
             Energy += EN_AND_PR_counter.energy*dt;
             en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
-            press_X += EN_AND_PR_counter.p_X*dt;
-            press_Y += EN_AND_PR_counter.p_Y*dt;
+            //press_X += EN_AND_PR_counter.p_X*dt;
+            //press_Y += EN_AND_PR_counter.p_Y*dt;
            }
          // A new random position is chosen uniformly over the whole volume of the system
          // and update the energies of all molecules in the system
@@ -268,14 +271,17 @@ for(double temperature = 15; temperature > 5; temperature -= 1.0)
      double mu = 0;
      if(rosenbluth) {mu = log(Mconf/Lx/Ly) - log(Time);}
 
-            press_X = press_X/Pt;
-            press_Y = press_Y/Pt;
+            //press_X = press_X/Pt;
+            //press_Y = press_Y/Pt;
 
-            press_X = press_X/Lx/Ly;
-            press_Y = press_Y/Lx/Ly;
+            press_X = 0;
+            press_Y = 0;
 
-            press_X = R*temperature*nPart/Ly/Lx + press_X;
-            press_Y = R*temperature*nPart/Ly/Lx + press_Y;
+            //press_X = press_X/Lx/Ly;
+            //press_Y = press_Y/Lx/Ly;
+
+            //press_X = R*temperature*nPart/Ly/Lx + press_X;
+            //press_Y = R*temperature*nPart/Ly/Lx + press_Y;
 
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;

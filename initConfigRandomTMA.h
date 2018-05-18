@@ -17,13 +17,15 @@ int molecule = 0; // Molecules counter
     {
       coordinates[molecule].x = RanGen.Random()*Lx;
       coordinates[molecule].y = RanGen.Random()*Ly;
-      coordinates[molecule].ang = RanGen.Random()*360.0;
+      coordinates[molecule].phi = RanGen.Random()*360.0;
+      coordinates[molecule].sin_phi = sin(coordinates[molecule].phi);
+      coordinates[molecule].cos_phi = cos(coordinates[molecule].phi);
       molecule++;
     }
 
  nPart = molecule;
  density = (1.0e+26)*nPart/(Lx*Ly)/N_a; // Density in mkMol/m2
 
- cout << "Random TPA structure: " << endl;
+ cout << "Random TMA structure: " << endl;
  cout << "N: " << molecule << "\t" << "density: " << density << " mikro mol/m2" << "\t" << "Lx and Ly: " << Lx << " and " << Ly << endl;
 }

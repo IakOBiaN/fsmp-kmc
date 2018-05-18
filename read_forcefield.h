@@ -55,6 +55,7 @@ void read_forcefield (vector <vector <vector <double>> > &TMA_forcefield, double
         dist = (distance[i]-distance[0])/dr;
         ang1 = (angle_1[i]-angle_1[0])/da;
         ang2 = (angle_2[i]-angle_2[0])/angle_step_2;
-        TMA_forcefield[dist][ang1][ang2] = energy[i];
+        // 1 kcal = 4184 J/mol
+        TMA_forcefield[dist][ang1][ang2] = energy[i]*4184.0;
     }
 }

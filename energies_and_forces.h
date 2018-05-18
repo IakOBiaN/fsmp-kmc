@@ -9,8 +9,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     double molB_x = molB.x;
     double molB_y = molB.y;
     double dx, dy;
-    double ang1 = molA.ang;
-    double ang2 = molB.ang;
+    double ang1 = molA.phi;
+    double ang2 = molB.phi;
 
 
     int dist;
