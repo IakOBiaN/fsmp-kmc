@@ -1,4 +1,4 @@
-void read_forcefield (vector <vector <vector <double>> > &TMA_forcefield, double &min_dist, double &dr, double &da)
+void read_forcefield (vector <vector <vector <double> > > &TMA_forcefield, double &min_dist, double &max_dist, double &dr, double &da)
 {
     //Create an input file stream
 	ifstream in("forcefield.dat",ios::in);
@@ -23,6 +23,7 @@ void read_forcefield (vector <vector <vector <double>> > &TMA_forcefield, double
     double angle_step_2;
 
     min_dist = distance[0];
+		max_dist = distance[steps-1];
 
     for (int i=1;i<steps;i++)
     {
@@ -48,7 +49,6 @@ void read_forcefield (vector <vector <vector <double>> > &TMA_forcefield, double
            break;
         }
     }
-
 
     long int dist,ang1,ang2;
     for (long int i = 0; i < steps; i++){

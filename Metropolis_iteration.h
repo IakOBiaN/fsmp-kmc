@@ -2,6 +2,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
 {
 
     int trialPart = RanGen.IRandom(0,(nPart-1));
+    double angle;
     bool angle_change = false;
 
     state new_coordinates = coordinates[trialPart]; // Make a clone of trail particle
@@ -22,7 +23,10 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       }
     else
       {
-       new_coordinates.phi = coordinates[trialPart].phi + delta_angle*(2.0 * RanGen.Random() - 1.0);
+       angle = coordinates[trialPart].phi + delta_angle*(2.0 * RanGen.Random() - 1.0);
+       if (angle < 0) {angle += 360.0;}
+       if (angle > 360) {angle -= 360.0;}
+       new_coordinates.phi = angle;
        new_coordinates.sin_phi = sin(new_coordinates.phi);
        new_coordinates.cos_phi = cos(new_coordinates.phi);
        angle_change = true;

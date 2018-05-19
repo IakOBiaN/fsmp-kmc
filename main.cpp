@@ -13,22 +13,6 @@
 #include <float.h>
 using namespace std;
 
-//#include "writeConfigPBC.h"
-#include "energies_and_forces.h"
-//#include "initConfig.h"
-#include "PBC2D.h"
-#include "initConfigRandomTMA.h"
-//#include "initConfigPinwheel.h"
-#include "PotentialEnergy.h"
-//#include "Rosenbluth_algorithm_simple.h"
-//#include "replace_the_trialParticle_and_update_energies.h"
-#include "Metropolis_iteration.h"
-#include "pressure_balance.h"
-#include "layer_map.h"
-#include "write_xy_matrix.h"
-#include "writeData.h"
-#include "write_xyz_file.h"
-#include "read_forcefield.h"
 
 // Random number generator
 int seed = (int)time(0);
@@ -58,7 +42,8 @@ results operator-(results& b) {
 //constructor
 results::results(void) {
    energy = 0;
-   p = 0;
+   p_X = 0;
+   p_Y = 0;
 }
 
 // Class contains the function descrabing the state of the molecule:
@@ -85,38 +70,54 @@ double delta_angle = 90.0*(3.141592653589/180.0);    //MC parameter. Maximal rot
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 double k_B = 1.38e-23;
-double Rc = 15;                                      // Cut-off radius in Angstrems
-double Rc2 = Rc*Rc;
 double gm = 50;
 
+#include "read_forcefield.h"
 // Forcefield for TMA-TMA pair
-vector <vector <vector <double>> > TMA_forcefield;
-for (int i = 0; i < 110; i++) {
-    vector< vector<double> > mat; // Create an empty matrix
-    for (int j = 0; j < 361; j++) {
-        vector<double> row; // Create an empty row
-            for (int k =0; k <361; k++) {
-                row.push_back(0);
-            }
-        mat.push_back(row); // Add an element (column) to the row
-    }
-    TMA_forcefield.push_back(mat); // Add the row to the main vector
-}
-// Fill in the forcefield
-// First dimension is distance
-// Second dimension is angle of first molecule
-// Third dimension is angle of second molecule
-// Minimal distance between the molecules (hard core distance)
-double min_dist;
+vector <vector <vector <double> > > TMA_forcefield;
+// Minimal and maximal distance between the molecules (hard core distance)
+double min_dist,max_dist;
 // Delta between neighbor distances in the forcefield in A
 double dr;
 // Delta between orientation angle of the single molecule
 double da;
-// Read the forcefield from "forcefield.dat"
-read_forcefield (TMA_forcefield, min_dist, dr, da);
+
+//#include "writeConfigPBC.h"
+#include "energies_and_forces.h"
+//#include "initConfig.h"
+#include "PBC2D.h"
+#include "initConfigRandomTMA.h"
+//#include "initConfigPinwheel.h"
+#include "PotentialEnergy.h"
+//#include "Rosenbluth_algorithm_simple.h"
+//#include "replace_the_trialParticle_and_update_energies.h"
+#include "Metropolis_iteration.h"
+#include "pressure_balance.h"
+#include "layer_map.h"
+#include "write_xy_matrix.h"
+#include "writeData.h"
+#include "write_xyz_file.h"
 
 int main()
 {
+
+  // Fill in the forcefield
+  // First dimension is distance
+  // Second dimension is angle of first molecule
+  // Third dimension is angle of second molecule
+  for (int i = 0; i < 120; i++) {
+      vector< vector<double> > mat; // Create an empty matrix
+      for (int j = 0; j < 361; j++) {
+          vector<double> row; // Create an empty row
+              for (int k =0; k <361; k++) {
+                  row.push_back(0);
+              }
+          mat.push_back(row); // Add an element (column) to the row
+      }
+      TMA_forcefield.push_back(mat); // Add the row to the main vector
+  }
+  // Read the forcefield from "forcefield.dat"
+  read_forcefield (TMA_forcefield, min_dist,max_dist, dr, da);
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -182,10 +183,8 @@ for(double temperature = 300; temperature < 500; temperature += 10.0)
 
      vector <vector <double> > xy_matrix(600, vector<double> (600));
      for(int i = 0; i < 600; i++){for(int j = 0; j < 600; j++){xy_matrix[i][j] = 0;}}
-
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
      //////////////////////////////////////////////////
@@ -287,7 +286,7 @@ for(double temperature = 300; temperature < 500; temperature += 10.0)
             en_2_av = en_2_av/Pt;
 
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, Lx, Ly);
+     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
