@@ -136,9 +136,9 @@ int main()
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 400;
- int nSteps = 60000;            // Total amount of MCS
+ int nSteps = 30000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 40000;           // MCS for relaxation
+ int nStepsEq = 20000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
  double state_dens = 5.0; // mkMol of TMA per A^2
@@ -252,7 +252,6 @@ for(double temperature = 300; temperature < 500; temperature += 10.0)
             if(rosenbluth) {Time += dt; Mconf++;}
 
             layer_map(nPart, coordinates, xy_matrix, Lx, Ly);
-
             if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter.energy)*(Energy/(Pt+1) - EN_AND_PR_counter.energy);}
 
             cap_n++;

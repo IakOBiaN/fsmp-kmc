@@ -4,8 +4,8 @@ void write_xy_matrix(int &nPart, double &Lx, double &Ly, double &temperature, ve
    name <<  "N" << nPart << "_Lx" << Lx << "_Ly" << Ly << "_T" << temperature << ".dat";
    ofstream fileOutput(name.str().c_str(), ios_base::trunc);
 
-   int Xmax = Lx*10;
-   int Ymax = Ly*10;
+   int Xmax = Lx*5;
+   int Ymax = Ly*5;
 
    for(int i = 0; i < Xmax; i++)
       {
