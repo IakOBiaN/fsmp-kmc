@@ -18,8 +18,8 @@ int molecule = 0; // Molecules counter
       coordinates[molecule].x = RanGen.Random()*Lx;
       coordinates[molecule].y = RanGen.Random()*Ly;
       coordinates[molecule].phi = RanGen.Random()*360.0;
-      coordinates[molecule].sin_phi = sin(coordinates[molecule].phi);
-      coordinates[molecule].cos_phi = cos(coordinates[molecule].phi);
+      coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
+      coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
       molecule++;
     }
 

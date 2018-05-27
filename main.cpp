@@ -65,11 +65,12 @@ results EN_AND_PR_counter;                           //energy and pressures in t
 double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;                             //steps for balance statistics
-double delta = 0.5;                                  //MC parameter
-double delta_angle = 90.0*(3.141592653589/180.0);    //MC parameter. Maximal rotation in rad
+double delta = 1.0;                                  //MC parameter
+double delta_angle = 10.0;    //MC parameter. Maximal rotation in degrees
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 double k_B = 1.38e-23;
+const double PI  =3.141592653589793238463;
 double gm = 50;
 
 #include "read_forcefield.h"
@@ -81,6 +82,7 @@ double min_dist,max_dist;
 double dr;
 // Delta between orientation angle of the single molecule
 double da;
+int frame = 0;
 
 //#include "writeConfigPBC.h"
 #include "energies_and_forces.h"
@@ -105,7 +107,7 @@ int main()
   // First dimension is distance
   // Second dimension is angle of first molecule
   // Third dimension is angle of second molecule
-  for (int i = 0; i < 120; i++) {
+  for (int i = 0; i < 150; i++) {
       vector< vector<double> > mat; // Create an empty matrix
       for (int j = 0; j < 361; j++) {
           vector<double> row; // Create an empty row
@@ -135,13 +137,13 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 400;
+ int nPart = 2;
  int nSteps = 30000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 20000;           // MCS for relaxation
+ int nStepsEq = 15000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
- double state_dens = 5.0; // mkMol of TMA per A^2
+ double state_dens = 1.5; // mkMol of TMA per A^2
  vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
@@ -160,8 +162,9 @@ int main()
  //Generete a random distribution of TMA molecules at fixed density
 initConfigRandomTMA(nPart, density, coordinates, Lx, Ly, state_dens);
 
-for(double temperature = 300; temperature < 500; temperature += 10.0)
+for(double temperature = 600; temperature < 601; temperature += 10.0)
     {
+     write_xyz_file (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.p_X = 0;
      EN_AND_PR_counter.p_Y = 0;
@@ -179,26 +182,54 @@ for(double temperature = 300; temperature < 500; temperature += 10.0)
      persent = 0;
      //int frame = 0;
 
-	 double beta = 1.0 / R*temperature;  // Inverse temperature in units of mol/J
+	 double beta = 1.0 / (R*temperature);  // Inverse temperature in units of mol/J
 
-     vector <vector <double> > xy_matrix(600, vector<double> (600));
-     for(int i = 0; i < 600; i++){for(int j = 0; j < 600; j++){xy_matrix[i][j] = 0;}}
+   coordinates[0].x = Lx/2.0;
+   coordinates[0].y = Ly/2.0;
+   coordinates[0].phi = 0;
+   coordinates[0].sin_phi = sin(coordinates[0].phi/180.0*PI);
+   coordinates[0].cos_phi = cos(coordinates[0].phi/180.0*PI);
+   coordinates[1].x = Lx/2.0 + 10.0;
+   coordinates[1].y = Ly/2.0;
+   coordinates[1].phi = 60;
+   coordinates[1].sin_phi = sin(coordinates[1].phi/180.0*PI);
+   coordinates[1].cos_phi = cos(coordinates[1].phi/180.0*PI);
+
+   results en_one,en_two;
+   en_one = energies_and_forces(coordinates[0], coordinates[1], Lx, Ly, beta);
+   en_two = energies_and_forces(coordinates[1], coordinates[0], Lx, Ly, beta);
+   cout << "ENERGY=" << en_one.energy << " and " << en_two.energy << " and " << en_one.energy - en_two.energy << endl;
+
+   assert (abs(en_one.energy - en_two.energy) < 0.1);
+
+     vector <vector <double> > xy_matrix(1000, vector<double> (1000));
+     for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
      //////////////////////////////////////////////////
 
      for(int iter = 1; iter <= nIter; iter++)
         {
+
+          if((iter%(nPart*30) == 0) || (iter == 1))
+          {
+           frame++;
+           write_xyz_file (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
+          }
          persent += 1;
-         if(persent > nIter/100.0){cout << int(iter*100.0/nIter) << " %" << endl;persent = 0;}
+         if(persent > nIter/100.0)
+         {
+           cout << int(iter*100.0/nIter) << " %" << endl;persent = 0;
+         }
 
          int trialPart;
          // Choose a particle to be displaced
          // according to the ROSENBLUTH scheme
          // and calculate the duration of the current configuration
-
+         //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
          if(!rosenbluth) {Metropolis_iteration(nPart, Lx, Ly, beta, coordinates); dt = 1.0;}     // Make a MC iteration
          //else {trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}                 // kMC trial particle and dt calculation
 
@@ -285,12 +316,12 @@ for(double temperature = 300; temperature < 500; temperature += 10.0)
             en_2_av = en_2_av/Pt;
 
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart*k_B*temperature*N_a/1000.0, press_X, press_Y, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
+     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart/1000.0, press_X, press_Y, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
-     cout << "rho: " << density << "\t" << "mu: " << mu << "\t" << "en(kJ/mol): " << Energy/nPart*k_B*temperature*N_a/1000.0 << endl;
+     cout << "rho: " << density << "mkMol/m^2 \t" << "mu: " << mu << "\t" << "en(kJ/mol): " << Energy/nPart/1000.0 << endl;
 
     }
  return 0;
