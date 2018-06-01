@@ -184,7 +184,7 @@ for(double temperature = 600; temperature < 601; temperature += 10.0)
 
 	 double beta = 1.0 / (R*temperature);  // Inverse temperature in units of mol/J
 
-   coordinates[0].x = Lx/2.0;
+   /*coordinates[0].x = Lx/2.0;
    coordinates[0].y = Ly/2.0;
    coordinates[0].phi = 0;
    coordinates[0].sin_phi = sin(coordinates[0].phi/180.0*PI);
@@ -200,7 +200,7 @@ for(double temperature = 600; temperature < 601; temperature += 10.0)
    en_two = energies_and_forces(coordinates[1], coordinates[0], Lx, Ly, beta);
    cout << "ENERGY=" << en_one.energy << " and " << en_two.energy << " and " << en_one.energy - en_two.energy << endl;
 
-   assert (abs(en_one.energy - en_two.energy) < 0.1);
+   assert (abs(en_one.energy - en_two.energy) < 0.1);*/
 
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}

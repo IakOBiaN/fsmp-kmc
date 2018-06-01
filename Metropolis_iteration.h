@@ -37,10 +37,12 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       for (int l = 0; l < nPart; l++)
       {
            if (l == trialPart){continue;}
+           //cout << endl << endl << " FIRST" << endl;
            delta_EP_old = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly, beta);
            double dopoln = delta_EP_old.energy;
+           //cout << "SECOND" << endl;
            delta_EP_old = energies_and_forces(coordinates[l], coordinates[trialPart], Lx, Ly, beta);
-           if (abs(dopoln - delta_EP_old.energy) > abs(0.1*delta_EP_old.energy)) {cout << "AHTUNG!!!" << " dopoln=" << dopoln << " delta=" << delta_EP_old.energy << endl;}
+           //if (abs(dopoln - delta_EP_old.energy) > abs(0.1*delta_EP_old.energy)) {cout << "AHTUNG!!!" << " dopoln=" << dopoln << " delta=" << delta_EP_old.energy << endl << endl;}
            old_EP = old_EP + delta_EP_old;
            delta_EP_new = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta);
            new_EP = new_EP + delta_EP_new;
