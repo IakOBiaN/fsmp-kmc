@@ -180,27 +180,8 @@ for(double temperature = 600; temperature < 601; temperature += 10.0)
 	 double dt = 0;
 	 int balanceEq = 0;
      persent = 0;
-     //int frame = 0;
 
 	 double beta = 1.0 / (R*temperature);  // Inverse temperature in units of mol/J
-
-   /*coordinates[0].x = Lx/2.0;
-   coordinates[0].y = Ly/2.0;
-   coordinates[0].phi = 0;
-   coordinates[0].sin_phi = sin(coordinates[0].phi/180.0*PI);
-   coordinates[0].cos_phi = cos(coordinates[0].phi/180.0*PI);
-   coordinates[1].x = Lx/2.0 + 10.0;
-   coordinates[1].y = Ly/2.0;
-   coordinates[1].phi = 60;
-   coordinates[1].sin_phi = sin(coordinates[1].phi/180.0*PI);
-   coordinates[1].cos_phi = cos(coordinates[1].phi/180.0*PI);
-
-   results en_one,en_two;
-   en_one = energies_and_forces(coordinates[0], coordinates[1], Lx, Ly, beta);
-   en_two = energies_and_forces(coordinates[1], coordinates[0], Lx, Ly, beta);
-   cout << "ENERGY=" << en_one.energy << " and " << en_two.energy << " and " << en_one.energy - en_two.energy << endl;
-
-   assert (abs(en_one.energy - en_two.energy) < 0.1);*/
 
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
@@ -222,6 +203,12 @@ for(double temperature = 600; temperature < 601; temperature += 10.0)
          persent += 1;
          if(persent > nIter/100.0)
          {
+           double old_energy = EN_AND_PR_counter.energy;
+           PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+           if (abs(old_energy - EN_AND_PR_counter.energy) > abs(0.01*EN_AND_PR_counter.energy))
+           {
+              cout << "AHTUNG!!! Energy problem. Exact=" << EN_AND_PR_counter.energy << " diff_energy=" << old_energy << endl;
+           }
            cout << int(iter*100.0/nIter) << " %" << endl;persent = 0;
          }
 

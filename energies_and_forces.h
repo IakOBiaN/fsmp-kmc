@@ -42,7 +42,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                //calculation of energy for two molecules
                double dang = dx/r;
                if (dang<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
-               //cout << "ACOS=" << dx/r << " and " << dang << " ang1=" << ang1 << " ang2=" << ang2 << endl;
                ang1 = ang_molA - dang;
                ang2 = ang_molB - dang;
                if (ang1<0) {ang1 += 360.0;}
@@ -58,7 +57,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                }
                else
                {
-                 //cout << "force=" << dist << " and " << ang1 << " and " << ang2 << " energy=" << TMA_forcefield[dist][a1][a2] << endl;
                  energy += TMA_forcefield[dist][a1][a2];
                }
              }

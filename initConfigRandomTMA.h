@@ -9,18 +9,22 @@ double area = (1.0e+26)*nPart/(state_dens*N_a); // Area of the surface in A^2
 Lx = sqrt(area*ratio_x_to_y); // Size of the simulation box in A^2
 Ly = Lx/ratio_x_to_y;
 
-int steps = nPart;
-
 int molecule = 0; // Molecules counter
 
- for(int i = 0; i < steps; i++)
+ while (molecule < nPart)
     {
       coordinates[molecule].x = RanGen.Random()*Lx;
       coordinates[molecule].y = RanGen.Random()*Ly;
       coordinates[molecule].phi = RanGen.Random()*360.0;
       coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
       coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-      molecule++;
+      bool good = true;
+      for (int i = 0; i < molecule; i++)
+      {
+        double r = sqrt((coordinates[molecule].x-coordinates[i].x)*(coordinates[molecule].x-coordinates[i].x)+(coordinates[molecule].y-coordinates[i].y)*(coordinates[molecule].y-coordinates[i].y));
+        if (r < min_dist) {good = false;}
+      }
+      if (good) {molecule++;}
     }
 
  nPart = molecule;
