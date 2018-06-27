@@ -65,17 +65,18 @@ results EN_AND_PR_counter;                           //energy and pressures in t
 double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;                             //steps for balance statistics
-double delta = 1.0;                                  //MC parameter
-double delta_angle = 10.0;    //MC parameter. Maximal rotation in degrees
+double sigma = 3.318;
+double delta = sigma*5.0;                            //MC parameter. Maximal shift of the molecule
+double delta_angle = 90.0;    //MC parameter. Maximal rotation in degrees
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 double k_B = 1.38e-23;
 const double PI  =3.141592653589793238463;
-double gm = 50;
+//double gm = 50;
 
 #include "read_forcefield.h"
 // Forcefield for TMA-TMA pair
-vector <vector <vector <double> > > TMA_forcefield;
+vector <vector <vector <double> > > forcefield;
 // Minimal and maximal distance between the molecules (hard core distance)
 double min_dist,max_dist;
 // Delta between neighbor distances in the forcefield in A
@@ -84,15 +85,11 @@ double dr;
 double da;
 int frame = 0;
 
-//#include "writeConfigPBC.h"
+
 #include "energies_and_forces.h"
-//#include "initConfig.h"
 #include "PBC2D.h"
-#include "initConfigRandomTMA.h"
-//#include "initConfigPinwheel.h"
+#include "initConfigHerringbone.h"
 #include "PotentialEnergy.h"
-//#include "Rosenbluth_algorithm_simple.h"
-//#include "replace_the_trialParticle_and_update_energies.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -116,10 +113,10 @@ int main()
               }
           mat.push_back(row); // Add an element (column) to the row
       }
-      TMA_forcefield.push_back(mat); // Add the row to the main vector
+      forcefield.push_back(mat); // Add the row to the main vector
   }
   // Read the forcefield from "forcefield.dat"
-  read_forcefield (TMA_forcefield, min_dist,max_dist, dr, da);
+  read_forcefield (forcefield, min_dist,max_dist, dr, da);
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -137,13 +134,13 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 2;
+ int nPart = 100;
  int nSteps = 30000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 15000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
- double state_dens = 1.5; // mkMol of TMA per A^2
+ double state_dens = 10.5; // mkMol of N2 per m^2
  vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
@@ -160,11 +157,11 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete a random distribution of TMA molecules at fixed density
-initConfigRandomTMA(nPart, density, coordinates, Lx, Ly, state_dens);
+initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
 
-for(double temperature = 600; temperature < 601; temperature += 10.0)
+for(double temperature = 20; temperature < 21; temperature += 1.0)
     {
-     write_xyz_file (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+     write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.p_X = 0;
      EN_AND_PR_counter.p_Y = 0;
@@ -198,7 +195,7 @@ for(double temperature = 600; temperature < 601; temperature += 10.0)
           if((iter%(nPart*30) == 0) || (iter == 1))
           {
            frame++;
-           write_xyz_file (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
+           write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, frame, 1.094, false);
           }
          persent += 1;
          if(persent > nIter/100.0)
@@ -269,7 +266,7 @@ for(double temperature = 600; temperature < 601; temperature += 10.0)
             // Update the total time and the amount of configurations for kMC (chemical potential calculation)
             if(rosenbluth) {Time += dt; Mconf++;}
 
-            layer_map(nPart, coordinates, xy_matrix, Lx, Ly);
+            layer_map_N2(nPart, coordinates, xy_matrix, Lx, Ly);
             if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter.energy)*(Energy/(Pt+1) - EN_AND_PR_counter.energy);}
 
             cap_n++;

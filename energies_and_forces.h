@@ -53,11 +53,11 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                a2 = (int)((ang2/da)+0.5);
                if (r<min_dist)
                {
-                 energy += TMA_forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));
+                 energy += forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));
                }
                else
                {
-                 energy += TMA_forcefield[dist][a1][a2];
+                 energy += forcefield[dist][a1][a2];
                }
              }
        }
