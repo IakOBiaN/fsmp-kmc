@@ -24,7 +24,7 @@ int molecule = 0; // Molecules counter
             if((j%2)==0){
                           coordinates[molecule].x = PBC2D(Lx, j*a/2.0);
                           coordinates[molecule].y = PBC2D(Ly, i*b);
-                          coordinates[molecule].phi = -45.0*(PI/180.0);
+                          coordinates[molecule].phi = -45.0;
                           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
                           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
                           molecule++;
@@ -35,7 +35,7 @@ int molecule = 0; // Molecules counter
             if((j%2)!=0){
                         coordinates[molecule].x = PBC2D(Lx, j*a/2.0);
                         coordinates[molecule].y = PBC2D(Ly, i*b);
-                        coordinates[molecule].phi = 45.0*(PI/180.0);
+                        coordinates[molecule].phi = 45.0;
                         coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
                         coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
                         molecule++;

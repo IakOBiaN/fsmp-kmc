@@ -85,7 +85,6 @@ double dr;
 double da;
 int frame = 0;
 
-
 #include "energies_and_forces.h"
 #include "PBC2D.h"
 #include "initConfigHerringbone.h"
@@ -96,6 +95,7 @@ int frame = 0;
 #include "write_xy_matrix.h"
 #include "writeData.h"
 #include "write_xyz_file.h"
+
 
 int main()
 {
@@ -178,7 +178,7 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
 	 int balanceEq = 0;
      persent = 0;
 
-	 double beta = 1.0 / (R*temperature);  // Inverse temperature in units of mol/J
+	 double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
 
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
@@ -192,7 +192,7 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
      for(int iter = 1; iter <= nIter; iter++)
         {
 
-          if((iter%(nPart*30) == 0) || (iter == 1))
+          if((iter%(nPart*1) == 0) || (iter == 1))
           {
            frame++;
            write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, frame, 1.094, false);
@@ -300,12 +300,12 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
             en_2_av = en_2_av/Pt;
 
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/nPart/1000.0, press_X, press_Y, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
+     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, (Energy/1000.0)*(N_a/nPart), press_X, press_Y, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
-     cout << "rho: " << density << "mkMol/m^2 \t" << "mu: " << mu << "\t" << "en(kJ/mol): " << Energy/nPart/1000.0 << endl;
+     cout << "rho: " << density << "mkMol/m^2 \t" << "mu: " << mu << "\t" << "en(kJ/mol): " << (Energy/1000.0)*(N_a/nPart) << endl;
 
     }
  return 0;

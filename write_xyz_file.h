@@ -7,7 +7,6 @@
    else {
         ofstream fileOutput(name.str().c_str(), ios_base::app);
         fileOutput << nPart*2 << endl;
-        fileOutput << frame << endl;
         fileOutput << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\"" << endl;
 
         for(int i = 0; i < nPart; i++)
