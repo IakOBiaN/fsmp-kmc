@@ -21,20 +21,24 @@ CRandomSFMT0 RanGen(seed);
 class results {
 public:
 double energy;
-double p_X, p_Y;
+double p_X_LJ, p_Y_LJ, p_X_QQ, p_Y_QQ;
 results();      //constructor
 results operator+(results& b) {
          results res;
          res.energy = this->energy + b.energy;
-         res.p_X = this->p_X + b.p_X;
-         res.p_Y = this->p_Y + b.p_Y;
+         res.p_X_LJ = this->p_X_LJ + b.p_X_LJ;
+         res.p_Y_LJ = this->p_Y_LJ + b.p_Y_LJ;
+         res.p_X_QQ = this->p_X_QQ + b.p_X_QQ;
+         res.p_Y_QQ = this->p_Y_QQ + b.p_Y_QQ;
          return res;
       }
 results operator-(results& b) {
          results res;
          res.energy = this->energy - b.energy;
-         res.p_X = this->p_X - b.p_X;
-         res.p_Y = this->p_Y - b.p_Y;
+         res.p_X_LJ = this->p_X_LJ - b.p_X_LJ;
+         res.p_Y_LJ = this->p_Y_LJ - b.p_Y_LJ;
+         res.p_X_QQ = this->p_X_QQ - b.p_X_QQ;
+         res.p_Y_QQ = this->p_Y_QQ - b.p_Y_QQ;
          return res;
       }
 };
@@ -42,8 +46,10 @@ results operator-(results& b) {
 //constructor
 results::results(void) {
    energy = 0;
-   p_X = 0;
-   p_Y = 0;
+   p_X_LJ = 0;
+   p_Y_LJ = 0;
+   p_X_QQ = 0;
+   p_Y_QQ = 0;
 }
 
 // Class contains the function descrabing the state of the molecule:
@@ -134,7 +140,7 @@ int main()
  double density = 0;                // Density
 
  double Pt = 0;
- double press_X=0, press_Y=0, Energy=0;
+ double press_X = 0, press_Y = 0, press_X_LJ = 0, press_Y_LJ = 0,press_X_QQ = 0, press_Y_QQ = 0, Energy=0;
  double en_2_av = 0;
  double cap_n = 1.0;
  double fluent_capacity = 0;
@@ -144,12 +150,12 @@ int main()
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 100;
- int nSteps = 30000;            // Total amount of MCS
+ int nSteps = 100000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 15000;           // MCS for relaxation
+ int nStepsEq = 50000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
- double state_dens = 2.5; // mkMol of N2 per m^2
+ double state_dens = 10.5; // mkMol of N2 per m^2
  vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
@@ -168,15 +174,19 @@ int main()
  //Generete a random distribution of TMA molecules at fixed density
 initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
 
-for(double temperature = 20; temperature < 21; temperature += 1.0)
+for(double temperature = 30; temperature < 31; temperature += 1.0)
     {
      write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
-     EN_AND_PR_counter.p_X = 0;
-     EN_AND_PR_counter.p_Y = 0;
+     EN_AND_PR_counter.p_X_LJ = 0;
+     EN_AND_PR_counter.p_Y_LJ = 0;
+     EN_AND_PR_counter.p_X_QQ = 0;
+     EN_AND_PR_counter.p_Y_QQ = 0;
 	 Pt = 0;
-	 press_X = 0;
-	 press_Y = 0;
+	 press_X_LJ = 0;
+	 press_Y_LJ = 0;
+   press_X_QQ = 0;
+	 press_Y_QQ = 0;
 	 ACCEPTANCE_RATIO_r[0] = 0;
 	 ACCEPTANCE_RATIO_r[1] = 0;
 	 ACCEPTANCE_RATIO_m[0] = 0;
@@ -201,7 +211,7 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
      for(int iter = 1; iter <= nIter; iter++)
         {
 
-          if((iter%(nPart*1) == 0) || (iter == 1))
+          if((iter%(nPart*10) == 0) || (iter == 1))
           {
            frame++;
            write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, frame, 1.094, false);
@@ -267,8 +277,10 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
             {
                 Energy = 0;
                 en_2_av = 0;
-                //press_X = 0;
-                //press_Y = 0;
+                press_X_LJ = 0;
+                press_Y_LJ = 0;
+                press_X_QQ = 0;
+                press_Y_QQ = 0;
                 Pt = 0;
             }
 
@@ -282,8 +294,10 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
             Pt += dt;
             Energy += EN_AND_PR_counter.energy*dt;
             en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
-            //press_X += EN_AND_PR_counter.p_X*dt;
-            //press_Y += EN_AND_PR_counter.p_Y*dt;
+            press_X_LJ += EN_AND_PR_counter.p_X_LJ*dt;
+            press_Y_LJ += EN_AND_PR_counter.p_Y_LJ*dt;
+            press_X_QQ += EN_AND_PR_counter.p_X_QQ*dt;
+            press_Y_QQ += EN_AND_PR_counter.p_Y_QQ*dt;
            }
          // A new random position is chosen uniformly over the whole volume of the system
          // and update the energies of all molecules in the system
@@ -293,17 +307,18 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
      double mu = 0;
      if(rosenbluth) {mu = log(Mconf/Lx/Ly) - log(Time);}
 
-            //press_X = press_X/Pt;
-            //press_Y = press_Y/Pt;
+            press_X_LJ /= Pt;
+            press_Y_LJ /= Pt;
+            press_X_QQ /= Pt;
+            press_Y_QQ /= Pt;
 
-            press_X = 0;
-            press_Y = 0;
+            press_X_LJ /= (Lx*Ly*sigma*sigma/1e20/1000);  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
+            press_Y_LJ /= (Lx*Ly*sigma*sigma/1e20/1000);
+            press_X_QQ /= (Lx*Ly*sigma*sigma/1e20/1000);
+            press_Y_QQ /= (Lx*Ly*sigma*sigma/1e20/1000);
 
-            //press_X = press_X/Lx/Ly;
-            //press_Y = press_Y/Lx/Ly;
-
-            //press_X = R*temperature*nPart/Ly/Lx + press_X;
-            //press_Y = R*temperature*nPart/Ly/Lx + press_Y;
+            /*press_X = R*temperature*nPart/Ly/Lx + press_X_LJ + press_X_QQ;
+            press_Y = R*temperature*nPart/Ly/Lx + press_Y_LJ + press_Y_QQ;*/
 
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
@@ -314,7 +329,8 @@ for(double temperature = 20; temperature < 21; temperature += 1.0)
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
-     cout << "rho: " << density << "mkMol/m^2 \t" << "mu: " << mu << "\t" << "en(kJ/mol): " << (Energy/1000.0)*(N_a/nPart) << endl;
+     cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << (Energy/1000.0)*(N_a/nPart) << " kJ/mol" << endl;
+     cout << "P_X_LJ=" << press_X_LJ << " P_Y_LJ=" << press_Y_LJ << " P_X_QQ=" << press_X_QQ << " P_Y_QQ=" << press_Y_QQ << endl;
 
     }
  return 0;
