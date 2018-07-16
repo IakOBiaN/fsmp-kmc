@@ -1,9 +1,9 @@
 #include <cassert>
 
-void read_forcefield (vector <vector <vector <double> > > &forcefield, double &min_dist, double &max_dist, double &dr, double &da)
+void read_forcefield (const char * filename, vector <vector <vector <double> > > &forcefield, double &min_dist, double &max_dist, double &dr, double &da)
 {
     //Create an input file stream
-		FILE *pf = fopen ("forcefield.dat","r");
+		FILE *pf = fopen (filename,"r");
 		assert (pf != 0);
 		assert (ferror(pf) == 0);
 

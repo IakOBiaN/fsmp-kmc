@@ -77,6 +77,8 @@ const double PI  =3.141592653589793238463;
 #include "read_forcefield.h"
 // Forcefield for TMA-TMA pair
 vector <vector <vector <double> > > forcefield;
+vector <vector <vector <double> > > force_LJ;
+vector <vector <vector <double> > > force_QQ;
 // Minimal and maximal distance between the molecules (hard core distance)
 double min_dist,max_dist;
 // Delta between neighbor distances in the forcefield in A
@@ -114,9 +116,16 @@ int main()
           mat.push_back(row); // Add an element (column) to the row
       }
       forcefield.push_back(mat); // Add the row to the main vector
+      force_LJ.push_back(mat);
+      force_QQ.push_back(mat);
   }
   // Read the forcefield from "forcefield.dat"
-  read_forcefield (forcefield, min_dist,max_dist, dr, da);
+  cout << "read forcefield.dat file" << endl;
+  read_forcefield ("forcefield.dat", forcefield, min_dist,max_dist, dr, da);
+  cout << "read force_LJ.dat file" << endl;
+  read_forcefield ("force_LJ.dat", force_LJ, min_dist,max_dist, dr, da);
+  cout << "read force_QQ.dat file" << endl;
+  read_forcefield ("force_QQ.dat", force_QQ, min_dist,max_dist, dr, da);
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -140,7 +149,7 @@ int main()
  int nStepsEq = 15000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
- double state_dens = 10.5; // mkMol of N2 per m^2
+ double state_dens = 2.5; // mkMol of N2 per m^2
  vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
