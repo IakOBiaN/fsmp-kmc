@@ -108,29 +108,32 @@ int main()
     molB.y = 0.0;
     results pair_energy;
     results trial_energy_4, trial_energy_3, trial_energy_2, trial_energy_1, trial_energy1, trial_energy2, trial_energy3, trial_energy4;
-    double pair_force_x;
-    double pair_force_y;
+    double pair_force_LJ, pair_force_QQ;
 
     stringstream name;
     name <<  "forcefield.dat";
     ofstream fileOutput(name.str().c_str(), ios_base::trunc);
 
-    //stringstream name1;
-    //name1 <<  "forces.dat";
-    //ofstream fileOutput1(name1.str().c_str(), ios_base::trunc);
+    stringstream name1;
+    name1 <<  "force_LJ.dat";
+    ofstream fileOutput1(name1.str().c_str(), ios_base::trunc);
 
-    double min_dist = 5.0;
+    stringstream name2;
+    name2 <<  "force_QQ.dat";
+    ofstream fileOutput2(name2.str().c_str(), ios_base::trunc);
+
+    double min_dist = 2.0;
 
     for (int i=0; i < 131; i++) // distance
     {
         cout << "i: " << i << endl;
-        molB.x = (min_dist + i*0.01)/(sigma*1e+10); // in sigma
-        for (int j=90; j < 361; j+=1000.0)
+        molB.x = (min_dist + i*0.1)/(sigma*1e+10); // in sigma
+        for (int j=0; j < 361; j+=1.0)
         {
             molA.phi = j;
             molA.sin_phi = sin(molA.phi/180.0*PI);
             molA.cos_phi = cos(molA.phi/180.0*PI);
-            for (int k=90; k < 361; k+=1000.0)
+            for (int k=0; k < 361; k+=1.0)
             {
                 double dFi_dr;
                 double delta_r = 0.1/(sigma*1e+10);
@@ -142,7 +145,7 @@ int main()
                 pair_energy = energies_and_forces(molA, molB, 1000.0, 1000.0);
 
                 double r_0 = sqrt(pow((molA.x - molB.x)*(sigma*1e+10), 2) + pow((molA.y - molB.y)*(sigma*1e+10), 2));
-                fileOutput << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_energy.energy <<  endl;
+                fileOutput << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_energy.energy + pair_energy.energy_QQ <<  endl;
 
                 trial_Part = molB;
                 trial_Part.x = molB.x - 4.0*delta_r;
@@ -161,22 +164,19 @@ int main()
                 trial_energy3 = energies_and_forces(molA, trial_Part, 1000.0, 1000.0);
                 trial_Part.x = molB.x + 4.0*delta_r;
                 trial_energy4 = energies_and_forces(molA, trial_Part, 1000.0, 1000.0);
+
                 dFi_dr = (1.0/280.0*trial_energy_4.energy - 4.0/105.0*trial_energy_3.energy + 1.0/5.0*trial_energy_2.energy - 4.0/5.0*trial_energy_1.energy + 4.0/5.0*trial_energy1.energy - 1.0/5.0*trial_energy2.energy + 4.0/105.0*trial_energy3.energy - 1.0/280.0*trial_energy4.energy)/delta_r;
+                pair_force_LJ = -dFi_dr/r_0;
+                fileOutput1 << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_force_LJ <<  endl;
 
-
-                pair_force_x = -dFi_dr * abs(molA.x - molB.x)*(sigma*1e+10)/r_0;
-                pair_force_y = -dFi_dr * abs(molA.y - molB.y)*(sigma*1e+10)/r_0;
-
-                results central_energy = energies_and_forces(molA, molB, 1000.0, 1000.0);
-
-                cout << "pair_force_x: " << pair_force_x << "  " << "pair_force_y: " << pair_force_y << endl;
-
-                //fileOutput1 << sqrt(pow((molA.x - molB.x)*(sigma*1e+10), 2) + pow((molA.y - molB.y)*(sigma*1e+10), 2))<< " " << molA.phi << " " << molB.phi << " " << pair_force_x << " " << pair_force_y <<  endl;
-                //cout << "dPx: " << (pair_force_x - (pair_energy.p.X_LJ + pair_energy.p.X_QQ))*100/(pair_energy.p.X_LJ + pair_energy.p.X_QQ) << "  dPy: " << (pair_force_y - (pair_energy.p.Y_LJ + pair_energy.p.Y_QQ))*100/(pair_energy.p.Y_LJ + pair_energy.p.Y_QQ) << endl;
+                dFi_dr = (1.0/280.0*trial_energy_4.energy_QQ - 4.0/105.0*trial_energy_3.energy_QQ + 1.0/5.0*trial_energy_2.energy_QQ - 4.0/5.0*trial_energy_1.energy_QQ + 4.0/5.0*trial_energy1.energy_QQ - 1.0/5.0*trial_energy2.energy_QQ + 4.0/105.0*trial_energy3.energy_QQ - 1.0/280.0*trial_energy4.energy_QQ)/delta_r;
+                pair_force_QQ = -dFi_dr/r_0;
+                fileOutput2 << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_force_QQ <<  endl;
             }
         }
 
     }
      fileOutput.close();
-     //fileOutput1.close();
+     fileOutput1.close();
+     fileOutput2.close();
 }

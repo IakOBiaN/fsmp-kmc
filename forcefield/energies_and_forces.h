@@ -330,9 +330,9 @@ results energies_and_forces(state molA, state molB, double Lx, double Ly)
 
     //cout << "Px_LJ: " << en_and_press.p.X_LJ << "  Py_LJ: " << en_and_press.p.Y_LJ << "  Px_QQ: " << en_and_press.p.X_QQ << "  Py_QQ: " << en_and_press.p.Y_QQ << endl;
 
-    cout << "Px: " << (en_and_press.p.X_LJ + en_and_press.p.X_QQ) << "  Py: " << (en_and_press.p.Y_LJ + en_and_press.p.Y_QQ) << endl;
+    //cout << "Px: " << (en_and_press.p.X_LJ + en_and_press.p.X_QQ) << "  Py: " << (en_and_press.p.Y_LJ + en_and_press.p.Y_QQ) << endl;
 
-    en_and_press.energy = U_LJ + U_QQ;
+    en_and_press.energy = U_LJ;
     en_and_press.energy_QQ = U_QQ;
     //if(energy > gm){energy = gm;}
     return en_and_press;
