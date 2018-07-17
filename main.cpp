@@ -72,13 +72,14 @@ double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of
 double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;                             //steps for balance statistics
 double sigma = 3.318;
-double delta = sigma*5.0;                            //MC parameter. Maximal shift of the molecule
-double delta_angle = 90.0;    //MC parameter. Maximal rotation in degrees
+double delta = 0.3;                            //MC parameter. Maximal shift of the molecule
+double delta_angle = 30.0;    //MC parameter. Maximal rotation in degrees
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 double k_B = 1.38e-23;
 const double PI  =3.141592653589793238463;
 //double gm = 50;
+double density = 0;
 
 #include "read_forcefield.h"
 // Forcefield for TMA-TMA pair
@@ -183,6 +184,8 @@ for(double temperature = 30; temperature < 31; temperature += 1.0)
      EN_AND_PR_counter.p_X_QQ = 0;
      EN_AND_PR_counter.p_Y_QQ = 0;
 	 Pt = 0;
+   press_X = 0;
+   press_Y = 0;
 	 press_X_LJ = 0;
 	 press_Y_LJ = 0;
    press_X_QQ = 0;
@@ -211,7 +214,7 @@ for(double temperature = 30; temperature < 31; temperature += 1.0)
      for(int iter = 1; iter <= nIter; iter++)
         {
 
-          if((iter%(nPart*10) == 0) || (iter == 1))
+          if((iter%(nPart*50) == 0) || (iter == 1))
           {
            frame++;
            write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, frame, 1.094, false);
@@ -239,13 +242,13 @@ for(double temperature = 30; temperature < 31; temperature += 1.0)
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
-        /*
+
         balanceEq++;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
             Pt += dt;
-            press_X += EN_AND_PR_counter.p_X*dt;
-            press_Y += EN_AND_PR_counter.p_Y*dt;
+            press_X += EN_AND_PR_counter.p_X_LJ*dt + EN_AND_PR_counter.p_X_QQ*dt;
+            press_Y += EN_AND_PR_counter.p_Y_LJ*dt + EN_AND_PR_counter.p_Y_QQ*dt;
             if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
             {
                 press_X /= Pt;
@@ -267,7 +270,7 @@ for(double temperature = 30; temperature < 31; temperature += 1.0)
                 ACCEPTANCE_RATIO_m[1] = 0;
             }
         }
-        */
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
@@ -330,7 +333,7 @@ for(double temperature = 30; temperature < 31; temperature += 1.0)
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
      cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << (Energy/1000.0)*(N_a/nPart) << " kJ/mol" << endl;
-     cout << "P_X_LJ=" << press_X_LJ << " P_Y_LJ=" << press_Y_LJ << " P_X_QQ=" << press_X_QQ << " P_Y_QQ=" << press_Y_QQ << endl;
+     cout << "temp=" << temperature << " P_X_LJ=" << press_X_LJ << " P_Y_LJ=" << press_Y_LJ << " P_X_QQ=" << press_X_QQ << " P_Y_QQ=" << press_Y_QQ << endl;
 
     }
  return 0;
