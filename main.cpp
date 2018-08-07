@@ -80,6 +80,7 @@ double k_B = 1.38e-23;
 const double PI  =3.141592653589793238463;
 //double gm = 50;
 double density = 0;
+double temperature = 0;
 
 #include "read_forcefield.h"
 // Forcefield for TMA-TMA pair
@@ -175,7 +176,7 @@ int main()
  //Generete a random distribution of TMA molecules at fixed density
 initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
 
-for(double temperature = 30; temperature < 31; temperature += 1.0)
+for(temperature = 20; temperature < 31; temperature += 2.0)
     {
      write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
