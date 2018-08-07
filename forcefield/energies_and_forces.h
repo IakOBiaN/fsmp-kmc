@@ -45,7 +45,7 @@ results energies_and_forces(state molA, state molB, double Lx, double Ly)
                         //AC
                         vect[0] = dn2/2.0*l_i[0]+r_ij[0]-dn2/2.0*l_j[0];
                         vect[1] = dn2/2.0*l_i[1]+r_ij[1]-dn2/2.0*l_j[1];
-                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
+                        dist2 = (vect[0]*vect[0]+vect[1]*vect[1])/pow(sigma, 2);
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
@@ -54,7 +54,7 @@ results energies_and_forces(state molA, state molB, double Lx, double Ly)
                         //BD
                         vect[0] = -dn2/2.0*l_i[0]+r_ij[0]+dn2/2.0*l_j[0];
                         vect[1] = -dn2/2.0*l_i[1]+r_ij[1]+dn2/2.0*l_j[1];
-                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
+                        dist2 = (vect[0]*vect[0]+vect[1]*vect[1])/pow(sigma, 2);
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
@@ -63,7 +63,7 @@ results energies_and_forces(state molA, state molB, double Lx, double Ly)
                         //AD
                         vect[0] = dn2/2.0*l_i[0]+r_ij[0]+dn2/2.0*l_j[0];
                         vect[1] = dn2/2.0*l_i[1]+r_ij[1]+dn2/2.0*l_j[1];
-                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
+                        dist2 = (vect[0]*vect[0]+vect[1]*vect[1])/pow(sigma, 2);
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
@@ -72,7 +72,7 @@ results energies_and_forces(state molA, state molB, double Lx, double Ly)
                         //BC
                         vect[0] = -dn2/2.0*l_i[0]+r_ij[0]-dn2/2.0*l_j[0];
                         vect[1] = -dn2/2.0*l_i[1]+r_ij[1]-dn2/2.0*l_j[1];
-                        dist2 = vect[0]*vect[0]+vect[1]*vect[1];
+                        dist2 = (vect[0]*vect[0]+vect[1]*vect[1])/pow(sigma, 2);
                         invDr6 = 1.0/(dist2*dist2*dist2);
                         U_LJ += (invDr6 * (invDr6 - 1.0));
                         vir_LJ = invDr6 * (2.0*invDr6 - 1.0)/dist2;
@@ -322,11 +322,11 @@ results energies_and_forces(state molA, state molB, double Lx, double Ly)
     }
 
     U_LJ *= 4.0*eps;
-    U_QQ *= sigma;
+    U_QQ *= 1.0; //sigma;
     en_and_press.p.X_LJ *= 24.0*eps;
     en_and_press.p.Y_LJ *= 24.0*eps;
-    en_and_press.p.X_QQ *= sigma;
-    en_and_press.p.Y_QQ *= sigma;
+    en_and_press.p.X_QQ *= 1.0;//sigma;
+    en_and_press.p.Y_QQ *= 1.0;//sigma;
 
     //cout << "Px_LJ: " << en_and_press.p.X_LJ << "  Py_LJ: " << en_and_press.p.Y_LJ << "  Px_QQ: " << en_and_press.p.X_QQ << "  Py_QQ: " << en_and_press.p.Y_QQ << endl;
 
