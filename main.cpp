@@ -173,11 +173,11 @@ int main()
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
- //Generete a random distribution of TMA molecules at fixed density
-initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
-
 for(temperature = 20; temperature < 31; temperature += 2.0)
     {
+      //Generete a random distribution of TMA molecules at fixed density
+     initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
+
      write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.p_X_LJ = 0;
@@ -260,7 +260,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
                 if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
                 if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
 
-                pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+                //pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
                 Pt = 0;
                 press_X = 0;
                 press_Y = 0;
@@ -328,7 +328,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
             en_2_av = en_2_av/Pt;
 
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, (Energy/1000.0)*(N_a/nPart), press_X, press_Y, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
+     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, (Energy/1000.0)*(N_a/nPart), press_X_LJ+press_X_QQ, press_Y_LJ+press_Y_QQ, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);

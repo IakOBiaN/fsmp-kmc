@@ -91,9 +91,9 @@ double Qn2 = -4.453e-40;             // Quadrupole moment of N2 molecule
 const double eps0 = 8.85418781762e-12;                     // The permittivity of free space in C2 m-2 N-1
 const double A = 1.0/(4.0*3.1415926535*eps0);    // Coulomb's constant
 double C_q = A*(3.0/4.0)*pow(Qn2,2);
-double dn2 = 0.33092224232;               // Distance between nitrogen atoms in sigma units
-double dq1 = 0.25527426160;               // Distance between "+" charge and center of quadrupole in sigma units
-double dq2 = 0.31464737794;               // Distance between "-" charge and center of quadrupole in sigma units
+double dn2 = 0.33092224232*sigma;               // Distance between nitrogen atoms in sigma units
+double dq1 = 0.25527426160*sigma;               // Distance between "+" charge and center of quadrupole in sigma units
+double dq2 = 0.31464737794*sigma;               // Distance between "-" charge and center of quadrupole in sigma units
 const double qe = 1.6021766208e-19;                   // The charge of one electron in C
 double q = 0.373*qe;                            // Charge of the quadrupole points in C
 
