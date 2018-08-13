@@ -66,15 +66,14 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                  pressure_Y_LJ += force_LJ[dist][a1][a2]*dy*dy;
                  pressure_X_QQ += force_QQ[dist][a1][a2]*dx*dx;
                  pressure_Y_QQ += force_QQ[dist][a1][a2]*dy*dy;
-
                }
              }
        }
     }
-    en_and_press.energy = energy;
-    en_and_press.p_X_LJ = pressure_X_LJ;
-    en_and_press.p_Y_LJ = pressure_Y_LJ;
-    en_and_press.p_X_QQ = pressure_X_QQ;
-    en_and_press.p_Y_QQ = pressure_Y_QQ;
+    en_and_press.energy = energy/temperature;
+    en_and_press.p_X_LJ = pressure_X_LJ/temperature;
+    en_and_press.p_Y_LJ = pressure_Y_LJ/temperature;
+    en_and_press.p_X_QQ = pressure_X_QQ/temperature;
+    en_and_press.p_Y_QQ = pressure_Y_QQ/temperature;
     return en_and_press;
 }

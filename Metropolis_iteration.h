@@ -31,18 +31,18 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        angle_change = true;
       }
 
+      //#pragma omp parallel for reduction(+:old_EP) reduction(+:new_EP)
       for (int l = 0; l < nPart; l++)
       {
            if (l == trialPart){continue;}
-           delta_EP_old = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly, beta);
-           old_EP = old_EP + delta_EP_old;
-           delta_EP_new = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta);
-           new_EP = new_EP + delta_EP_new;
+           old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
+           //old_EP = old_EP + delta_EP_old;
+           new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly,beta);
+           //new_EP = new_EP + delta_EP_new;
       }
 
       delta_EP = new_EP - old_EP;
-
-      if(RanGen.Random() < exp(-delta_EP.energy*beta))
+      if(RanGen.Random() < exp(-delta_EP.energy))
       {
           coordinates[trialPart] = new_coordinates;     // Update position
           EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;

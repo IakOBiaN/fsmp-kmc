@@ -23,7 +23,7 @@ public:
 double energy;
 double p_X_LJ, p_Y_LJ, p_X_QQ, p_Y_QQ;
 results();      //constructor
-results operator+(results& b) {
+results operator+(const results& b) {
          results res;
          res.energy = this->energy + b.energy;
          res.p_X_LJ = this->p_X_LJ + b.p_X_LJ;
@@ -32,7 +32,7 @@ results operator+(results& b) {
          res.p_Y_QQ = this->p_Y_QQ + b.p_Y_QQ;
          return res;
       }
-results operator-(results& b) {
+results operator-(const results& b) {
          results res;
          res.energy = this->energy - b.energy;
          res.p_X_LJ = this->p_X_LJ - b.p_X_LJ;
@@ -96,9 +96,11 @@ double da;
 int frame = 0;
 
 #include "energies_and_forces.h"
+#include "energies_and_forces_2.h"
 #include "PBC2D.h"
 #include "initConfigHerringbone.h"
 #include "PotentialEnergy.h"
+#include "PotentialEnergy_2.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -164,7 +166,7 @@ int main()
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Temperature" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "Temperature" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_X_LJ" << "\t"<< "p_X_QQ" << "\t"<< "p_Y_LJ" << "\t"<< "p_Y_QQ" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -177,7 +179,6 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
     {
       //Generete a random distribution of TMA molecules at fixed density
      initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
-
      write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.p_X_LJ = 0;
@@ -202,11 +203,18 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
      persent = 0;
 
 	 double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
+   results test_exact = energies_and_forces_2(coordinates[0], coordinates[10], Lx, Ly,beta);
+   results test_approx = energies_and_forces(coordinates[0], coordinates[10], Lx, Ly,beta);
+   cout << "exact_press=" << test_exact.p_X_LJ << " " << test_exact.p_X_QQ << " " << test_exact.p_Y_LJ << " " << test_exact.p_Y_QQ << endl;
+   cout << "approx_press=" << test_approx.p_X_LJ << " " << test_approx.p_X_QQ << " " << test_approx.p_Y_LJ << " " << test_approx.p_Y_QQ << endl;
 
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+     cout << "energy=" << (EN_AND_PR_counter.energy/1000.0)*(N_a/nPart)/beta << endl;
+     //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+     //cout << "approx_energy=" << EN_AND_PR_counter.energy << endl;
 
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
@@ -316,10 +324,10 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
             press_X_QQ /= Pt;
             press_Y_QQ /= Pt;
 
-            press_X_LJ /= (Lx*Ly*sigma*sigma/1e20/1000);  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
-            press_Y_LJ /= (Lx*Ly*sigma*sigma/1e20/1000);
-            press_X_QQ /= (Lx*Ly*sigma*sigma/1e20/1000);
-            press_Y_QQ /= (Lx*Ly*sigma*sigma/1e20/1000);
+            press_X_LJ *= (1.0/Lx/Ly*1e20*1000)/beta;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
+            press_Y_LJ *= (1.0/Lx/Ly*1e20*1000)/beta;
+            press_X_QQ *= (1.0/Lx/Ly*1e20*1000)/beta;
+            press_Y_QQ *= (1.0/Lx/Ly*1e20*1000)/beta;
 
             /*press_X = R*temperature*nPart/Ly/Lx + press_X_LJ + press_X_QQ;
             press_Y = R*temperature*nPart/Ly/Lx + press_Y_LJ + press_Y_QQ;*/
@@ -328,12 +336,12 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
             en_2_av = en_2_av/Pt;
 
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, (Energy/1000.0)*(N_a/nPart), press_X_LJ+press_X_QQ, press_Y_LJ+press_Y_QQ, Lx, Ly,0.0,0.0,0.0,0.0,0.0);
+     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, (Energy/1000.0)*(N_a/nPart)/beta, press_X_LJ+press_X_QQ, press_Y_LJ+press_Y_QQ,press_X_LJ, press_X_QQ, press_Y_LJ,press_Y_QQ, Lx, Ly,0.0);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
-     cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << (Energy/1000.0)*(N_a/nPart) << " kJ/mol" << endl;
+     cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << (Energy/1000.0)*(N_a/nPart)/beta << " kJ/mol" << endl;
      cout << "temp=" << temperature << " P_X_LJ=" << press_X_LJ << " P_Y_LJ=" << press_Y_LJ << " P_X_QQ=" << press_X_QQ << " P_Y_QQ=" << press_Y_QQ << endl;
 
     }
