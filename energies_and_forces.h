@@ -7,7 +7,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     double molA_y  = molA.y;
     double molB_x = molB.x;
     double molB_y = molB.y;
-    double dx, dy,r2,energy = 0,pressure_X_LJ = 0, pressure_Y_LJ = 0, pressure_X_QQ = 0, pressure_Y_QQ = 0;
+    double dx, dy,r2,energy = 0,var_energy_LJ = 0, var_energy_QQ = 0,pressure_X_LJ = 0, pressure_Y_LJ = 0, pressure_X_QQ = 0, pressure_Y_QQ = 0;
     double ang_molA = molA.phi;
     double ang_molB = molB.phi;
     bool mirror_int = true;
@@ -54,26 +54,33 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                if (r<min_dist)
                {
                  energy += forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));
-                 pressure_X_LJ += force_LJ[0][a1][a2]*100*exp(r/min_dist*log(0.01))*dx*dx;
+                 var_energy_LJ += energy_LJ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
+                 var_energy_QQ += energy_QQ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
+                 /*pressure_X_LJ += force_LJ[0][a1][a2]*100*exp(r/min_dist*log(0.01))*dx*dx;
                  pressure_Y_LJ += force_LJ[0][a1][a2]*100*exp(r/min_dist*log(0.01))*dy*dy;
                  pressure_X_QQ += force_QQ[0][a1][a2]*100*exp(r/min_dist*log(0.01))*dx*dx;
-                 pressure_Y_QQ += force_QQ[0][a1][a2]*100*exp(r/min_dist*log(0.01))*dy*dy;
+                 pressure_Y_QQ += force_QQ[0][a1][a2]*100*exp(r/min_dist*log(0.01))*dy*dy;*/
                }
                else
                {
                  energy += forcefield[dist][a1][a2];
-                 pressure_X_LJ += force_LJ[dist][a1][a2]*dx*dx;
+                 var_energy_LJ += energy_LJ[dist][a1][a2];
+                 var_energy_QQ += energy_QQ[dist][a1][a2];
+                 /*pressure_X_LJ += force_LJ[dist][a1][a2]*dx*dx;
                  pressure_Y_LJ += force_LJ[dist][a1][a2]*dy*dy;
                  pressure_X_QQ += force_QQ[dist][a1][a2]*dx*dx;
-                 pressure_Y_QQ += force_QQ[dist][a1][a2]*dy*dy;
+                 pressure_Y_QQ += force_QQ[dist][a1][a2]*dy*dy;*/
                }
              }
        }
     }
     en_and_press.energy = energy/temperature;
-    en_and_press.p_X_LJ = pressure_X_LJ/temperature;
+    en_and_press.energy_LJ = var_energy_LJ/temperature;
+    en_and_press.energy_QQ = var_energy_QQ/temperature;
+
+    /*en_and_press.p_X_LJ = pressure_X_LJ/temperature;
     en_and_press.p_Y_LJ = pressure_Y_LJ/temperature;
     en_and_press.p_X_QQ = pressure_X_QQ/temperature;
-    en_and_press.p_Y_QQ = pressure_Y_QQ/temperature;
+    en_and_press.p_Y_QQ = pressure_Y_QQ/temperature;*/
     return en_and_press;
 }
