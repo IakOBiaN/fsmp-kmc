@@ -11,6 +11,10 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     double ang_molA = molA.phi;
     double ang_molB = molB.phi;
     bool mirror_int = true;
+    ver v_000,v_010, v_100, v_110, v_001, v_011, v_101, v_111;
+    coord v_find;
+    int temp_dist,temp_ang1,temp_ang2;
+    double dist_n;
 
     int from,to;
     if (mirror_int)
@@ -48,7 +52,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                if (ang2<0) {ang2 += 360.0;}
                if (ang1>359.5) {ang1 -= 360.0;}
                if (ang2>359.5) {ang2 -= 360.0;}
-               dist = (int)(((r-min_dist)/dr)+0.5);
+               dist_n = (r-min_dist)/dr;
+               dist = (int)(dist_n+0.5);
                a1 = (int)((ang1/da)+0.5);
                a2 = (int)((ang2/da)+0.5);
                if (r<min_dist)
@@ -61,7 +66,46 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                }
                else
                {
-                 energy += forcefield[dist][a1][a2];
+                 //energy += forcefield[dist][a1][a2];
+                 temp_dist = (int)(dist_n);
+                 temp_ang1 = (int)(ang1/da);
+                 temp_ang2 = (int)(ang2/da);
+                 v_000.place.x = temp_dist;
+                 v_000.place.y = temp_ang1;
+                 v_000.place.z = temp_ang2;
+                 v_000.value = forcefield[v_000.place.x][v_000.place.y][v_000.place.z];
+                 v_010.place.x = temp_dist;
+                 v_010.place.y = temp_ang1+1;
+                 v_010.place.z = temp_ang2;
+                 v_010.value = forcefield[v_010.place.x][v_010.place.y][v_010.place.z];
+                 v_100.place.x = temp_dist+1;
+                 v_100.place.y = temp_ang1;
+                 v_100.place.z = temp_ang2;
+                 v_100.value = forcefield[v_100.place.x][v_100.place.y][v_100.place.z];
+                 v_110.place.x = temp_dist+1;
+                 v_110.place.y = temp_ang1+1;
+                 v_110.place.z = temp_ang2;
+                 v_110.value = forcefield[v_110.place.x][v_110.place.y][v_110.place.z];
+                 v_001.place.x = temp_dist;
+                 v_001.place.y = temp_ang1;
+                 v_001.place.z = temp_ang2+1;
+                 v_001.value = forcefield[v_001.place.x][v_001.place.y][v_001.place.z];
+                 v_011.place.x = temp_dist;
+                 v_011.place.y = temp_ang1+1;
+                 v_011.place.z = temp_ang2+1;
+                 v_011.value = forcefield[v_011.place.x][v_011.place.y][v_011.place.z];
+                 v_101.place.x = temp_dist+1;
+                 v_101.place.y = temp_ang1;
+                 v_101.place.z = temp_ang2+1;
+                 v_101.value = forcefield[v_101.place.x][v_101.place.y][v_101.place.z];
+                 v_111.place.x = temp_dist+1;
+                 v_111.place.y = temp_ang1+1;
+                 v_111.place.z = temp_ang2+1;
+                 v_111.value = forcefield[v_111.place.x][v_111.place.y][v_111.place.z];
+                 v_find.x = dist_n;
+                 v_find.y = ang1/da;
+                 v_find.z = ang2/da;
+                 energy += interpol(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);
                  pressure_X_LJ += force_LJ[dist][a1][a2]*dx*dx;
                  pressure_Y_LJ += force_LJ[dist][a1][a2]*dy*dy;
                  pressure_X_QQ += force_QQ[dist][a1][a2]*dx*dx;
