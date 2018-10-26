@@ -107,7 +107,7 @@ int frame = 0;
 #include "write_xy_matrix.h"
 #include "writeData.h"
 #include "write_xyz_file.h"
-
+#include "interpolation.h"
 
 int main()
 {
@@ -215,27 +215,28 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
    cout << "exact_press=" << test_exact.p_X_LJ + test_exact.p_X_QQ << " " << test_exact.p_Y_LJ + test_exact.p_Y_QQ << endl;
    cout << "approx_press=" << test_approx.p_X_LJ + test_approx.p_X_QQ << " " << test_approx.p_Y_LJ + test_approx.p_Y_QQ << endl;
 
+   double diff = 0.1;
    double test_p_X,test_p_Y;
    state mol1 = coordinates[mol1_number];
    state mol2 = coordinates[mol2_number];
    double distance_1_2 = sqrt(pow(coordinates[mol1_number].x-coordinates[mol2_number].x,2)+pow(coordinates[mol1_number].y-coordinates[mol2_number].y,2));
-   mol1.x = coordinates[mol1_number].x + 0.1;
-   mol2.x = coordinates[mol2_number].x - 0.1;
+   mol1.x = coordinates[mol1_number].x + diff;
+   mol2.x = coordinates[mol2_number].x - diff;
    double energy_one = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   mol1.x = coordinates[mol1_number].x - 0.1;
-   mol2.x = coordinates[mol2_number].x + 0.1;
+   mol1.x = coordinates[mol1_number].x - diff;
+   mol2.x = coordinates[mol2_number].x + diff;
    double energy_two = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   test_p_X = (energy_one - energy_two)/0.2*(pow(coordinates[mol1_number].x-coordinates[mol2_number].x,2))/distance_1_2/2.0;
+   test_p_X = (energy_one - energy_two)/(diff*2.0)*(pow(coordinates[mol2_number].x-coordinates[mol1_number].x,1))/2.0;
 
    mol1 = coordinates[mol1_number];
    mol2 = coordinates[mol2_number];
-   mol1.y = coordinates[mol1_number].y + 0.1;
-   mol2.y = coordinates[mol2_number].y - 0.1;
+   mol1.y = coordinates[mol1_number].y + diff;
+   mol2.y = coordinates[mol2_number].y - diff;
    energy_one = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   mol1.y = coordinates[mol1_number].y - 0.1;
-   mol2.y = coordinates[mol2_number].y + 0.1;
+   mol1.y = coordinates[mol1_number].y - diff;
+   mol2.y = coordinates[mol2_number].y + diff;
    energy_two = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   test_p_Y = (energy_one - energy_two)/0.2*(pow(coordinates[mol1_number].y-coordinates[mol2_number].y,2))/distance_1_2/2.0;
+   test_p_Y = (energy_one - energy_two)/(diff*2.0)*(pow(coordinates[mol2_number].y-coordinates[mol1_number].y,1))/2.0;
 
    cout << "new_pressure=" << test_p_X << " " << test_p_Y << endl;
    break;
