@@ -9,7 +9,7 @@ public:
     double value;
     coord place;
 };
-double interpol(ver v_000, ver v_010, ver v_100, ver v_110, ver v_001, ver v_011, ver v_101, ver v_111, coord v_x) {
+double interpolation(ver v_000, ver v_010, ver v_100, ver v_110, ver v_001, ver v_011, ver v_101, ver v_111, coord v_x) {
                 double d_x, d_y, d_z, value_inter;
                 d_x=(v_x.x-v_001.place.x)/(v_101.place.x-v_001.place.x);
                 d_y=(v_x.y-v_000.place.y)/(v_010.place.y-v_000.place.y);

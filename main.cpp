@@ -163,9 +163,9 @@ int main()
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 100;
- int nSteps = 100000;            // Total amount of MCS
+ int nSteps = 200000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 50000;           // MCS for relaxation
+ int nStepsEq = 100000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
  double state_dens = 10.5; // mkMol of N2 per m^2
@@ -214,7 +214,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
      persent = 0;
 
 	 double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
-   int mol1_number = 0,mol2_number = 1;
+   /*int mol1_number = 0,mol2_number = 1;
    coordinates[mol1_number].x = 0.0;
    coordinates[mol1_number].y = 0.0;
    coordinates[mol2_number].x = 2.8055;
@@ -249,7 +249,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
    test_p_Y = (energy_one - energy_two)/(diff*2.0)*(coordinates[mol2_number].y-coordinates[mol1_number].y)/2.0;
 
    cout << "new_pressure=" << test_p_X << " " << test_p_Y << endl;
-   break;
+   break;*/
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
      // Calculate initial energy
