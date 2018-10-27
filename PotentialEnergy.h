@@ -14,7 +14,7 @@ if (rosenbluth) {for(int i = 0; i < nPart; i++) {coordinates[i].energy = 0;}}
     {
      for(int molB = (molA + 1); molB < nPart; molB++)
       {
-           en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta);
+           en_and_press = energies_and_pressures(coordinates[molA], coordinates[molB], Lx, Ly, beta);
            if (rosenbluth)
            {
                 coordinates[molA].energy += en_and_press.energy;

@@ -21,11 +21,15 @@ CRandomSFMT0 RanGen(seed);
 class results {
 public:
 double energy;
+double energy_LJ;
+double energy_QQ;
 double p_X_LJ, p_Y_LJ, p_X_QQ, p_Y_QQ;
 results();      //constructor
 results operator+(const results& b) {
          results res;
          res.energy = this->energy + b.energy;
+         res.energy_LJ = this->energy_LJ + b.energy_LJ;
+         res.energy_QQ = this->energy_QQ + b.energy_QQ;
          res.p_X_LJ = this->p_X_LJ + b.p_X_LJ;
          res.p_Y_LJ = this->p_Y_LJ + b.p_Y_LJ;
          res.p_X_QQ = this->p_X_QQ + b.p_X_QQ;
@@ -35,6 +39,8 @@ results operator+(const results& b) {
 results operator-(const results& b) {
          results res;
          res.energy = this->energy - b.energy;
+         res.energy_LJ = this->energy_LJ - b.energy_LJ;
+         res.energy_QQ = this->energy_QQ - b.energy_QQ;
          res.p_X_LJ = this->p_X_LJ - b.p_X_LJ;
          res.p_Y_LJ = this->p_Y_LJ - b.p_Y_LJ;
          res.p_X_QQ = this->p_X_QQ - b.p_X_QQ;
@@ -46,6 +52,8 @@ results operator-(const results& b) {
 //constructor
 results::results(void) {
    energy = 0;
+   energy_LJ = 0;
+   energy_QQ = 0;
    p_X_LJ = 0;
    p_Y_LJ = 0;
    p_X_QQ = 0;
@@ -85,8 +93,8 @@ double temperature = 0;
 #include "read_forcefield.h"
 // Forcefield for TMA-TMA pair
 vector <vector <vector <double> > > forcefield;
-vector <vector <vector <double> > > force_LJ;
-vector <vector <vector <double> > > force_QQ;
+vector <vector <vector <double> > > energy_LJ;
+vector <vector <vector <double> > > energy_QQ;
 // Minimal and maximal distance between the molecules (hard core distance)
 double min_dist,max_dist;
 // Delta between neighbor distances in the forcefield in A
@@ -98,6 +106,7 @@ int frame = 0;
 #include "interpolation.h"
 #include "energies_and_forces.h"
 #include "energies_and_forces_2.h"
+#include "energies_and_pressures.h"
 #include "PBC2D.h"
 #include "initConfigHerringbone.h"
 #include "PotentialEnergy.h"
@@ -126,16 +135,16 @@ int main()
           mat.push_back(row); // Add an element (column) to the row
       }
       forcefield.push_back(mat); // Add the row to the main vector
-      force_LJ.push_back(mat);
-      force_QQ.push_back(mat);
+      energy_LJ.push_back(mat);
+      energy_QQ.push_back(mat);
   }
   // Read the forcefield from "forcefield.dat"
   cout << "read forcefield.dat file" << endl;
   read_forcefield ("forcefield.dat", forcefield, min_dist,max_dist, dr, da);
   cout << "read force_LJ.dat file" << endl;
-  read_forcefield ("force_LJ.dat", force_LJ, min_dist,max_dist, dr, da);
+  read_forcefield ("energy_LJ.dat", energy_LJ, min_dist,max_dist, dr, da);
   cout << "read force_QQ.dat file" << endl;
-  read_forcefield ("force_QQ.dat", force_QQ, min_dist,max_dist, dr, da);
+  read_forcefield ("energy_QQ.dat", energy_QQ, min_dist,max_dist, dr, da);
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -181,6 +190,8 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
      initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
      write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
+     EN_AND_PR_counter.energy_LJ = 0;
+     EN_AND_PR_counter.energy_QQ = 0;
      EN_AND_PR_counter.p_X_LJ = 0;
      EN_AND_PR_counter.p_Y_LJ = 0;
      EN_AND_PR_counter.p_X_QQ = 0;

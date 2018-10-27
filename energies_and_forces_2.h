@@ -353,6 +353,8 @@ results energies_and_forces_2(state molA, state molB, double Lx, double Ly,doubl
     //cout << "Px: " << (en_and_press.p_X_LJ + en_and_press.p_X_QQ) << "  Py: " << (en_and_press.p_Y_LJ + en_and_press.p_Y_QQ) << endl;
 
     en_and_press.energy = U_LJ+U_QQ;
+    en_and_press.energy_LJ = U_LJ;
+    en_and_press.energy_QQ = U_QQ;
     //en_and_press.energy_QQ = U_QQ;
     //if(energy > gm){energy = gm;}
     return en_and_press;

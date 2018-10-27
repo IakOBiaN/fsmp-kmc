@@ -98,11 +98,11 @@ int main()
     ofstream fileOutput(name.str().c_str(), ios_base::trunc);
 
     stringstream name1;
-    name1 <<  "force_LJ.dat";
+    name1 <<  "energy_LJ.dat";
     ofstream fileOutput1(name1.str().c_str(), ios_base::trunc);
 
     stringstream name2;
-    name2 <<  "force_QQ.dat";
+    name2 <<  "energy_QQ.dat";
     ofstream fileOutput2(name2.str().c_str(), ios_base::trunc);
 
     double min_dist = 2.0;
@@ -130,7 +130,11 @@ int main()
                 double r_0 = sqrt(pow((molA.x - molB.x), 2) + pow((molA.y - molB.y), 2));
                 fileOutput << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_energy.energy + pair_energy.energy_QQ <<  endl;
 
-                trial_Part = molB;
+                fileOutput1 << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_energy.energy <<  endl;
+
+                fileOutput2 << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_energy.energy_QQ <<  endl;
+
+                /*trial_Part = molB;
                 trial_Part.x = molB.x - 4.0*delta_r;
                 trial_energy_4 = energies_and_forces(molA, trial_Part, 1000.0, 1000.0);
                 trial_Part.x = molB.x - 3.0*delta_r;
@@ -154,7 +158,7 @@ int main()
 
                 dFi_dr = (1.0/280.0*trial_energy_4.energy_QQ - 4.0/105.0*trial_energy_3.energy_QQ + 1.0/5.0*trial_energy_2.energy_QQ - 4.0/5.0*trial_energy_1.energy_QQ + 4.0/5.0*trial_energy1.energy_QQ - 1.0/5.0*trial_energy2.energy_QQ + 4.0/105.0*trial_energy3.energy_QQ - 1.0/280.0*trial_energy4.energy_QQ)/delta_r;
                 pair_force_QQ = -dFi_dr/r_0;
-                fileOutput2 << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_force_QQ <<  endl;
+                fileOutput2 << r_0 << " " << molA.phi << " " << molB.phi << " " << pair_force_QQ <<  endl;*/
             }
         }
 
