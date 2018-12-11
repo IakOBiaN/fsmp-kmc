@@ -4,7 +4,7 @@ results energies_and_forces_2(state molA, state molB, double Lx, double Ly,doubl
   double R = 8.3144598;
   double eps = 0.502e-21;                              // LJ energy for nitrogen in J
   double N_a = 6.02214e+23;
-  double sigma = 3.318;                                // in meters
+  double sigma = 3.318;                                // in Angstrem
   double k_B = 1.38e-23;
   double Rc = 15.0;                              // Cut-off radius in sigma
   double Rc2 = Rc*Rc;

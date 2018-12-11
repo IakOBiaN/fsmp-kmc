@@ -125,7 +125,7 @@ int main()
   // First dimension is distance
   // Second dimension is angle of first molecule
   // Third dimension is angle of second molecule
-  for (int i = 0; i < 150; i++) {
+  for (int i = 0; i < 521; i++) {
       vector< vector<double> > mat; // Create an empty matrix
       for (int j = 0; j < 361; j++) {
           vector<double> row; // Create an empty row
@@ -139,12 +139,12 @@ int main()
       energy_QQ.push_back(mat);
   }
   // Read the forcefield from "forcefield.dat"
-  //cout << "read forcefield.dat file" << endl;
-  //read_forcefield ("forcefield.dat", forcefield, min_dist,max_dist, dr, da);
-  //cout << "read force_LJ.dat file" << endl;
-  //read_forcefield ("energy_LJ.dat", energy_LJ, min_dist,max_dist, dr, da);
-  //cout << "read force_QQ.dat file" << endl;
-  //read_forcefield ("energy_QQ.dat", energy_QQ, min_dist,max_dist, dr, da);
+  cout << "read forcefield.dat file" << endl;
+  read_forcefield ("forcefield.dat", forcefield, min_dist,max_dist, dr, da);
+  cout << "read force_LJ.dat file" << endl;
+  read_forcefield ("energy_LJ.dat", energy_LJ, min_dist,max_dist, dr, da);
+  cout << "read force_QQ.dat file" << endl;
+  read_forcefield ("energy_QQ.dat", energy_QQ, min_dist,max_dist, dr, da);
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////

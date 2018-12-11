@@ -34,9 +34,9 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       for (int l = 0; l < nPart; l++)
       {
            if (l == trialPart){continue;}
-           old_EP = old_EP +  energies_and_forces_2(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
+           old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
            //old_EP = old_EP + delta_EP_old;
-           new_EP = new_EP + energies_and_forces_2(coordinates[l], new_coordinates, Lx, Ly, beta);
+           new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta);
            //new_EP = new_EP + delta_EP_new;
       }
 
