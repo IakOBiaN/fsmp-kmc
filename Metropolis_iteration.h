@@ -11,7 +11,6 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
     results delta_EP_old;
     results new_EP;
     results delta_EP_new;
-
     if(RanGen.Random() < 0.5) // Move or Rotate a molecule
       {
        new_coordinates.x = coordinates[trialPart].x + (2 * delta * RanGen.Random() - delta); // random(-delta; delta)
@@ -35,9 +34,9 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       for (int l = 0; l < nPart; l++)
       {
            if (l == trialPart){continue;}
-           old_EP = old_EP +  energies_and_pressures(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
+           old_EP = old_EP +  energies_and_forces_2(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
            //old_EP = old_EP + delta_EP_old;
-           new_EP = new_EP + energies_and_pressures(coordinates[l], new_coordinates, Lx, Ly,beta);
+           new_EP = new_EP + energies_and_forces_2(coordinates[l], new_coordinates, Lx, Ly, beta);
            //new_EP = new_EP + delta_EP_new;
       }
 

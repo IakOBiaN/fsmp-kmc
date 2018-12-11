@@ -80,8 +80,8 @@ double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of
 double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;                             //steps for balance statistics
 double sigma = 3.318;
-double delta = 0.3;                            //MC parameter. Maximal shift of the molecule
-double delta_angle = 30.0;    //MC parameter. Maximal rotation in degrees
+double delta = 0.5*sigma;                            //MC parameter. Maximal shift of the molecule
+double delta_angle = 90.0;    //MC parameter. Maximal rotation in degrees
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 double k_B = 1.38e-23;
@@ -139,12 +139,12 @@ int main()
       energy_QQ.push_back(mat);
   }
   // Read the forcefield from "forcefield.dat"
-  cout << "read forcefield.dat file" << endl;
-  read_forcefield ("forcefield.dat", forcefield, min_dist,max_dist, dr, da);
-  cout << "read force_LJ.dat file" << endl;
-  read_forcefield ("energy_LJ.dat", energy_LJ, min_dist,max_dist, dr, da);
-  cout << "read force_QQ.dat file" << endl;
-  read_forcefield ("energy_QQ.dat", energy_QQ, min_dist,max_dist, dr, da);
+  //cout << "read forcefield.dat file" << endl;
+  //read_forcefield ("forcefield.dat", forcefield, min_dist,max_dist, dr, da);
+  //cout << "read force_LJ.dat file" << endl;
+  //read_forcefield ("energy_LJ.dat", energy_LJ, min_dist,max_dist, dr, da);
+  //cout << "read force_QQ.dat file" << endl;
+  //read_forcefield ("energy_QQ.dat", energy_QQ, min_dist,max_dist, dr, da);
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -163,9 +163,9 @@ int main()
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 100;
- int nSteps = 200000;            // Total amount of MCS
+ int nSteps = 100000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 100000;           // MCS for relaxation
+ int nStepsEq = 50000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
  double state_dens = 10.5; // mkMol of N2 per m^2
@@ -214,7 +214,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
      persent = 0;
 
 	 double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
-   PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+   /*PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
    cout << "Pressure:" << EN_AND_PR_counter.p_X_LJ << " " << EN_AND_PR_counter.p_X_QQ << " " << EN_AND_PR_counter.p_Y_LJ << " " << EN_AND_PR_counter.p_Y_QQ << endl;
    break;
    int mol1_number = 0,mol2_number = 1;
@@ -253,7 +253,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
    results abcde = energies_and_pressures(coordinates[mol1_number], coordinates[mol2_number], Lx, Ly, beta);
    cout << "new_pressure=" << test_p_X << " " << test_p_Y << endl;
    cout << "en_and_ress=" << abcde.p_X_LJ+abcde.p_X_QQ << " " << abcde.p_Y_LJ+abcde.p_Y_QQ << endl;
-   break;
+   break;*/
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
      // Calculate initial energy
@@ -277,12 +277,12 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
          persent += 1;
          if(persent > nIter/100.0)
          {
-           double old_energy = EN_AND_PR_counter.energy;
-           PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-           if (abs(old_energy - EN_AND_PR_counter.energy) > abs(0.01*EN_AND_PR_counter.energy))
-           {
-              cout << "AHTUNG!!! Energy problem. Exact=" << EN_AND_PR_counter.energy << " diff_energy=" << old_energy << endl;
-           }
+           //double old_energy = EN_AND_PR_counter.energy;
+           //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+           //if (abs(old_energy - EN_AND_PR_counter.energy) > abs(0.01*EN_AND_PR_counter.energy))
+           //{
+           //  cout << "AHTUNG!!! Energy problem. Exact=" << EN_AND_PR_counter.energy << " diff_energy=" << old_energy << endl;
+           //}
            cout << int(iter*100.0/nIter) << " %" << endl;persent = 0;
          }
 
