@@ -69,7 +69,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                }
                else
                {
-                 temp_dist = (int)(dist_n);
+                 /*temp_dist = (int)(dist_n);
                  temp_ang1 = (int)(ang1/da);
                  temp_ang2 = (int)(ang2/da);
                  v_000.place.x = temp_dist;
@@ -108,9 +108,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                  v_011.value = energy_LJ[v_011.place.x][v_011.place.y][v_011.place.z];
                  v_101.value = energy_LJ[v_101.place.x][v_101.place.y][v_101.place.z];
                  v_111.value = energy_LJ[v_111.place.x][v_111.place.y][v_111.place.z];
-                 dop_energy_LJ = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);
-                 //dop_energy_LJ = energy_LJ[dist][a1][a2];
-
+                 dop_energy_LJ = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);*/
+                 dop_energy_LJ = energy_LJ[dist][a1][a2];
+                /*
                  v_000.value = energy_QQ[v_000.place.x][v_000.place.y][v_000.place.z];
                  v_010.value = energy_QQ[v_010.place.x][v_010.place.y][v_010.place.z];
                  v_100.value = energy_QQ[v_100.place.x][v_100.place.y][v_100.place.z];
@@ -119,8 +119,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                  v_011.value = energy_QQ[v_011.place.x][v_011.place.y][v_011.place.z];
                  v_101.value = energy_QQ[v_101.place.x][v_101.place.y][v_101.place.z];
                  v_111.value = energy_QQ[v_111.place.x][v_111.place.y][v_111.place.z];
-                 dop_energy_QQ = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);
-                 //dop_energy_QQ = energy_QQ[dist][a1][a2];
+                 dop_energy_QQ = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);*/
+                 dop_energy_QQ = energy_QQ[dist][a1][a2];
 
                  var_energy_LJ += dop_energy_LJ;
                  var_energy_QQ += dop_energy_QQ;

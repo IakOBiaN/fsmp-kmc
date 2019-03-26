@@ -1,7 +1,7 @@
 results energies_and_pressures(state molA, state molB, double &Lx, double &Ly, double &beta)
 {
 
-results en_and_press = energies_and_forces_2(molA, molB, Lx, Ly, beta);
+results en_and_press = energies_and_forces_exact(molA, molB, Lx, Ly, beta);
 results testing_press = en_and_press;
 
 double x_distance = molA.x-molB.x;
@@ -13,11 +13,11 @@ state mol2 = molB;
 double dr = 0.01;
 mol1.x = PBC2D(Lx, molA.x + dr);
 mol2.x =  PBC2D(Lx, molB.x - dr);
-results energy_one = energies_and_forces_2(mol1, mol2, Lx, Ly,beta);
+results energy_one = energies_and_forces_exact(mol1, mol2, Lx, Ly,beta);
 
 mol1.x = PBC2D(Lx, molA.x - dr);
 mol2.x = PBC2D(Lx, molB.x + dr);
-results energy_two = energies_and_forces_2(mol1, mol2, Lx, Ly,beta);
+results energy_two = energies_and_forces_exact(mol1, mol2, Lx, Ly,beta);
 
 en_and_press.p_X_LJ = -(energy_one.energy_LJ - energy_two.energy_LJ)/(dr*4.0)*x_distance;
 en_and_press.p_X_QQ = -(energy_one.energy_QQ - energy_two.energy_QQ)/(dr*4.0)*x_distance;
@@ -27,11 +27,11 @@ mol2 = molB;
 
 mol1.y = PBC2D(Ly, molA.y + dr);
 mol2.y = PBC2D(Ly, molB.y - dr);
-energy_one = energies_and_forces_2(mol1, mol2, Lx, Ly,beta);
+energy_one = energies_and_forces_exact(mol1, mol2, Lx, Ly,beta);
 
 mol1.y = PBC2D(Ly, molA.y - dr);
 mol2.y = PBC2D(Ly, molB.y + dr);
-energy_two = energies_and_forces_2(mol1, mol2, Lx, Ly,beta);
+energy_two = energies_and_forces_exact(mol1, mol2, Lx, Ly,beta);
 
 en_and_press.p_Y_LJ = -(energy_one.energy_LJ - energy_two.energy_LJ)/(dr*4.0)*y_distance;
 en_and_press.p_Y_QQ = -(energy_one.energy_QQ - energy_two.energy_QQ)/(dr*4.0)*y_distance;

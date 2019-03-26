@@ -1,4 +1,4 @@
-results energies_and_forces_2(state molA, state molB, double Lx, double Ly,double beta)
+results energies_and_forces_exact(state molA, state molB, double Lx, double Ly,double beta)
 {
 
   double R = 8.3144598;

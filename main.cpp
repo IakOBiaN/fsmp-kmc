@@ -85,7 +85,7 @@ double delta_angle = 90.0;    //MC parameter. Maximal rotation in degrees
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 double k_B = 1.38e-23;
-const double PI  =3.141592653589793238463;
+const double PI  = 3.141592653589793238463;
 //double gm = 50;
 double density = 0;
 double temperature = 0;
@@ -106,11 +106,11 @@ int frame = 0;
 #include "PBC2D.h"
 #include "interpolation.h"
 #include "energies_and_forces.h"
-#include "energies_and_forces_2.h"
+#include "energies_and_forces_exact.h"
 #include "energies_and_pressures.h"
 #include "initConfigHerringbone.h"
 #include "PotentialEnergy.h"
-#include "PotentialEnergy_2.h"
+#include "PotentialEnergy_exact.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -120,7 +120,10 @@ int frame = 0;
 
 int main()
 {
-
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/*
   // Fill in the forcefield
   // First dimension is distance
   // Second dimension is angle of first molecule
@@ -145,6 +148,10 @@ int main()
   read_forcefield ("energy_LJ.dat", energy_LJ, min_dist,max_dist, dr, da);
   cout << "read force_QQ.dat file" << endl;
   read_forcefield ("energy_QQ.dat", energy_QQ, min_dist,max_dist, dr, da);
+*/
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -162,7 +169,7 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 100;
+ int nPart = 4;
  int nSteps = 100000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 50000;           // MCS for relaxation
@@ -184,7 +191,7 @@ int main()
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
-for(temperature = 20; temperature < 31; temperature += 2.0)
+for(temperature = 20; temperature < 21; temperature += 1.0)
     {
       //Generete a random distribution of TMA molecules at fixed density
      initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
@@ -196,24 +203,24 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
      EN_AND_PR_counter.p_Y_LJ = 0;
      EN_AND_PR_counter.p_X_QQ = 0;
      EN_AND_PR_counter.p_Y_QQ = 0;
-	 Pt = 0;
-   press_X = 0;
-   press_Y = 0;
-	 press_X_LJ = 0;
-	 press_Y_LJ = 0;
-   press_X_QQ = 0;
-	 press_Y_QQ = 0;
-	 ACCEPTANCE_RATIO_r[0] = 0;
-	 ACCEPTANCE_RATIO_r[1] = 0;
-	 ACCEPTANCE_RATIO_m[0] = 0;
-	 ACCEPTANCE_RATIO_m[1] = 0;
-	 double Time = 0; // Total time of the equilibrium run
-	 double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
-	 double dt = 0;
-	 int balanceEq = 0;
+  	 Pt = 0;
+     press_X = 0;
+     press_Y = 0;
+  	 press_X_LJ = 0;
+  	 press_Y_LJ = 0;
+     press_X_QQ = 0;
+  	 press_Y_QQ = 0;
+  	 ACCEPTANCE_RATIO_r[0] = 0;
+  	 ACCEPTANCE_RATIO_r[1] = 0;
+  	 ACCEPTANCE_RATIO_m[0] = 0;
+  	 ACCEPTANCE_RATIO_m[1] = 0;
+  	 double Time = 0; // Total time of the equilibrium run
+  	 double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
+  	 double dt = 0;
+  	 int balanceEq = 0;
      persent = 0;
 
-	 double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
+	   double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
    /*PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
    cout << "Pressure:" << EN_AND_PR_counter.p_X_LJ << " " << EN_AND_PR_counter.p_X_QQ << " " << EN_AND_PR_counter.p_Y_LJ << " " << EN_AND_PR_counter.p_Y_QQ << endl;
    break;
@@ -254,11 +261,14 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
    cout << "new_pressure=" << test_p_X << " " << test_p_Y << endl;
    cout << "en_and_ress=" << abcde.p_X_LJ+abcde.p_X_QQ << " " << abcde.p_Y_LJ+abcde.p_Y_QQ << endl;
    break;*/
+
+
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
      cout << "energy=" << (EN_AND_PR_counter.energy/1000.0)*(N_a/nPart)/beta << endl;
+     return 0;
      //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
      //cout << "approx_energy=" << EN_AND_PR_counter.energy << endl;
 
@@ -297,7 +307,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
-
+/*
         balanceEq++;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
@@ -325,7 +335,7 @@ for(temperature = 20; temperature < 31; temperature += 2.0)
                 ACCEPTANCE_RATIO_m[1] = 0;
             }
         }
-
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
