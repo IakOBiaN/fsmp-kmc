@@ -123,12 +123,12 @@ int main()
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
-/*
+
   // Fill in the forcefield
   // First dimension is distance
   // Second dimension is angle of first molecule
   // Third dimension is angle of second molecule
-  for (int i = 0; i < 521; i++) {
+  for (int i = 0; i < 524; i++) {
       vector< vector<double> > mat; // Create an empty matrix
       for (int j = 0; j < 361; j++) {
           vector<double> row; // Create an empty row
@@ -148,7 +148,7 @@ int main()
   read_forcefield ("energy_LJ.dat", energy_LJ, min_dist,max_dist, dr, da);
   cout << "read force_QQ.dat file" << endl;
   read_forcefield ("energy_QQ.dat", energy_QQ, min_dist,max_dist, dr, da);
-*/
+
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -169,10 +169,10 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 4;
- int nSteps = 100000;            // Total amount of MCS
+ int nPart = 100;
+ int nSteps = 500000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 50000;           // MCS for relaxation
+ int nStepsEq = 200000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
  double state_dens = 10.5; // mkMol of N2 per m^2
@@ -191,7 +191,7 @@ int main()
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
-for(temperature = 20; temperature < 21; temperature += 1.0)
+for(temperature = 20; temperature < 31; temperature += 1.0)
     {
       //Generete a random distribution of TMA molecules at fixed density
      initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
@@ -219,58 +219,13 @@ for(temperature = 20; temperature < 21; temperature += 1.0)
   	 double dt = 0;
   	 int balanceEq = 0;
      persent = 0;
-
 	   double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
-   /*PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-   cout << "Pressure:" << EN_AND_PR_counter.p_X_LJ << " " << EN_AND_PR_counter.p_X_QQ << " " << EN_AND_PR_counter.p_Y_LJ << " " << EN_AND_PR_counter.p_Y_QQ << endl;
-   break;
-   int mol1_number = 0,mol2_number = 1;
-   coordinates[mol1_number].x = 0.0;
-   coordinates[mol1_number].y = 0.0;
-   coordinates[mol2_number].x = 4.8055;
-   coordinates[mol2_number].y = 3.855;
-   results test_exact = energies_and_forces_2(coordinates[mol1_number], coordinates[mol2_number], Lx, Ly,beta);
-   results test_approx = energies_and_forces(coordinates[mol1_number], coordinates[mol2_number], Lx, Ly,beta);
-   //coordinates[mol2_number].x = 4.5;
-   cout << "COORDINATES=" << coordinates[mol1_number].x << " " << coordinates[mol1_number].y << " two=" << coordinates[mol2_number].x << " " << coordinates[mol2_number].y << endl;
-   cout << "exact_press=" << test_exact.p_X_LJ << " " << test_exact.p_X_QQ << " " << test_exact.p_Y_LJ << " " << test_exact.p_Y_QQ << endl;
-   cout << "approx_press=" << test_approx.p_X_LJ << " " << test_approx.p_X_QQ << " " << test_approx.p_Y_LJ << " " << test_approx.p_Y_QQ << endl;
-
-   double diff = 0.01;
-   double test_p_X,test_p_Y;
-   state mol1 = coordinates[mol1_number];
-   state mol2 = coordinates[mol2_number];
-   mol1.x = coordinates[mol1_number].x + diff;
-   mol2.x = coordinates[mol2_number].x - diff;
-   double energy_one = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   mol1.x = coordinates[mol1_number].x - diff;
-   mol2.x = coordinates[mol2_number].x + diff;
-   double energy_two = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   test_p_X = (energy_one - energy_two)/(diff*2.0)*(coordinates[mol2_number].x-coordinates[mol1_number].x)/2.0;
-
-   mol1 = coordinates[mol1_number];
-   mol2 = coordinates[mol2_number];
-   mol1.y = coordinates[mol1_number].y + diff;
-   mol2.y = coordinates[mol2_number].y - diff;
-   energy_one = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   mol1.y = coordinates[mol1_number].y - diff;
-   mol2.y = coordinates[mol2_number].y + diff;
-   energy_two = energies_and_forces(mol1, mol2, Lx, Ly,beta).energy;
-   test_p_Y = (energy_one - energy_two)/(diff*2.0)*(coordinates[mol2_number].y-coordinates[mol1_number].y)/2.0;
-   results abcde = energies_and_pressures(coordinates[mol1_number], coordinates[mol2_number], Lx, Ly, beta);
-   cout << "new_pressure=" << test_p_X << " " << test_p_Y << endl;
-   cout << "en_and_ress=" << abcde.p_X_LJ+abcde.p_X_QQ << " " << abcde.p_Y_LJ+abcde.p_Y_QQ << endl;
-   break;*/
-
 
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
      cout << "energy=" << (EN_AND_PR_counter.energy/1000.0)*(N_a/nPart)/beta << endl;
-     return 0;
-     //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-     //cout << "approx_energy=" << EN_AND_PR_counter.energy << endl;
 
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
@@ -288,7 +243,10 @@ for(temperature = 20; temperature < 21; temperature += 1.0)
          if(persent > nIter/100.0)
          {
            //double old_energy = EN_AND_PR_counter.energy;
-           //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+           //cout << "now=" << EN_AND_PR_counter.energy << " " << EN_AND_PR_counter.energy_LJ << " " << EN_AND_PR_counter.energy_QQ << endl;
+           //PotentialEnergy_exact(nPart, Lx, Ly, coordinates, beta);
+           //cout << "exact=" << EN_AND_PR_counter.energy << " " << EN_AND_PR_counter.energy_LJ << " " << EN_AND_PR_counter.energy_QQ << endl;
+           //PotentialEnergy_exact(nPart, Lx, Ly, coordinates, beta);
            //if (abs(old_energy - EN_AND_PR_counter.energy) > abs(0.01*EN_AND_PR_counter.energy))
            //{
            //  cout << "AHTUNG!!! Energy problem. Exact=" << EN_AND_PR_counter.energy << " diff_energy=" << old_energy << endl;
@@ -307,7 +265,7 @@ for(temperature = 20; temperature < 21; temperature += 1.0)
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance
-/*
+
         balanceEq++;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
@@ -335,7 +293,7 @@ for(temperature = 20; temperature < 21; temperature += 1.0)
                 ACCEPTANCE_RATIO_m[1] = 0;
             }
         }
-*/
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
