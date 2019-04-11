@@ -107,10 +107,10 @@ int main()
 
     double min_dist = 2.0;
 
-    for (int i=0; i < 131; i++) // distance
+    for (int i=0; i < 524; i++) // distance
     {
         cout << "i: " << i << endl;
-        molB.x = (min_dist + i*0.1); // in meters
+        molB.x = (min_dist + i*0.025); // in meters
         for (int j=0; j < 361; j+=1.0)
         {
             molA.phi = j;

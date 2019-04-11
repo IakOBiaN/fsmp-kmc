@@ -8,7 +8,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     double molB_x = molB.x;
     double molB_y = molB.y;
     double dx, dy,r2,energy = 0,var_energy_LJ = 0, var_energy_QQ = 0,pressure_X_LJ = 0, pressure_Y_LJ = 0, pressure_X_QQ = 0, pressure_Y_QQ = 0;
-    double ddx,ddy,der_step = 0.03, var_press_LJ[2],var_press_QQ[2];
+    double ddx,ddy,der_step = dr/2.0, var_press_LJ[2],var_press_QQ[2];
     int numerator;
     bool press_calc;
     double ang_molA = molA.phi;
@@ -134,7 +134,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                    ddx = dx + diff_x*der_step*2.0;
                    r2 = ddx*ddx + dy*dy;
                    r = sqrt(r2);
-                   if (r > max_dist || r < min_dist || abs(ddx) < 0.02) {press_calc=false;break;}
+                   if (r > max_dist || r < min_dist) {press_calc=false;break;}
                    double dang = ddx/r;
                    if (dy<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
                    ang1 = ang_molA - dang;
@@ -222,7 +222,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                     ddy = dy + diff_y*der_step*2.0;
                     r2 = dx*dx + ddy*ddy;
                     r = sqrt(r2);
-                    if (r > max_dist || r < min_dist || abs(ddy) < 0.02) {press_calc=false;break;}
+                    if (r > max_dist || r < min_dist) {press_calc=false;break;}
                     double dang = dx/r;
                     if (ddy<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
                     ang1 = ang_molA - dang;

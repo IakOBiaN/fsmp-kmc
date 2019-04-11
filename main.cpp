@@ -170,9 +170,9 @@ int main()
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 100;
- int nSteps = 500000;            // Total amount of MCS
+ int nSteps = 700000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 200000;           // MCS for relaxation
+ int nStepsEq = 450000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx=0,Ly=0;  // Linear size of the system
  double state_dens = 10.5; // mkMol of N2 per m^2
@@ -191,10 +191,10 @@ int main()
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
-for(temperature = 20; temperature < 31; temperature += 1.0)
+for(temperature = 20; temperature < 38; temperature += 1.0)
     {
       //Generete a random distribution of TMA molecules at fixed density
-     initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);
+     if (temperature < 20.5) {initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);}
      write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.energy_LJ = 0;
@@ -234,7 +234,7 @@ for(temperature = 20; temperature < 31; temperature += 1.0)
      for(int iter = 1; iter <= nIter; iter++)
         {
 
-          if((iter%(nPart*50) == 0) || (iter == 1))
+          if((iter%(nPart*500) == 0) || (iter == 1))
           {
            frame++;
            write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, frame, 1.094, false);
@@ -282,7 +282,7 @@ for(temperature = 20; temperature < 31; temperature += 1.0)
                 if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
                 if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
 
-                //pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+                pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
                 Pt = 0;
                 press_X = 0;
                 press_Y = 0;

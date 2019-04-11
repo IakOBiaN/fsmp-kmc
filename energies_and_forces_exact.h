@@ -20,8 +20,8 @@ results energies_and_forces_exact(state molA, state molB, double Lx, double Ly,d
   double beta_onlykb = 1.0/k_B;
 
     bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then Metropolis algorithm works
-    bool energy_QQ_exact = true;
-    bool pressure_QQ_exact = true;
+    bool energy_QQ_exact = false;
+    bool pressure_QQ_exact = false;
 
     double q2 = q*q;
     double dist,dist2,dist4,b1,b1_2,b2_2,b2,b1b2,g,g_2,invDr6,h1,h2,h3,vir_LJ,vir_QQ;
