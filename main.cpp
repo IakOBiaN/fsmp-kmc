@@ -74,6 +74,11 @@ double energy;
 double mob;
 };
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then Metropolis algorithm works
 results EN_AND_PR_counter;                           //energy and pressures in the system.
 double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of rotation, 1 - accepted steps of rotation
@@ -84,18 +89,16 @@ double delta = 0.5*sigma;                            //MC parameter. Maximal shi
 double delta_angle = 90.0;    //MC parameter. Maximal rotation in degrees
 double R = 8.3144598;
 double N_a = 6.02214e+23;
-double k_B = 1.38e-23;
+double k_B = 1.38e-23;  // Boltzman constant in J/K
 const double PI  = 3.141592653589793238463;
 //double gm = 50;
-double density = 0;
 double temperature = 0;
 
-#include "read_forcefield.h"
-// Forcefield for TMA-TMA pair
+// Forcefield for N2-N2 pair
 vector <vector <vector <double> > > forcefield;
 vector <vector <vector <double> > > energy_LJ;
 vector <vector <vector <double> > > energy_QQ;
-// Minimal and maximal distance between the molecules (hard core distance)
+// Minimal (hard core distance) and maximal distance between the molecules
 double min_dist,max_dist;
 // Delta between neighbor distances in the forcefield in A
 double dr;
@@ -103,14 +106,14 @@ double dr;
 double da;
 int frame = 0;
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "read_forcefield.h"
 #include "PBC2D.h"
-#include "interpolation.h"
 #include "energies_and_forces.h"
 #include "energies_and_forces_exact.h"
-#include "energies_and_pressures.h"
 #include "initConfigHerringbone.h"
 #include "PotentialEnergy.h"
-#include "PotentialEnergy_exact.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -157,7 +160,7 @@ int main()
  ///////////////////////////////////////
 
  // Set configuration parameters
- double density = 0;                // Density
+ double density;                // Actual density of the layer in mkMol of N2 per m^2
 
  double Pt = 0;
  double press_X = 0, press_Y = 0, press_X_LJ = 0, press_Y_LJ = 0,press_X_QQ = 0, press_Y_QQ = 0, Energy=0;
@@ -169,13 +172,13 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 100;
+ int nPart = 100; // Amount of molecules in the layer
  int nSteps = 700000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 450000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
- double Lx=0,Ly=0;  // Linear size of the system
- double state_dens = 10.5; // mkMol of N2 per m^2
+ double Lx, Ly;  // Linear size of the system in A
+ double state_dens = 10.5; // Required density of the layer in mkMol of N2 per m^2
  vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
@@ -193,9 +196,13 @@ int main()
 
 for(temperature = 20; temperature < 38; temperature += 1.0)
     {
-      //Generete a random distribution of TMA molecules at fixed density
+      //Generete a random distribution of N2 molecules at fixed density
      if (temperature < 20.5) {initConfigHerringbone(nPart, density, coordinates, Lx, Ly, state_dens);}
-     write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+     write_xyz_file_N2 (nPart, Lx, Ly, temperature, density, coordinates, 0, 1, true);
+
+     ///////////////////////////////////////////////////////////////////////////////////////////////////
+     //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////
+     //////////////////////////////////////////////////////////////////////////////////////////////////
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.energy_LJ = 0;
      EN_AND_PR_counter.energy_QQ = 0;
@@ -210,19 +217,23 @@ for(temperature = 20; temperature < 38; temperature += 1.0)
   	 press_Y_LJ = 0;
      press_X_QQ = 0;
   	 press_Y_QQ = 0;
-  	 ACCEPTANCE_RATIO_r[0] = 0;
-  	 ACCEPTANCE_RATIO_r[1] = 0;
-  	 ACCEPTANCE_RATIO_m[0] = 0;
-  	 ACCEPTANCE_RATIO_m[1] = 0;
+  	 ACCEPTANCE_RATIO_r[0] = 0;  // rejected rotations
+  	 ACCEPTANCE_RATIO_r[1] = 0;  // accepted rotations
+  	 ACCEPTANCE_RATIO_m[0] = 0;  // rejected translations
+  	 ACCEPTANCE_RATIO_m[1] = 0; // accepted translations
   	 double Time = 0; // Total time of the equilibrium run
   	 double Mconf = 0; // Amount of configurations for chemical potential calculation with kMC
   	 double dt = 0;
   	 int balanceEq = 0;
      persent = 0;
-	   double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of 1/J
+     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	   double beta = 1.0 / (k_B*temperature);  // Inverse temperature in units of (k_B*T)^-1
+
+     // Write the item for average image
      vector <vector <double> > xy_matrix(1000, vector<double> (1000));
      for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
+
      // Calculate initial energy
      PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
      cout << "energy=" << (EN_AND_PR_counter.energy/1000.0)*(N_a/nPart)/beta << endl;
@@ -237,28 +248,18 @@ for(temperature = 20; temperature < 38; temperature += 1.0)
           if((iter%(nPart*500) == 0) || (iter == 1))
           {
            frame++;
-           write_xyz_file_N2 (nPart, Lx, Ly, temperature, coordinates, frame, 1.094, false);
+           write_xyz_file_N2 (nPart, Lx, Ly, temperature, density, coordinates, frame, 1.094, false);
           }
          persent += 1;
          if(persent > nIter/100.0)
          {
-           //double old_energy = EN_AND_PR_counter.energy;
-           //cout << "now=" << EN_AND_PR_counter.energy << " " << EN_AND_PR_counter.energy_LJ << " " << EN_AND_PR_counter.energy_QQ << endl;
-           //PotentialEnergy_exact(nPart, Lx, Ly, coordinates, beta);
-           //cout << "exact=" << EN_AND_PR_counter.energy << " " << EN_AND_PR_counter.energy_LJ << " " << EN_AND_PR_counter.energy_QQ << endl;
-           //PotentialEnergy_exact(nPart, Lx, Ly, coordinates, beta);
-           //if (abs(old_energy - EN_AND_PR_counter.energy) > abs(0.01*EN_AND_PR_counter.energy))
-           //{
-           //  cout << "AHTUNG!!! Energy problem. Exact=" << EN_AND_PR_counter.energy << " diff_energy=" << old_energy << endl;
-           //}
-           cout << int(iter*100.0/nIter) << " %" << endl;persent = 0;
+           cout << "T = " << temperature << " rho = " << state_dens << " " << int(iter*100.0/nIter) << " %" << endl;persent = 0;
          }
 
          int trialPart;
          // Choose a particle to be displaced
          // according to the ROSENBLUTH scheme
          // and calculate the duration of the current configuration
-         //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
          if(!rosenbluth) {Metropolis_iteration(nPart, Lx, Ly, beta, coordinates); dt = 1.0;}     // Make a MC iteration
          //else {trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}                 // kMC trial particle and dt calculation
 

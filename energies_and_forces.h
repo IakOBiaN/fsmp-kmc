@@ -1,57 +1,47 @@
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta)
 {
     results en_and_press;
-    //cout << "START_EN_AND_FORCE" << endl;
     double ang1,ang2;
     double molA_x  = molA.x;
     double molA_y  = molA.y;
     double molB_x = molB.x;
     double molB_y = molB.y;
-    double dx, dy,r2,energy = 0,var_energy_LJ = 0, var_energy_QQ = 0,pressure_X_LJ = 0, pressure_Y_LJ = 0, pressure_X_QQ = 0, pressure_Y_QQ = 0;
-    double ddx,ddy,der_step = dr/2.0, var_press_LJ[2],var_press_QQ[2];
+		double r;	// Distance between A and B molecules
+		double r2;	// Distance sqaured
+    double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
+		double energy = 0,var_energy_LJ = 0, var_energy_QQ = 0,pressure_X_LJ = 0, pressure_Y_LJ = 0, pressure_X_QQ = 0, pressure_Y_QQ = 0;
+    double dist_x_plus_delta, dist_y_plus_delta; // Distance between A and B molecules including derivation step
+		double delta = dr/2.0;	// Derivation step is associated with distance step in numerical potential
+		double var_press_LJ[2],var_press_QQ[2]; // Current energy values in numerical differenciation procedure
     int numerator;
-    bool press_calc;
+    bool press_calc; // The pressure should  been calculated only when current distances lay in the working interval of num. potential
     double ang_molA = molA.phi;
     double ang_molB = molB.phi;
-    bool mirror_int = true;
-    ver v_000,v_010, v_100, v_110, v_001, v_011, v_101, v_111;
-    coord v_find;
-    int temp_dist,temp_ang1,temp_ang2;
-    double dist_n,dop_energy_LJ,dop_energy_QQ;
+    double dist_n; // Float index in the numerical potential
+		double dop_energy_LJ,dop_energy_QQ;
 
-    int from,to;
-    if (mirror_int)
-    {
-    from = -1;
-    to = 2;
-    }
-    else
-    {
-    from = 0;
-    to = 1;
-    }
+    int dist,a1,a2; // indexes in the numerical potential array
 
-    int dist,a1,a2;
 
-    double r;
-    for (int id = from; id < to; id++)
+    for (int id = -1; id < 2; id++)
     {
-       dx = (molB_x - molA_x + id*Lx);
-       if (abs(dx) > max_dist) {continue;}
-       for (int jd = from; jd < to; jd++)
+       dist_x = (molB_x - molA_x + id*Lx);
+       if (abs(dist_x) > max_dist) {continue;}
+       for (int jd = -1; jd < 2; jd++)
        {
-          dy = (molB_y - molA_y + jd*Ly);
-          if (abs(dy) > max_dist) {continue;}
-             r2 = dx*dx + dy*dy;
+          dist_y = (molB_y - molA_y + jd*Ly);
+          if (abs(dist_y) > max_dist) {continue;}
+             r2 = dist_x*dist_x + dist_y*dist_y;
              r = sqrt(r2);
              if (r <= max_dist)
              {
                //calculation of energy for two molecules
-               double dang = dx/r;
-               if (dy<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
+               double dang = dist_x/r;	// Calculate the cosine of the angle between OX and distance vector
+               if (dist_y<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
                ang1 = ang_molA - dang;
                ang2 = ang_molB - dang;
-               if (ang1<0) {ang1 += 360.0;}
+							 // Molecule should always has the angle in the range of 0-360 degrees
+							 if (ang1<0) {ang1 += 360.0;}
                if (ang2<0) {ang2 += 360.0;}
                if (ang1>359.5) {ang1 -= 360.0;}
                if (ang2>359.5) {ang2 -= 360.0;}
@@ -69,56 +59,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                }
                else
                {
-                /*temp_dist = (int)(dist_n);
-                 temp_ang1 = (int)(ang1/da);
-                 temp_ang2 = (int)(ang2/da);
-                 v_000.place.x = temp_dist;
-                 v_000.place.y = temp_ang1;
-                 v_000.place.z = temp_ang2;
-                 v_010.place.x = temp_dist;
-                 v_010.place.y = temp_ang1+1;
-                 v_010.place.z = temp_ang2;
-                 v_100.place.x = temp_dist+1;
-                 v_100.place.y = temp_ang1;
-                 v_100.place.z = temp_ang2;
-                 v_110.place.x = temp_dist+1;
-                 v_110.place.y = temp_ang1+1;
-                 v_110.place.z = temp_ang2;
-                 v_001.place.x = temp_dist;
-                 v_001.place.y = temp_ang1;
-                 v_001.place.z = temp_ang2+1;
-                 v_011.place.x = temp_dist;
-                 v_011.place.y = temp_ang1+1;
-                 v_011.place.z = temp_ang2+1;
-                 v_101.place.x = temp_dist+1;
-                 v_101.place.y = temp_ang1;
-                 v_101.place.z = temp_ang2+1;
-                 v_111.place.x = temp_dist+1;
-                 v_111.place.y = temp_ang1+1;
-                 v_111.place.z = temp_ang2+1;
-                 v_find.x = dist_n;
-                 v_find.y = ang1/da;
-                 v_find.z = ang2/da;
-
-                 v_000.value = energy_LJ[v_000.place.x][v_000.place.y][v_000.place.z];
-                 v_010.value = energy_LJ[v_010.place.x][v_010.place.y][v_010.place.z];
-                 v_100.value = energy_LJ[v_100.place.x][v_100.place.y][v_100.place.z];
-                 v_110.value = energy_LJ[v_110.place.x][v_110.place.y][v_110.place.z];
-                 v_001.value = energy_LJ[v_001.place.x][v_001.place.y][v_001.place.z];
-                 v_011.value = energy_LJ[v_011.place.x][v_011.place.y][v_011.place.z];
-                 v_101.value = energy_LJ[v_101.place.x][v_101.place.y][v_101.place.z];
-                 v_111.value = energy_LJ[v_111.place.x][v_111.place.y][v_111.place.z];
-                 dop_energy_LJ = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);
-
-                 v_000.value = energy_QQ[v_000.place.x][v_000.place.y][v_000.place.z];
-                 v_010.value = energy_QQ[v_010.place.x][v_010.place.y][v_010.place.z];
-                 v_100.value = energy_QQ[v_100.place.x][v_100.place.y][v_100.place.z];
-                 v_110.value = energy_QQ[v_110.place.x][v_110.place.y][v_110.place.z];
-                 v_001.value = energy_QQ[v_001.place.x][v_001.place.y][v_001.place.z];
-                 v_011.value = energy_QQ[v_011.place.x][v_011.place.y][v_011.place.z];
-                 v_101.value = energy_QQ[v_101.place.x][v_101.place.y][v_101.place.z];
-                 v_111.value = energy_QQ[v_111.place.x][v_111.place.y][v_111.place.z];
-                 dop_energy_QQ = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);*/
                  dop_energy_LJ = energy_LJ[dist][a1][a2];
                  dop_energy_QQ = energy_QQ[dist][a1][a2];
 
@@ -131,12 +71,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
              press_calc = true;
              for (int diff_x = -1; diff_x < 3; diff_x += 2)
              {
-                   ddx = dx + diff_x*der_step*2.0;
-                   r2 = ddx*ddx + dy*dy;
+                   dist_x_plus_delta = dist_x + diff_x*delta*2.0;
+                   r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
                    r = sqrt(r2);
                    if (r > max_dist || r < min_dist) {press_calc=false;break;}
-                   double dang = ddx/r;
-                   if (dy<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
+                   double dang = dist_x_plus_delta/r;
+                   if (dist_y<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
                    ang1 = ang_molA - dang;
                    ang2 = ang_molB - dang;
                    if (ang1<0) {ang1 += 360.0;}
@@ -154,56 +94,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                      }
                      else
                      {
-                       /*temp_dist = (int)(dist_n);
-                       temp_ang1 = (int)(ang1/da);
-                       temp_ang2 = (int)(ang2/da);
-                       v_000.place.x = temp_dist;
-                       v_000.place.y = temp_ang1;
-                       v_000.place.z = temp_ang2;
-                       v_010.place.x = temp_dist;
-                       v_010.place.y = temp_ang1+1;
-                       v_010.place.z = temp_ang2;
-                       v_100.place.x = temp_dist+1;
-                       v_100.place.y = temp_ang1;
-                       v_100.place.z = temp_ang2;
-                       v_110.place.x = temp_dist+1;
-                       v_110.place.y = temp_ang1+1;
-                       v_110.place.z = temp_ang2;
-                       v_001.place.x = temp_dist;
-                       v_001.place.y = temp_ang1;
-                       v_001.place.z = temp_ang2+1;
-                       v_011.place.x = temp_dist;
-                       v_011.place.y = temp_ang1+1;
-                       v_011.place.z = temp_ang2+1;
-                       v_101.place.x = temp_dist+1;
-                       v_101.place.y = temp_ang1;
-                       v_101.place.z = temp_ang2+1;
-                       v_111.place.x = temp_dist+1;
-                       v_111.place.y = temp_ang1+1;
-                       v_111.place.z = temp_ang2+1;
-                       v_find.x = dist_n;
-                       v_find.y = ang1/da;
-                       v_find.z = ang2/da;
-
-                       v_000.value = energy_LJ[v_000.place.x][v_000.place.y][v_000.place.z];
-                       v_010.value = energy_LJ[v_010.place.x][v_010.place.y][v_010.place.z];
-                       v_100.value = energy_LJ[v_100.place.x][v_100.place.y][v_100.place.z];
-                       v_110.value = energy_LJ[v_110.place.x][v_110.place.y][v_110.place.z];
-                       v_001.value = energy_LJ[v_001.place.x][v_001.place.y][v_001.place.z];
-                       v_011.value = energy_LJ[v_011.place.x][v_011.place.y][v_011.place.z];
-                       v_101.value = energy_LJ[v_101.place.x][v_101.place.y][v_101.place.z];
-                       v_111.value = energy_LJ[v_111.place.x][v_111.place.y][v_111.place.z];
-                       var_press_LJ[numerator] = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);
-
-                       v_000.value = energy_QQ[v_000.place.x][v_000.place.y][v_000.place.z];
-                       v_010.value = energy_QQ[v_010.place.x][v_010.place.y][v_010.place.z];
-                       v_100.value = energy_QQ[v_100.place.x][v_100.place.y][v_100.place.z];
-                       v_110.value = energy_QQ[v_110.place.x][v_110.place.y][v_110.place.z];
-                       v_001.value = energy_QQ[v_001.place.x][v_001.place.y][v_001.place.z];
-                       v_011.value = energy_QQ[v_011.place.x][v_011.place.y][v_011.place.z];
-                       v_101.value = energy_QQ[v_101.place.x][v_101.place.y][v_101.place.z];
-                       v_111.value = energy_QQ[v_111.place.x][v_111.place.y][v_111.place.z];
-                       var_press_QQ[numerator] = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);*/
                        var_press_LJ[numerator] = energy_LJ[dist][a1][a2];
                        var_press_QQ[numerator] = energy_QQ[dist][a1][a2];
                      }
@@ -211,20 +101,20 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
               }
               if (press_calc)
               {
-                pressure_X_LJ += (var_press_LJ[0]-var_press_LJ[1])/(der_step*4.0)*dx;
-                pressure_X_QQ += (var_press_QQ[0]-var_press_QQ[1])/(der_step*4.0)*dx;
+                pressure_X_LJ += (var_press_LJ[0]-var_press_LJ[1])/(delta*4.0)*dist_x;
+                pressure_X_QQ += (var_press_QQ[0]-var_press_QQ[1])/(delta*4.0)*dist_x;
               }
 
               numerator = 0;
               press_calc = true;
               for (int diff_y = -1; diff_y < 3; diff_y += 2)
               {
-                    ddy = dy + diff_y*der_step*2.0;
-                    r2 = dx*dx + ddy*ddy;
+                    dist_y_plus_delta = dist_y + diff_y*delta*2.0;
+                    r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
                     r = sqrt(r2);
                     if (r > max_dist || r < min_dist) {press_calc=false;break;}
-                    double dang = dx/r;
-                    if (ddy<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
+                    double dang = dist_x/r;
+                    if (dist_y_plus_delta<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
                     ang1 = ang_molA - dang;
                     ang2 = ang_molB - dang;
                     if (ang1<0) {ang1 += 360.0;}
@@ -242,56 +132,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                       }
                       else
                       {
-                        /*temp_dist = (int)(dist_n);
-                        temp_ang1 = (int)(ang1/da);
-                        temp_ang2 = (int)(ang2/da);
-                        v_000.place.x = temp_dist;
-                        v_000.place.y = temp_ang1;
-                        v_000.place.z = temp_ang2;
-                        v_010.place.x = temp_dist;
-                        v_010.place.y = temp_ang1+1;
-                        v_010.place.z = temp_ang2;
-                        v_100.place.x = temp_dist+1;
-                        v_100.place.y = temp_ang1;
-                        v_100.place.z = temp_ang2;
-                        v_110.place.x = temp_dist+1;
-                        v_110.place.y = temp_ang1+1;
-                        v_110.place.z = temp_ang2;
-                        v_001.place.x = temp_dist;
-                        v_001.place.y = temp_ang1;
-                        v_001.place.z = temp_ang2+1;
-                        v_011.place.x = temp_dist;
-                        v_011.place.y = temp_ang1+1;
-                        v_011.place.z = temp_ang2+1;
-                        v_101.place.x = temp_dist+1;
-                        v_101.place.y = temp_ang1;
-                        v_101.place.z = temp_ang2+1;
-                        v_111.place.x = temp_dist+1;
-                        v_111.place.y = temp_ang1+1;
-                        v_111.place.z = temp_ang2+1;
-                        v_find.x = dist_n;
-                        v_find.y = ang1/da;
-                        v_find.z = ang2/da;
-
-                        v_000.value = energy_LJ[v_000.place.x][v_000.place.y][v_000.place.z];
-                        v_010.value = energy_LJ[v_010.place.x][v_010.place.y][v_010.place.z];
-                        v_100.value = energy_LJ[v_100.place.x][v_100.place.y][v_100.place.z];
-                        v_110.value = energy_LJ[v_110.place.x][v_110.place.y][v_110.place.z];
-                        v_001.value = energy_LJ[v_001.place.x][v_001.place.y][v_001.place.z];
-                        v_011.value = energy_LJ[v_011.place.x][v_011.place.y][v_011.place.z];
-                        v_101.value = energy_LJ[v_101.place.x][v_101.place.y][v_101.place.z];
-                        v_111.value = energy_LJ[v_111.place.x][v_111.place.y][v_111.place.z];
-                        var_press_LJ[numerator] = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);
-
-                        v_000.value = energy_QQ[v_000.place.x][v_000.place.y][v_000.place.z];
-                        v_010.value = energy_QQ[v_010.place.x][v_010.place.y][v_010.place.z];
-                        v_100.value = energy_QQ[v_100.place.x][v_100.place.y][v_100.place.z];
-                        v_110.value = energy_QQ[v_110.place.x][v_110.place.y][v_110.place.z];
-                        v_001.value = energy_QQ[v_001.place.x][v_001.place.y][v_001.place.z];
-                        v_011.value = energy_QQ[v_011.place.x][v_011.place.y][v_011.place.z];
-                        v_101.value = energy_QQ[v_101.place.x][v_101.place.y][v_101.place.z];
-                        v_111.value = energy_QQ[v_111.place.x][v_111.place.y][v_111.place.z];
-                        var_press_QQ[numerator] = interpolation(v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111, v_find);*/
                         var_press_LJ[numerator] = energy_LJ[dist][a1][a2];
                         var_press_QQ[numerator] = energy_QQ[dist][a1][a2];
                       }
@@ -299,8 +139,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                }
                if (press_calc)
                {
-                 pressure_Y_LJ += (var_press_LJ[0]-var_press_LJ[1])/(der_step*4.0)*dy;
-                 pressure_Y_QQ += (var_press_QQ[0]-var_press_QQ[1])/(der_step*4.0)*dy;
+                 pressure_Y_LJ += (var_press_LJ[0]-var_press_LJ[1])/(delta*4.0)*dist_y;
+                 pressure_Y_QQ += (var_press_QQ[0]-var_press_QQ[1])/(delta*4.0)*dist_y;
                }
        }
     }

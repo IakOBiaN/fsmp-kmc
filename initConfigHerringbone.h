@@ -2,18 +2,10 @@ using namespace std;
 
 void initConfigHerringbone (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
-double ratio_x_to_y; // = 1.2571; //good for 20 K and p = 10.5
-
-if (temperature < 31.0){ratio_x_to_y = 1.1491611123879567915421742128246;}
-if (temperature < 29.0){ratio_x_to_y = 1.2121212121212121212121212121212;}
-if (temperature < 27.0){ratio_x_to_y = 1.2300123001230012300123001230012;}
-if (temperature < 25.0){ratio_x_to_y = 1.2422360248447204968944099378882;}
-if (temperature < 23.0){ratio_x_to_y = 1.2547051442910915934755332496863;}
-if (temperature < 21.0){ratio_x_to_y = 1.2626262626262626262626262626263;}
-
+double ratio_x_to_y = 1.2571; //good for 20 K and p = 10.5
 
 double area = (1.0e+26)*nPart/(state_dens*N_a); // Area of the surface in A^2
-Lx = sqrt(area*ratio_x_to_y); // Size of the simulation box in A^2
+Lx = sqrt(area*ratio_x_to_y); // Size of the simulation box in A
 Ly = Lx/ratio_x_to_y;
 
 double a = Lx/sqrt(nPart);          // half of x-unit vector of herringbone unit cell in sigma
