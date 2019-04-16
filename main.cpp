@@ -111,7 +111,6 @@ int frame = 0;
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
-#include "energies_and_forces_exact.h"
 #include "initConfigHerringbone.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
