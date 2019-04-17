@@ -2,7 +2,7 @@ void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, in
 {
     double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
     double S = Lx*Ly;
-    dL = 0.005;
+    dL = dr/2.0; //0.005;
 
        if(press_X < press_Y)
        {

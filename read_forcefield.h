@@ -64,8 +64,8 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
         ang1 = (int)(((angle_1[i]-angle_1[0])/da)+0.5);
         ang2 = (int)(((angle_2[i]-angle_2[0])/angle_step_2)+0.5);
         // 1 kcal = 4184 J/mol
-       // forcefield[dist][ang1][ang2] = energy[i]*4184.0;
-       forcefield[dist][ang1][ang2] = energy[i];
+        forcefield[dist][ang1][ang2] = energy[i]*4184.0;
+        //forcefield[dist][ang1][ang2] = energy[i];
     }
 
 			int a1, a2;

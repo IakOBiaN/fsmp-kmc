@@ -9,16 +9,15 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		double r;	// Distance between A and B molecules
 		double r2;	// Distance sqaured
     double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
-		double energy = 0,var_energy_LJ = 0, var_energy_QQ = 0,pressure_X_LJ = 0, pressure_Y_LJ = 0, pressure_X_QQ = 0, pressure_Y_QQ = 0;
+		double energy = 0, var_energy = 0, pressure_X = 0, pressure_Y = 0;
     double dist_x_plus_delta, dist_y_plus_delta; // Distance between A and B molecules including derivation step
 		double delta = dr/2.0;	// Derivation step is associated with distance step in numerical potential
-		double var_press_LJ[2],var_press_QQ[2]; // Current energy values in numerical differenciation procedure
+		double var_press[2]; // Current energy values in numerical differenciation procedure
     int numerator;
     bool press_calc; // The pressure should  been calculated only when current distances lay in the working interval of num. potential
     double ang_molA = molA.phi;
     double ang_molB = molB.phi;
     double dist_n; // Float index in the numerical potential
-		double dop_energy_LJ,dop_energy_QQ;
 
     int dist,a1,a2; // indexes in the numerical potential array
 
@@ -49,23 +48,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                dist = (int)(dist_n+0.5);
                a1 = (int)((ang1/da)+0.5);
                a2 = (int)((ang2/da)+0.5);
-               if (r<min_dist)
-               {
-                 dop_energy_LJ = energy_LJ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
-                 dop_energy_QQ = energy_QQ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
-                 energy += dop_energy_LJ + dop_energy_QQ;
-                 var_energy_LJ += dop_energy_LJ;
-                 var_energy_QQ += dop_energy_QQ;
-               }
-               else
-               {
-                 dop_energy_LJ = energy_LJ[dist][a1][a2];
-                 dop_energy_QQ = energy_QQ[dist][a1][a2];
-
-                 var_energy_LJ += dop_energy_LJ;
-                 var_energy_QQ += dop_energy_QQ;
-                 energy += (dop_energy_LJ + dop_energy_QQ);
-               }
+               if (r<min_dist){var_energy += forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));}
+               else{energy += forcefield[dist][a1][a2];}
              }
              numerator = 0;
              press_calc = true;
@@ -87,24 +71,11 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                    dist = (int)(dist_n+0.5);
                    a1 = (int)((ang1/da)+0.5);
                    a2 = (int)((ang2/da)+0.5);
-                     if (r<min_dist)
-                     {
-                       var_press_LJ[numerator] = energy_LJ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
-                       var_press_QQ[numerator] = energy_QQ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
-                     }
-                     else
-                     {
-                       var_press_LJ[numerator] = energy_LJ[dist][a1][a2];
-                       var_press_QQ[numerator] = energy_QQ[dist][a1][a2];
-                     }
+                     if (r<min_dist){var_press[numerator] = forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));}
+                     else{var_press[numerator] = forcefield[dist][a1][a2];}
               numerator++;
               }
-              if (press_calc)
-              {
-                pressure_X_LJ += (var_press_LJ[0]-var_press_LJ[1])/(delta*4.0)*dist_x;
-                pressure_X_QQ += (var_press_QQ[0]-var_press_QQ[1])/(delta*4.0)*dist_x;
-              }
-
+              if (press_calc){pressure_X += (var_press[0]-var_press[1])/(delta*4.0)*dist_x;}
               numerator = 0;
               press_calc = true;
               for (int diff_y = -1; diff_y < 3; diff_y += 2)
@@ -125,32 +96,15 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                     dist = (int)(dist_n+0.5);
                     a1 = (int)((ang1/da)+0.5);
                     a2 = (int)((ang2/da)+0.5);
-                      if (r<min_dist)
-                      {
-                        var_press_LJ[numerator] = energy_LJ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
-                        var_press_QQ[numerator] = energy_QQ[0][a1][a2]*100*exp(r/min_dist*log(0.01));
-                      }
-                      else
-                      {
-                        var_press_LJ[numerator] = energy_LJ[dist][a1][a2];
-                        var_press_QQ[numerator] = energy_QQ[dist][a1][a2];
-                      }
+                      if (r<min_dist){var_press[numerator] = forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));}
+                      else{var_press[numerator] = forcefield[dist][a1][a2];}
                numerator++;
                }
-               if (press_calc)
-               {
-                 pressure_Y_LJ += (var_press_LJ[0]-var_press_LJ[1])/(delta*4.0)*dist_y;
-                 pressure_Y_QQ += (var_press_QQ[0]-var_press_QQ[1])/(delta*4.0)*dist_y;
-               }
+               if (press_calc){pressure_Y += (var_press[0]-var_press[1])/(delta*4.0)*dist_y;}
        }
     }
-    en_and_press.energy = energy/temperature;
-    en_and_press.energy_LJ = var_energy_LJ/temperature;
-    en_and_press.energy_QQ = var_energy_QQ/temperature;
-
-    en_and_press.p_X_LJ = pressure_X_LJ/temperature;
-    en_and_press.p_Y_LJ = pressure_Y_LJ/temperature;
-    en_and_press.p_X_QQ = pressure_X_QQ/temperature;
-    en_and_press.p_Y_QQ = pressure_Y_QQ/temperature;
+    en_and_press.energy = energy;
+    en_and_press.p_X = pressure_X;
+    en_and_press.p_Y = pressure_Y;
     return en_and_press;
 }

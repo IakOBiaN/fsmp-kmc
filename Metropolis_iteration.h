@@ -44,7 +44,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       }
 
       delta_EP = new_EP - old_EP;
-      if(RanGen.Random() < exp(-delta_EP.energy))
+      if(RanGen.Random() < exp(-delta_EP.energy*beta))
       {
           coordinates[trialPart] = new_coordinates;     // Update position
           EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;

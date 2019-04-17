@@ -4,10 +4,15 @@ void initConfigHexTMA (int &nPart, double &density, vector <state> &coordinates,
 {
 
 double h_bond_dist = 10.031; // It requires r_min for h-bonding
-
+/*
 double ratio_x_to_y = (h_bond_dist+cos(60.0/180.0*PI)*h_bond_dist)/(sin(60.0/180.0*PI)*h_bond_dist); //We use symmetric box
-
 double area = (1.0e+26)*nPart/(state_dens*N_a); // Area of the surface in A^2
+Lx = sqrt(area*ratio_x_to_y); // Size of the simulation box in A^2
+Ly = Lx/ratio_x_to_y;
+*/
+double ratio_x_to_y = 3.0/sqrt(3);
+// There are 4 molecules in honeycomb unit cell
+double area = (nPart/4.0)*3*sqrt(3)*h_bond_dist*h_bond_dist;
 Lx = sqrt(area*ratio_x_to_y); // Size of the simulation box in A^2
 Ly = Lx/ratio_x_to_y;
 
