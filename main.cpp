@@ -75,7 +75,7 @@ double delta_angle = 60.0;    //MC parameter. Maximal rotation in degrees
 double R = 8.3144598;
 double N_a = 6.02214e+23;
 const double PI  =3.14159265358979323846;
-double temperature = 0;
+double temperature = 800.0;
 double density;                // Actual density of the layer in mkMol per m^2
 bool close = false;
 
@@ -103,6 +103,7 @@ int frame = 0;
 #include "write_xy_matrix.h"
 #include "writeData.h"
 #include "write_xyz_file.h"
+#include "density_change.h"
 
 int main()
 {
@@ -173,12 +174,16 @@ int main()
  //Generete an initial distribution of molecules at fixed density
 initConfigHexTMA(nPart, density, coordinates, Lx, Ly, state_dens);
 
-double temp_step = 100;
-
-for(temperature = 400; temperature < 2001; temperature += temp_step)
+//double deltaT = 20.0;
+//for(temperature = 1500; temperature < 2000; temperature += deltaT)
+double delta_rho = 0.1;
+for (density = density; density < 2.6; density += delta_rho)
     {
-     if (temperature > 850) {temp_step = 10;}
-     write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+		// Change the current density of the layer
+		density_change(Lx, Ly, nPart, coordinates);
+
+		 //if (temperature > 850){deltaT = 10.0;}
+		 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      frame = 1;
      write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
 
@@ -227,7 +232,7 @@ for(temperature = 400; temperature < 2001; temperature += temp_step)
          persent += 1;
          if(persent > nIter/100.0)
          {
-           cout << "delta=" << delta << " angle=" << delta_angle << " T = " << temperature << " rho = " << density << " " << int(iter*100.0/nIter) << " %" << endl;persent = 0;
+           cout << "T = " << temperature << " rho = " << density << " " << int(iter*100.0/nIter) << " %" << endl;persent = 0;
          }
 
          int trialPart;
@@ -317,7 +322,7 @@ for(temperature = 400; temperature < 2001; temperature += temp_step)
             en_2_av = en_2_av/Pt;
 
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/nPart, (en_2_av-pow(Energy,2))/nPart, Energy/1000.0/nPart, press_X, press_Y, Lx, Ly);
+     writeData(temperature, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/nPart, press_X, press_Y, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
