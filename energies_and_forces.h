@@ -48,7 +48,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                dist = (int)(dist_n+0.5);
                a1 = (int)((ang1/da)+0.5);
                a2 = (int)((ang2/da)+0.5);
-               if (r<min_dist){var_energy += forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));}
+               if (r<min_dist)
+                  {
+                    close = true;
+                    break;
+                    //var_energy += forcefield[0][a1][a2]*100*exp(r/min_dist*log(0.01));
+                  }
                else{energy += forcefield[dist][a1][a2];}
              }
              numerator = 0;

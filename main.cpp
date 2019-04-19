@@ -76,6 +76,8 @@ double R = 8.3144598;
 double N_a = 6.02214e+23;
 const double PI  =3.14159265358979323846;
 double temperature = 0;
+double density;                // Actual density of the layer in mkMol per m^2
+bool close = false;
 
 // Forcefield for N2-N2 pair
 vector <vector <vector <double> > > forcefield;
@@ -135,7 +137,6 @@ int main()
  ///////////////////////////////////////
 
  // Set configuration parameters
- double density;                // Actual density of the layer in mkMol per m^2
 
  double Pt = 0;
  double press_X = 0, press_Y = 0, Energy=0;
@@ -169,11 +170,15 @@ int main()
 
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
-for(temperature = 400; temperature < 1000; temperature += 50.0)
+ //Generete an initial distribution of molecules at fixed density
+initConfigHexTMA(nPart, density, coordinates, Lx, Ly, state_dens);
+
+double temp_step = 100;
+
+for(temperature = 400; temperature < 2001; temperature += temp_step)
     {
-      //Generete an initial distribution of molecules at fixed density
-     initConfigHexTMA(nPart, density, coordinates, Lx, Ly, state_dens);
-		 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+     if (temperature > 850) {temp_step = 10;}
+     write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      frame = 1;
      write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
 
@@ -222,7 +227,7 @@ for(temperature = 400; temperature < 1000; temperature += 50.0)
          persent += 1;
          if(persent > nIter/100.0)
          {
-           cout << "T = " << temperature << " rho = " << density << " " << int(iter*100.0/nIter) << " %" << endl;persent = 0;
+           cout << "delta=" << delta << " angle=" << delta_angle << " T = " << temperature << " rho = " << density << " " << int(iter*100.0/nIter) << " %" << endl;persent = 0;
          }
 
          int trialPart;
