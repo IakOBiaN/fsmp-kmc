@@ -128,7 +128,7 @@ int main()
   }
   // Read the forcefield from "forcefield.dat"
   cout << "read forcefield.dat file" << endl;
-  read_forcefield ("Dreiding_ff_TMA.dat", forcefield, min_dist,max_dist, dr, da);
+  read_forcefield ("Dreiding_ff_TMA_new.dat", forcefield, min_dist,max_dist, dr, da);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -149,10 +149,10 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 100; // Amount of molecules in the layer
- int nSteps =500000;            // Total amount of MCS
+ int nPart = 900; // Amount of molecules in the layer
+ int nSteps =700000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 300000;           // MCS for relaxation
+ int nStepsEq = 400000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  double state_dens = 1.291163; // mkMol of TMA per A^2
@@ -174,15 +174,16 @@ int main()
  //Generete an initial distribution of molecules at fixed density
 initConfigHexTMA(nPart, density, coordinates, Lx, Ly, state_dens);
 
-//double deltaT = 20.0;
-//for(temperature = 1500; temperature < 2000; temperature += deltaT)
-double delta_rho = 0.1;
-for (density = density; density < 2.6; density += delta_rho)
-    {
-		// Change the current density of the layer
-		density_change(Lx, Ly, nPart, coordinates);
+double deltaT = 100.0;
+for(temperature = 400; temperature < 1200; temperature += deltaT)
+{
+//double delta_rho = 0.1;
+//for (density = density; density < 2.6; density += delta_rho)
 
-		 //if (temperature > 850){deltaT = 10.0;}
+		// Change the current density of the layer
+		//density_change(Lx, Ly, nPart, coordinates);
+
+		 if (temperature > 750){deltaT = 10.0;}
 		 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      frame = 1;
      write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
@@ -210,8 +211,8 @@ for (density = density; density < 2.6; density += delta_rho)
 	   double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
 
      // Write the item for average image
-     vector <vector <double> > xy_matrix(1000, vector<double> (1000));
-     for(int i = 0; i < 1000; i++){for(int j = 0; j < 1000; j++){xy_matrix[i][j] = 0;}}
+     vector <vector <double> > xy_matrix(3000, vector<double> (3000));
+     for(int i = 0; i < 3000; i++){for(int j = 0; j < 3000; j++){xy_matrix[i][j] = 0;}}
 
      // Calculate initial energy
 		 PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
