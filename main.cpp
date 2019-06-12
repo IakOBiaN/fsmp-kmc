@@ -95,7 +95,10 @@ int frame = 0;
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
-#include "initConfigHexTMA.h"
+#include "initConfigHoneycombTMA.h"
+#include "initConfigFlowerTMA.h"
+#include "initConfig2FlowerTMA.h"
+#include "initConfigSuperFlowerTMA.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
@@ -172,7 +175,7 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete an initial distribution of molecules at fixed density
-initConfigHexTMA(nPart, density, coordinates, Lx, Ly, state_dens);
+initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, state_dens);
 
 double deltaT = 100.0;
 for(temperature = 400; temperature < 1200; temperature += deltaT)
