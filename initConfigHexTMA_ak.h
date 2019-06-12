@@ -3,7 +3,7 @@ using namespace std;
 void initConfigHexTMA (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
-double h_bond_dist = 10.031; // It requires r_min for h-bonding
+double h_bond_dist = 9.975; // It requires r_min for h-bonding
 
 double ratio_x_to_y = (h_bond_dist+cos(60.0/180.0*PI)*h_bond_dist)/(sin(60.0/180.0*PI)*h_bond_dist); //We use symmetric box
 
