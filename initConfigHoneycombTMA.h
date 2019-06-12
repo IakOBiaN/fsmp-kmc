@@ -4,7 +4,6 @@ void initConfigHoneycombTMA (int &nPart, double &density, vector <state> &coordi
 {
 
 double h_bond_dist = 9.975; // It requires r_min for h-bonding
-double h3_bond_dist = 9.759; // It requires r_min for h3-bonding
 
 double ratio_x_to_y = 3.0/sqrt(3); //We use symmetric box
 double L_cell = 2*h_bond_dist*cos(30.0/180.0*PI); //size of the simple unit cell

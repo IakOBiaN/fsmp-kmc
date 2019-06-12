@@ -149,6 +149,19 @@ int main()
  double fluent_capacity = 0;
  double persent = 0;
 
+ bool dist_switch = true;
+ double av_energy_for_distribution;
+ int dist_counter;
+ double energy_distribution_step = 0.1;
+ int dist_size = 1000;
+ vector <double> distribution(dist_size);
+ for (int i = 0; i < dist_size; i++)
+ {
+   distribution[i] = 0;
+ }
+
+
+
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
@@ -209,6 +222,7 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
   	 double dt = 0;
   	 int balanceEq = 0;
      persent = 0;
+     dist_counter = 0;
      ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	   double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
@@ -281,7 +295,7 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
-         if(iter > nIterEq + nPart * 1000)
+         if(iter > nIterEq)
            {
             if (iter == nIterEq+1)
             {
@@ -304,6 +318,35 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
             en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
             press_X += EN_AND_PR_counter.p_X*dt;
             press_Y += EN_AND_PR_counter.p_Y*dt;
+
+            //CALCULATE THE ENERGY DISTRIBUTION
+            if (dist_switch)  //easy switch true/false
+            {
+                dist_counter++;
+                av_energy_for_distribution = Energy/Pt/nPart/1000.0;
+                if(iter%(nPart*50) == 0)
+                {
+                  for(int molA = 0; molA < nPart; molA++)
+                      {
+                        double molA_energy = 0;
+                        for(int molB = 0; molB < nPart; molB++)
+                          {
+                            if (molA != molB)
+                            {
+                              molA_energy += energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta,false).energy;
+                            }
+                          }
+                          double element = (av_energy_for_distribution-molA_energy/2.0/1000.0)/energy_distribution_step;
+                          if (element < 0) {element -= 1.0;}
+                          int dist_cell = int(element);
+                          if ((dist_cell > -dist_size/2) && (dist_cell < dist_size/2))
+                          {
+                            distribution[dist_size/2+dist_cell] += 1.0;
+                          }
+                      }
+                }
+            }
+
            }
          // A new random position is chosen uniformly over the whole volume of the system
          // and update the energies of all molecules in the system
@@ -324,6 +367,18 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
+            if (dist_switch)
+            {
+              stringstream name;
+              name << "dist_N" << nPart << "_Density=" << density << "_T=" << temperature << ".dat";
+              ofstream fileOutput(name.str().c_str(), ios_base::trunc);
+              for(int i = 0; i < dist_size; i++)
+              {
+                distribution[i] = distribution[i]*dist_size*nPart/dist_counter;
+                fileOutput << av_energy_for_distribution-dist_size/2.0*energy_distribution_step+i*energy_distribution_step << "\t" << distribution[i]/nPart << endl;
+              }
+              fileOutput.close();
+            }
 
      // Write the calculated data to a file
      writeData(temperature, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/nPart, press_X, press_Y, Lx, Ly);
