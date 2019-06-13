@@ -99,6 +99,7 @@ int frame = 0;
 #include "initConfigFlowerTMA.h"
 #include "initConfig2FlowerTMA.h"
 #include "initConfigSuperFlowerTMA.h"
+#include "initConfigHexTMA_ak.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
@@ -320,10 +321,10 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
             press_Y += EN_AND_PR_counter.p_Y*dt;
 
             //CALCULATE THE ENERGY DISTRIBUTION
-            if (dist_switch)  //easy switch true/false
+            if (dist_switch && iter > nIterEq+nPart*100)  //easy switch true/false
             {
+                if (dist_counter == 0) {av_energy_for_distribution = Energy/Pt/nPart/1000.0;}
                 dist_counter++;
-                av_energy_for_distribution = Energy/Pt/nPart/1000.0;
                 if(iter%(nPart*50) == 0)
                 {
                   for(int molA = 0; molA < nPart; molA++)

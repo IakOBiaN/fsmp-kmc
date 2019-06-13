@@ -29,8 +29,8 @@ for(int i = 0; i < steps; i++)
           for (int k = 0; k < 2; k++)
           {
               //unit cell
-              coordinates[molecule].x = PBC2D(Lx, i*x_step + j*2.0*x_dop_step + k*x_dop_step);
-              coordinates[molecule].y = PBC2D(Ly, -j*2.0*y_step-k*y_step);
+              coordinates[molecule].x = PBC2D(Lx, 5.555 + i*x_step + j*2.0*x_dop_step + k*x_dop_step);
+              coordinates[molecule].y = PBC2D(Ly, 5.555 - j*2.0*y_step-k*y_step);
               coordinates[molecule].phi = 90.0;
               coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
               coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
@@ -122,8 +122,8 @@ for(int i = 0; i < steps; i++)
         }
       }
     }
-
- density = (1.0e+26)*nPart/(Lx*Ly)/N_a; // Density in mkMol/m2
+nPart = molecule;
+density = (1.0e+26)*nPart/(Lx*Ly)/N_a; // Density in mkMol/m2
 
  cout << "Honeycomb TMA Structure: " << endl;
  cout << "N: " << molecule << "\t" << "density: " << density << "mikro mol/m2" << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
