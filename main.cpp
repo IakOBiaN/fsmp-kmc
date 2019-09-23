@@ -95,7 +95,7 @@ int frame = 0;
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
-#include "initConfigHoneycombTMA.h"
+#include "initConfigHoneycombTMA_elongated.h"
 #include "initConfigFlowerTMA.h"
 #include "initConfig2FlowerTMA.h"
 #include "initConfigSuperFlowerTMA.h"
@@ -119,7 +119,7 @@ int main()
   // First dimension is distance
   // Second dimension is angle of first molecule
   // Third dimension is angle of second molecule
-  for (int i = 0; i < 551; i++) {
+  /*for (int i = 0; i < 551; i++) {
       vector< vector<double> > mat; // Create an empty matrix
       for (int j = 0; j < 361; j++) {
           vector<double> row; // Create an empty row
@@ -132,7 +132,7 @@ int main()
   }
   // Read the forcefield from "forcefield.dat"
   cout << "read forcefield.dat file" << endl;
-  read_forcefield ("Dreiding_ff_TMA_new.dat", forcefield, min_dist,max_dist, dr, da);
+  read_forcefield ("Dreiding_ff_TMA_new.dat", forcefield, min_dist,max_dist, dr, da);*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -189,8 +189,12 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete an initial distribution of molecules at fixed density
-initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, state_dens);
+initConfigHoneycombTMA_elongated(nPart, density, coordinates, Lx, Ly, state_dens);
+write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+frame = 1;
+write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
 
+/*
 double deltaT = 100.0;
 for(temperature = 400; temperature < 1200; temperature += deltaT)
 {
@@ -363,8 +367,8 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
             press_X *= (1.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
             press_Y *= (1.0/Lx/Ly*1e20*1000)/N_a;
 
-            /*press_X = R*temperature*nPart/Ly/Lx + press_X_LJ + press_X_QQ;
-            press_Y = R*temperature*nPart/Ly/Lx + press_Y_LJ + press_Y_QQ;*/
+            //press_X = R*temperature*nPart/Ly/Lx + press_X_LJ + press_X_QQ;
+            //press_Y = R*temperature*nPart/Ly/Lx + press_Y_LJ + press_Y_QQ;
 
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
@@ -390,6 +394,6 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 		 cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << Energy/nPart/1000.0 << " kJ/mol" << endl;
      cout << "temp=" << temperature << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
 
-    }
+   }*/
  return 0;
 }

@@ -1,6 +1,6 @@
 using namespace std;
 
-void initConfigHoneycombTMA (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
+void initConfigHoneycombTMA_elongated (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
 double h_bond_dist = 9.975; // It requires r_min for h-bonding
