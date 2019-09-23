@@ -166,14 +166,14 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 900; // Amount of molecules in the layer
+ int nPart = 202; // Amount of molecules in the layer
  int nSteps =700000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 400000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  double state_dens = 1.291163; // mkMol of TMA per A^2
- vector <state> coordinates(nPart); // Vector of the molecules coordinates and angles
+ vector <state> coordinates(nPart*4.0); // Vector of the molecules coordinates and angles
 
  // Write the model parameters to data-file
  stringstream name;
