@@ -5,45 +5,59 @@ void initConfigHoneycombTMA_elongated (int &nPart, double &density, vector <stat
 
 double h_bond_dist = 9.975; // It requires r_min for h-bonding
 
-double ratio_x_to_y = 3.0/sqrt(3); //We use symmetric box
-double L_cell = 2*h_bond_dist*cos(30.0/180.0*PI); //size of the simple unit cell
-double area = L_cell*2.0*L_cell*cos(30.0/180.0*PI); // Area of the surface in A^2 (one unit cell in x direction and two in y direction)
-int steps = sqrt(nPart/4.0/(2*2))+1;
-Lx = steps*L_cell*ratio_x_to_y; // Size of the simulation box in A^2
-Ly = Lx/ratio_x_to_y;
-Lx *= 8.0;
+double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
+double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
 
-double x_step = L_cell*cos(30.0/180.0*PI);
-double y_step = L_cell;
-double y_dop_step = L_cell*sin(30.0/180.0*PI);
+
+double free_space = 0.33;
+
+int cells = nPart/4.0;
+int number_in_y = 2;
+int number_in_x = cells/number_in_y + 2;
+
+double pre_Lx = number_in_x*x_uc;
+
+Lx = pre_Lx*(1.0 + free_space);
+Ly = number_in_y*y_uc;
+
+double move_from_border = (Lx - pre_Lx)/2.0;
 
 int molecule = 0; // Molecules counter
 
-for(int i = 0; i < steps; i++)
+for(int i = 0; i < number_in_x; i++)
     {
-     for(int j = 0; j < steps*4.0; j++)
+     for(int j = 0; j < number_in_y; j++)
         {
-          for (int k = 0; k < 2; k++)
-          {
-              //unit cell
-              coordinates[molecule].x = PBC2D(Lx, Lx/2.0 + Lx/4.0 - j*2.0*x_step-k*x_step);
-              coordinates[molecule].y = PBC2D(Ly, 5.555 + i*y_step + j*2.0*y_dop_step + k*y_dop_step);
-              coordinates[molecule].phi = 90.0;
-              coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-              coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-              molecule++;
+          //unit cell
+          coordinates[molecule].x = 3.0 + move_from_border + i*x_uc;
+          coordinates[molecule].y = 3.0 + j*y_uc;
+          coordinates[molecule].phi = 30.0;
+          coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
+          coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+          molecule++;
 
-              coordinates[molecule].x = PBC2D(Lx, coordinates[molecule-1].x - h_bond_dist*sin(30.0/180.0*PI));
-              coordinates[molecule].y = PBC2D(Ly, coordinates[molecule-1].y + h_bond_dist*cos(30.0/180.0*PI));
-              coordinates[molecule].phi = 30.0;
-              coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-              coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-              molecule++;
+          coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
+          coordinates[molecule].y = coordinates[molecule-1].y + h_bond_dist*sin(30.0/180.0*PI);
+          coordinates[molecule].phi = 90.0;
+          coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
+          coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+          molecule++;
 
-        }
+          coordinates[molecule].x = coordinates[molecule-1].x;
+          coordinates[molecule].y = coordinates[molecule-1].y + h_bond_dist;
+          coordinates[molecule].phi = 30.0;
+          coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
+          coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+          molecule++;
+
+          coordinates[molecule].x = coordinates[molecule-1].x - h_bond_dist*cos(30.0/180.0*PI);
+          coordinates[molecule].y = coordinates[molecule-1].y + h_bond_dist*sin(30.0/180.0*PI);
+          coordinates[molecule].phi = 90.0;
+          coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
+          coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+          molecule++;
       }
     }
-
 while(molecule > nPart)
   {
     int max_numb,min_numb;double max_coord = -1e20,min_coord = 1e20;
