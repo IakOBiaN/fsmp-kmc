@@ -1,6 +1,6 @@
 using namespace std;
 
-void initConfigHoneycombTMA_elongated (int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
+void initConfigHoneycombTMA_elongated (int &nPart, double &density, double &gas_density, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
 double h_bond_dist = 9.975; // It requires r_min for h-bonding
@@ -80,10 +80,9 @@ while(molecule > nPart)
     molecule--;
   }
 
-assert(nPart == molecule);
 
- density = (1.0e+26)*nPart/(Lx*Ly)/N_a; // Density in mkMol/m2 NOT CORRECT!!!
+density_in_central_cell (nPart, density, gas_density, coordinates, Lx, Ly);
 
  cout << "Honeycomb TMA Structure: " << endl;
- cout << "N: " << molecule << "\t" << "density: " << density << "mikro mol/m2" << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
+ cout << "N: " << molecule << "\t" << "density: " << density << " mikro mol/m2" << "\t" << "gas density: " << gas_density << " mikro mol/m2" << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
 }

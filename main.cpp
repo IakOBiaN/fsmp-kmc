@@ -77,6 +77,9 @@ double N_a = 6.02214e+23;
 const double PI  =3.14159265358979323846;
 double temperature = 800.0;
 double density;                // Actual density of the layer in mkMol per m^2
+double gas_density;
+int N_test;
+double e_test;
 bool close = false;
 
 // Forcefield for N2-N2 pair
@@ -95,12 +98,14 @@ int frame = 0;
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
+#include "density_in_central_cell.h"
 #include "initConfigHoneycombTMA_elongated.h"
 #include "initConfigFlowerTMA.h"
 #include "initConfig2FlowerTMA.h"
 #include "initConfigSuperFlowerTMA.h"
 #include "initConfigHexTMA_ak.h"
 #include "PotentialEnergy.h"
+#include "external_field.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -108,18 +113,19 @@ int frame = 0;
 #include "writeData.h"
 #include "write_xyz_file.h"
 #include "density_change.h"
+#include "Widom_test.h"
 
 int main()
 {
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
-
+/*
   // Fill in the forcefield
   // First dimension is distance
   // Second dimension is angle of first molecule
   // Third dimension is angle of second molecule
-  /*for (int i = 0; i < 551; i++) {
+  for (int i = 0; i < 551; i++) {
       vector< vector<double> > mat; // Create an empty matrix
       for (int j = 0; j < 361; j++) {
           vector<double> row; // Create an empty row
@@ -132,8 +138,8 @@ int main()
   }
   // Read the forcefield from "forcefield.dat"
   cout << "read forcefield.dat file" << endl;
-  read_forcefield ("Dreiding_ff_TMA_new.dat", forcefield, min_dist,max_dist, dr, da);*/
-
+  read_forcefield ("7.0_Dreiding_ff_TMA.dat", forcefield, min_dist,max_dist, dr, da);
+*/
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -149,6 +155,7 @@ int main()
  double cap_n = 1.0;
  double fluent_capacity = 0;
  double persent = 0;
+ double rho_central = 0, rho_gas = 0;
 
  bool dist_switch = true;
  double av_energy_for_distribution;
@@ -166,10 +173,10 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 202; // Amount of molecules in the layer
- int nSteps =700000;            // Total amount of MCS
+ int nPart = 240; // Amount of molecules in the layer
+ int nSteps =10000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 400000;           // MCS for relaxation
+ int nStepsEq = 5000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  double state_dens = 1.291163; // mkMol of TMA per A^2
@@ -189,14 +196,15 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete an initial distribution of molecules at fixed density
-initConfigHoneycombTMA_elongated(nPart, density, coordinates, Lx, Ly, state_dens);
+initConfigHoneycombTMA_elongated(nPart, density, gas_density, coordinates, Lx, Ly, state_dens);
+
 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
 frame = 1;
 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
 
-/*
+return 0;
 double deltaT = 100.0;
-for(temperature = 400; temperature < 1200; temperature += deltaT)
+for(temperature = 1200; temperature < 1210; temperature += deltaT)
 {
 //double delta_rho = 0.1;
 //for (density = density; density < 2.6; density += delta_rho)
@@ -204,7 +212,7 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 		// Change the current density of the layer
 		//density_change(Lx, Ly, nPart, coordinates);
 
-		 if (temperature > 750){deltaT = 10.0;}
+		 //if (temperature > 750){deltaT = 10.0;}
 		 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      frame = 1;
      write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
@@ -233,8 +241,8 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 	   double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
 
      // Write the item for average image
-     vector <vector <double> > xy_matrix(3000, vector<double> (3000));
-     for(int i = 0; i < 3000; i++){for(int j = 0; j < 3000; j++){xy_matrix[i][j] = 0;}}
+     vector <vector <double> > xy_matrix(20000, vector<double> (3000));
+     for(int i = 0; i < 20000; i++){for(int j = 0; j < 3000; j++){xy_matrix[i][j] = 0;}}
 
      // Calculate initial energy
 		 PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
@@ -255,7 +263,9 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
          persent += 1;
          if(persent > nIter/100.0)
          {
-           cout << "T = " << temperature << " rho = " << density << " " << int(iter*100.0/nIter) << " %" << endl;persent = 0;
+           density_in_central_cell (nPart, density, gas_density, coordinates, Lx, Ly);
+           cout << "T = " << temperature << " rho: " << density << " gas_density:" << gas_density << " " << int(iter*100.0/nIter) << " %" << endl;
+           persent = 0;
          }
 
          int trialPart;
@@ -267,8 +277,8 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Pressure balance
-
+        // Pressure balance //
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         balanceEq++;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
@@ -296,8 +306,7 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
                 ACCEPTANCE_RATIO_m[1] = 0;
             }
         }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
          if(iter > nIterEq)
@@ -309,6 +318,10 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
                 press_X = 0;
                 press_Y = 0;
                 Pt = 0;
+                rho_central = 0;
+                rho_gas = 0;
+                N_test = 0;
+                e_test = 0;
             }
 
             // Update the total time and the amount of configurations for kMC (chemical potential calculation)
@@ -319,11 +332,15 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 
             cap_n++;
             Pt += dt;
+            density_in_central_cell (nPart, density, gas_density, coordinates, Lx, Ly);
+            rho_central += density;
+            rho_gas += gas_density;
             Energy += EN_AND_PR_counter.energy*dt;
             en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
             press_X += EN_AND_PR_counter.p_X*dt;
             press_Y += EN_AND_PR_counter.p_Y*dt;
-
+            Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
+/*
             //CALCULATE THE ENERGY DISTRIBUTION
             if (dist_switch && iter > nIterEq+nPart*100)  //easy switch true/false
             {
@@ -351,7 +368,7 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
                       }
                 }
             }
-
+*/
            }
          // A new random position is chosen uniformly over the whole volume of the system
          // and update the energies of all molecules in the system
@@ -361,17 +378,18 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
      double mu = 0;
      if(rosenbluth) {mu = log(Mconf/Lx/Ly) - log(Time);}
 
+            rho_central /= Pt;
+            rho_gas /= Pt;
             press_X /= Pt;
             press_Y /= Pt;
-
             press_X *= (1.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
             press_Y *= (1.0/Lx/Ly*1e20*1000)/N_a;
-
             //press_X = R*temperature*nPart/Ly/Lx + press_X_LJ + press_X_QQ;
             //press_Y = R*temperature*nPart/Ly/Lx + press_Y_LJ + press_Y_QQ;
-
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
+            mu = log(rho_gas*N_test/(rho_central*e_test)); // Excess chemical potential
+/*
             if (dist_switch)
             {
               stringstream name;
@@ -384,7 +402,7 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
               }
               fileOutput.close();
             }
-
+*/
      // Write the calculated data to a file
      writeData(temperature, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/nPart, press_X, press_Y, Lx, Ly);
 
@@ -394,6 +412,6 @@ for(temperature = 400; temperature < 1200; temperature += deltaT)
 		 cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << Energy/nPart/1000.0 << " kJ/mol" << endl;
      cout << "temp=" << temperature << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
 
-   }*/
+   }
  return 0;
 }
