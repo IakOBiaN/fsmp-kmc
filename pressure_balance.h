@@ -1,27 +1,29 @@
 void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
 {
-    double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
-    double S = Lx*Ly;
+    double dL, Lx_central_new, Ly_new;    // Linear sizes of the box after correction
+    double Lx_central = Lx/8.0;
+    double S = Lx_central*Ly; // Area of the central cell
     dL = dr/2.0; //0.005;
 
        if(press_X < press_Y)
        {
-        Lx_new = Lx - dL;
-        Ly_new = S/Lx_new;  // Area of the adlayer is kept constant
+        Lx_central_new = Lx_central - dL;
+        Ly_new = S/Lx_central_new;  // Area of the adlayer is kept constant
        }
        else
        {
-        Lx_new = Lx + dL;
-        Ly_new = S/Lx_new;
+        Lx_central_new = Lx_central + dL;
+        Ly_new = S/Lx_central_new;
        }
+
        for(int i = 0; i < nPart; i++)
           {
             // Coordinates of the molecules change proportionally to
             // the change of the box size
-            coordinates[i].x = (Lx_new/Lx)*coordinates[i].x;
+            coordinates[i].x = (Lx_central_new/Lx_central)*coordinates[i].x;
             coordinates[i].y = (Ly_new/Ly)*coordinates[i].y;
           }
-       Lx = Lx_new;
+       Lx = Lx_central_new*8.0;
        Ly = Ly_new;
        // Recalculate energies after compressing or expanding the box
        PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
