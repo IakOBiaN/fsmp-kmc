@@ -1,6 +1,6 @@
 using namespace std;
 
-void density_in_central_cell (int &nPart, double &density, double &gas_density, vector <state> &coordinates, double &Lx, double &Ly)
+void density_in_central_cell (int &nPart, double &density, double &gas_density, double &centralPart, vector <state> &coordinates, double &Lx, double &Ly)
 {
 
   double CC_max_coord = (Lx/16.0)*9.0, CC_min_coord = (Lx/16.0)*7.0;
@@ -18,5 +18,5 @@ void density_in_central_cell (int &nPart, double &density, double &gas_density, 
 
  density = (1.0e+26)*mol_in_central_cell/((Lx/8.0)*Ly)/N_a; // Density in central cell
  gas_density = (1.0e+26)*mol_in_gas/((Lx/2.0)*Ly)/N_a; // Density in central cell
-
+ centralPart = mol_in_central_cell;
 }

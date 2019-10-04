@@ -4,7 +4,6 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordin
 {
 
  results en_and_press;
- results en_and_press_2;
 
  double CC_max_coord = (Lx/16.0)*9.0, CC_min_coord = (Lx/16.0)*7.0;
 

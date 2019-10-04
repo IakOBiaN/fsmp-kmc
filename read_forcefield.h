@@ -79,7 +79,7 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 					{
 						a2 = k + 180;
 						if (a2 >= 360) {a2 -= 360;}
-						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 0.05*abs(forcefield[i][a2][a1]))
+						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 0.15*abs(forcefield[i][a2][a1]))
 						{
 						 cout << "Potential error. Energy=" << forcefield[i][j][k] << " must be close energy=" << forcefield[i][a2][a1] << endl;
 						}

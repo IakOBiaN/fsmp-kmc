@@ -7,7 +7,7 @@ double external_field(double x, double Lx)
  double v = 0;
  double v0 = 2.0;
  //double v1 = 3.0;
- double c = 1000;
+ double c = 100000;
  if(x <= 0.5*Lx){v = 8.0*(0.5*Lx - x)/Lx;}
   else if(x > 0.5*Lx){v = 8.0*(x - 0.5*Lx)/Lx;}
         if(v > v0){f0 = c*pow((v - 2.0), 2)/4.0;}
