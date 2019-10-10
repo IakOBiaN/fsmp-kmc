@@ -186,7 +186,7 @@ int main()
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Temperature" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "Temperature" << "\t" << "Density(central)" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -277,7 +277,7 @@ for(temperature = 600; temperature < 610; temperature += deltaT)
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Pressure balance //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  /*      balanceEq++;
+        balanceEq++;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
             Pt += dt;
@@ -303,7 +303,7 @@ for(temperature = 600; temperature < 610; temperature += deltaT)
                 ACCEPTANCE_RATIO_m[0] = 0;
                 ACCEPTANCE_RATIO_m[1] = 0;
             }
-        }*/
+        }
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
          // Collect the characteristics of interest at equilibrium
@@ -405,7 +405,7 @@ for(temperature = 600; temperature < 610; temperature += deltaT)
             }
 */
      // Write the calculated data to a file
-     writeData(temperature, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, press_X, press_Y, Lx, Ly);
+     writeData(temperature, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, press_X, press_Y, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);

@@ -37,12 +37,12 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       }
 
       out_to_in = false;
-      if ((coordinates[trialPart].x < CC_min_coord && coordinates[trialPart].x > CC_max_coord) && (new_coordinates.x > CC_min_coord && new_coordinates.x < CC_max_coord))
+      if ((coordinates[trialPart].x < CC_min_coord || coordinates[trialPart].x > CC_max_coord) && (new_coordinates.x > CC_min_coord && new_coordinates.x < CC_max_coord))
       {
         out_to_in = true;
       }
       in_to_out = false;
-      if ((coordinates[trialPart].x > CC_min_coord && coordinates[trialPart].x < CC_max_coord) && (new_coordinates.x < CC_min_coord && new_coordinates.x > CC_max_coord))
+      if ((coordinates[trialPart].x > CC_min_coord && coordinates[trialPart].x < CC_max_coord) && (new_coordinates.x < CC_min_coord || new_coordinates.x > CC_max_coord))
       {
         in_to_out = true;
       }
