@@ -14,7 +14,7 @@ void layer_map_TMA(int &nPart, vector <state> &coordinates, vector <vector <doub
         if (dop > Ly) {dop -= Ly;}
         if (dop < 0)  {dop += Ly;}
         int yyy = dop*scale;
-        xy_matrix[xxx][yyy]++;
+        xy_matrix[yyy][xxx]++;
 
         dop = coordinates[i].x + dn2 * (-0.5*coordinates[i].cos_phi - 0.86602540378443864676372317075294*coordinates[i].sin_phi)*r;
         if (dop > Lx) {dop -= Lx;}
@@ -24,7 +24,7 @@ void layer_map_TMA(int &nPart, vector <state> &coordinates, vector <vector <doub
         if (dop > Ly) {dop -= Ly;}
         if (dop < 0)  {dop += Ly;}
         yyy = dop*scale;
-        xy_matrix[xxx][yyy]++;
+        xy_matrix[yyy][xxx]++;
 
         dop = coordinates[i].x + dn2 * (-0.5*coordinates[i].cos_phi + 0.86602540378443864676372317075294*coordinates[i].sin_phi)*r;
         if (dop > Lx) {dop -= Lx;}
@@ -34,6 +34,6 @@ void layer_map_TMA(int &nPart, vector <state> &coordinates, vector <vector <doub
         if (dop > Ly) {dop -= Ly;}
         if (dop < 0)  {dop += Ly;}
         yyy = dop*scale;
-        xy_matrix[xxx][yyy]++;
+        xy_matrix[yyy][xxx]++;
     }
 }

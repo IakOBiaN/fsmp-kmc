@@ -4,7 +4,6 @@ void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, in
     double Lx_central = Lx/8.0;
     double S = Lx_central*Ly; // Area of the central cell
     dL = dr/2.0; //0.005;
-cout << "p_X:" << press_X << " p_Y:" << press_Y << endl;
        if(press_X < press_Y)
        {
         Lx_central_new = Lx_central - dL;

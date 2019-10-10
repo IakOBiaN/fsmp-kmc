@@ -236,8 +236,8 @@ for(temperature = 600; temperature < 610; temperature += deltaT)
 	   double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
 
      // Write the item for average image
-     vector <vector <double> > xy_matrix(20000, vector<double> (3000));
-     for(int i = 0; i < 20000; i++){for(int j = 0; j < 3000; j++){xy_matrix[i][j] = 0;}}
+     vector <vector <double> > xy_matrix(3000, vector<double> (10000));
+     for(int i = 0; i < 3000; i++){for(int j = 0; j < 10000; j++){xy_matrix[i][j] = 0;}}
 
      // Calculate initial energy
 		 PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
@@ -261,6 +261,8 @@ for(temperature = 600; temperature < 610; temperature += deltaT)
            density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
            cout << "T = " << temperature << " rho: " << density << " gas_density:" << gas_density << " " << int(iter*100.0/nIter) << " %" << endl;
            cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
+           PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+           cout << "np_X:" << EN_AND_PR_counter.p_X << " np_Y:" << EN_AND_PR_counter.p_Y << endl;
            persent = 0;
          }
 

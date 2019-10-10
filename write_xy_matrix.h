@@ -7,9 +7,9 @@ void write_xy_matrix(int &nPart, double &Lx, double &Ly, double &temperature, ve
    int Xmax = Lx*5;
    int Ymax = Ly*5;
 
-   for(int i = 0; i < Xmax; i++)
+   for(int i = 0; i < Ymax; i++)
       {
-          for (int j = 0; j < Ymax; j++)
+          for (int j = 0; j < Xmax; j++)
           {
               fileOutput << xy_matrix[i][j] << " ";
           }
