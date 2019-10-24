@@ -37,6 +37,13 @@ results operator-(const results& b) {
          res.p_Y = this->p_Y - b.p_Y;
          return res;
       }
+results operator/(double b) {
+         results res;
+         res.energy = this->energy/b;
+         res.p_X = this->p_X/b;
+         res.p_Y = this->p_Y/b;
+         return res;
+      }
 };
 
 //constructor
@@ -173,10 +180,10 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 240; // Amount of molecules in the layer
- int nSteps =100000;            // Total amount of MCS
+ int nPart = 256; // Amount of molecules in the layer
+ int nSteps =200000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 50000;           // MCS for relaxation
+ int nStepsEq = 100000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  double state_dens = 1.291163; // mkMol of TMA per A^2
@@ -199,7 +206,7 @@ int main()
 initConfigHoneycombTMA_elongated(nPart, density, gas_density, centralPart, coordinates, Lx, Ly, state_dens);
 
 double deltaT = 100.0;
-for(temperature = 600; temperature < 610; temperature += deltaT)
+for(temperature = 300; temperature < 1210; temperature += deltaT)
 {
 //double delta_rho = 0.1;
 //for (density = density; density < 2.6; density += delta_rho)
@@ -249,15 +256,17 @@ for(temperature = 600; temperature < 610; temperature += deltaT)
 
      for(int iter = 1; iter <= nIter; iter++)
         {
-
+/*
           if((iter%(nPart*500) == 0) || (iter == 1))
           {
            frame++;
            write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
-          }
+         }*/
          persent += 1;
          if(persent > nIter/100.0)
          {
+           frame++;
+           write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
            density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
            cout << "T = " << temperature << " rho: " << density << " gas_density:" << gas_density << " " << int(iter*100.0/nIter) << " %" << endl;
            cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
@@ -383,10 +392,10 @@ for(temperature = 600; temperature < 610; temperature += deltaT)
             rho_gas /= Pt;
             press_X /= Pt;
             press_Y /= Pt;
-            press_X *= (1.0/Lx/8.0/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
-            press_Y *= (1.0/Lx/8.0/Ly*1e20*1000)/N_a;
-            //press_X = R*temperature*nPart/Ly/Lx + press_X_LJ + press_X_QQ;
-            //press_Y = R*temperature*nPart/Ly/Lx + press_Y_LJ + press_Y_QQ;
+            press_X *= (1.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
+            press_Y *= (1.0/Lx/Ly*1e20*1000)/N_a;
+            //press_X = R*temperature*rho_central + press_X;
+            //press_Y = R*temperature*rho_central + press_Y;
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
             mu = log(rho_gas*N_test/(rho_central*e_test)); // Excess chemical potential

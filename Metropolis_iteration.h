@@ -14,7 +14,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
     results old_EP_central;
     results delta_EP_old;
     results delta_EP_new;
-    results EP_with_central;
+    results new_EP_out;
+    results old_EP_out;
     bool out_to_in,in_to_out;
     results new_EP;
     if(RanGen.Random() < 0.5) // Move or Rotate a molecule
@@ -54,26 +55,17 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
            delta_EP_old = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta,true);
            delta_EP_new = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta,true);
 					 //Choose exact or numerical energy and pressure calculation
-          if (out_to_in)
-          {
-            if (coordinates[l].x > CC_min_coord && coordinates[l].x < CC_max_coord)
-            {
-                EP_with_central = EP_with_central + delta_EP_old;
-            }
-          }
-          if (in_to_out)
-          {
-            if (coordinates[l].x > CC_min_coord && coordinates[l].x < CC_max_coord)
-            {
-                EP_with_central = EP_with_central + delta_EP_new;
-            }
-          }
-            if (coordinates[l].x > CC_min_coord && coordinates[l].x < CC_max_coord)
+
+          if (coordinates[l].x > CC_min_coord && coordinates[l].x < CC_max_coord)
             {
                 old_EP_central = old_EP_central + delta_EP_old;
                 new_EP_central = new_EP_central + delta_EP_new;
             }
-
+          if (coordinates[l].x < CC_min_coord || coordinates[l].x > CC_max_coord)
+            {
+                old_EP_out = old_EP_out + delta_EP_old;
+                new_EP_out = new_EP_out + delta_EP_new;
+            }
 
            old_EP = old_EP +  delta_EP_old;
            new_EP = new_EP + delta_EP_new;
@@ -86,21 +78,21 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       {
           if ((coordinates[trialPart].x > CC_min_coord && coordinates[trialPart].x < CC_max_coord) && (new_coordinates.x > CC_min_coord && new_coordinates.x < CC_max_coord))
               {
-                EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
+                EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;//(new_EP_central - old_EP_central) + (new_EP_out - old_EP_out)/2.0;
                 //cout << "Energy:" << EN_AND_PR_counter.energy << " P_x:" << EN_AND_PR_counter.p_X << " P_y:" << EN_AND_PR_counter.p_Y << endl;
                 //cout << "nEnergy:" << delta_EP.energy << " P_x:" << delta_EP.p_X << " P_y:" << delta_EP.p_Y << endl;
               }
           else if (out_to_in)
               {
-                EN_AND_PR_counter = EN_AND_PR_counter + new_EP - EP_with_central;
+                EN_AND_PR_counter = EN_AND_PR_counter + new_EP_central + (new_EP_out - old_EP_central)/2.0;
               }
           else if (in_to_out)
               {
-                EN_AND_PR_counter = EN_AND_PR_counter + EP_with_central - old_EP;
+                EN_AND_PR_counter = EN_AND_PR_counter - old_EP_central - (old_EP_out - new_EP_central)/2.0;
               }
           else
               {
-                EN_AND_PR_counter = EN_AND_PR_counter + new_EP_central - old_EP_central;
+                EN_AND_PR_counter = EN_AND_PR_counter + (new_EP_central - old_EP_central)/2.0;
               }
           coordinates[trialPart] = new_coordinates;     // Update position
           if (angle_change) {ACCEPTANCE_RATIO_r[1] += 1.0;} else {ACCEPTANCE_RATIO_m[1] += 1.0;}

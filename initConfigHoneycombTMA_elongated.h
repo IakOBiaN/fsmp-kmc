@@ -3,17 +3,17 @@ using namespace std;
 void initConfigHoneycombTMA_elongated (int &nPart, double &density, double &gas_density, double &centralPart, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
-double h_bond_dist = 9.975; // It requires r_min for h-bonding
+double h_bond_dist = 9.730; //9.775; // It requires r_min for h-bonding
 
 double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
 double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
 
 
-double free_space = 0.2;
+double free_space = 0.0;
 
 int cells = nPart/4.0;
 int number_in_y = 2;
-int number_in_x = cells/number_in_y + 2;
+int number_in_x = cells/number_in_y;// + 2;
 
 double pre_Lx = number_in_x*x_uc;
 

@@ -23,8 +23,10 @@ if (rosenbluth) {for(int i = 0; i < nPart; i++) {coordinates[i].energy = 0;}}
                 coordinates[molA].energy += en_and_press.energy;
                 coordinates[molB].energy += en_and_press.energy;
            }
-           if ((coordinates[molA].x > CC_min_coord && coordinates[molA].x < CC_max_coord) || (coordinates[molB].x > CC_min_coord && coordinates[molB].x < CC_max_coord))
+           if ((coordinates[molA].x > CC_min_coord && coordinates[molA].x < CC_max_coord) && (coordinates[molB].x > CC_min_coord && coordinates[molB].x < CC_max_coord))
               {EN_AND_PR_counter = EN_AND_PR_counter + en_and_press;}
+           else if ((coordinates[molA].x > CC_min_coord && coordinates[molA].x < CC_max_coord) || (coordinates[molB].x > CC_min_coord && coordinates[molB].x < CC_max_coord))
+              {EN_AND_PR_counter = EN_AND_PR_counter + en_and_press/2.0;}
       }
     }
 }
