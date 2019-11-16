@@ -180,10 +180,10 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 256; // Amount of molecules in the layer
- int nSteps =200000;            // Total amount of MCS
+ int nPart = 369; // Amount of molecules in the layer
+ int nSteps = 400000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 100000;           // MCS for relaxation
+ int nStepsEq = 200000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  double state_dens = 1.291163; // mkMol of TMA per A^2
@@ -193,7 +193,7 @@ int main()
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Temperature" << "\t" << "Density(central)" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "Potential" << "\t" << "Density(central)" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -203,10 +203,14 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete an initial distribution of molecules at fixed density
+double potential,first_potential = 10000.0,potential_step = 10000.0;
+potential = first_potential;
 initConfigHoneycombTMA_elongated(nPart, density, gas_density, centralPart, coordinates, Lx, Ly, state_dens);
-
-double deltaT = 100.0;
-for(temperature = 300; temperature < 1210; temperature += deltaT)
+write_xyz_file_TMA (nPart, Lx, Ly, potential, coordinates, 0, 1, true);
+double deltaT = 10.0;
+temperature = 300.0;
+//for(temperature = 300; temperature < 2010; temperature += deltaT)
+for(potential = first_potential; potential < 700000; potential += potential_step)
 {
 //double delta_rho = 0.1;
 //for (density = density; density < 2.6; density += delta_rho)
@@ -215,9 +219,9 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
 		//density_change(Lx, Ly, nPart, coordinates);
 
 		 //if (temperature > 750){deltaT = 10.0;}
-		 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+		 //write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      frame = 1;
-     write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
+     write_xyz_file_TMA (nPart, Lx, Ly, potential, coordinates, frame, 1, false);
 
      ///////////////////////////////////////////////////////////////////////////////////////////////////
      //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////
@@ -266,12 +270,23 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
          if(persent > nIter/100.0)
          {
            frame++;
-           write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
+           write_xyz_file_TMA (nPart, Lx, Ly, potential, coordinates, frame, 1, false);
            density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
-           cout << "T = " << temperature << " rho: " << density << " gas_density:" << gas_density << " " << int(iter*100.0/nIter) << " %" << endl;
+           cout << "Potential = " << potential << " cent_rho: " << density << " gas_density:" << gas_density << " " << "Ly=" << Ly << " " << int(iter*100.0/nIter) << " %" << endl;
            cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
            PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-           cout << "np_X:" << EN_AND_PR_counter.p_X << " np_Y:" << EN_AND_PR_counter.p_Y << endl;
+           cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
+           cout << "Energy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
+           /*double test_Px = EN_AND_PR_counter.p_X;
+           double test_Py = EN_AND_PR_counter.p_Y;
+           double test_energy = EN_AND_PR_counter.energy;
+           persent = 0;
+           PotentialEnergy_all(nPart, Lx, Ly, coordinates, beta);
+           cout << "all_p_X:" << EN_AND_PR_counter.p_X << " all_p_Y:" << EN_AND_PR_counter.p_Y << endl;
+           cout << "all_p_X/p_X:" << EN_AND_PR_counter.p_X/test_Px << " all_p_Y/p_Y:" << EN_AND_PR_counter.p_Y/test_Py << endl;
+           cout << "all_Energy=" << EN_AND_PR_counter.energy/1000.0/nPart << " all_Energy/central_Energy=" << EN_AND_PR_counter.energy/test_energy << endl;*/
+           //PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+           //cout << "n_p_X:" << EN_AND_PR_counter.p_X << " n_p_Y:" << EN_AND_PR_counter.p_Y << endl;
            persent = 0;
          }
 
@@ -279,7 +294,7 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
          // Choose a particle to be displaced
          // according to the ROSENBLUTH scheme
          // and calculate the duration of the current configuration
-         if(!rosenbluth) {Metropolis_iteration(nPart, Lx, Ly, beta, coordinates); dt = 1.0;}     // Make a MC iteration
+         if(!rosenbluth) {Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, potential); dt = 1.0;}     // Make a MC iteration
          //else {trialPart = Rosenbluth_algorithm_simple(nPart, coordinates, dt);}                 // kMC trial particle and dt calculation
 
 
@@ -287,6 +302,7 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
         // Pressure balance //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         balanceEq++;
+        BALANCE_STEPS = 2000;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
             Pt += dt;
@@ -296,11 +312,11 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
             {
                 press_X /= Pt;
                 press_Y /= Pt;
-                if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
+                /*if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
                 if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
                 if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
-                if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
-                if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
+                if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }*/
+                if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 4000;}
 
                 pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
                 Pt = 0;
@@ -348,7 +364,7 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
             en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
             press_X += EN_AND_PR_counter.p_X*dt;
             press_Y += EN_AND_PR_counter.p_Y*dt;
-            Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
+            Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test, potential);
 /*
             //CALCULATE THE ENERGY DISTRIBUTION
             if (dist_switch && iter > nIterEq+nPart*100)  //easy switch true/false
@@ -392,8 +408,8 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
             rho_gas /= Pt;
             press_X /= Pt;
             press_Y /= Pt;
-            press_X *= (1.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
-            press_Y *= (1.0/Lx/Ly*1e20*1000)/N_a;
+            press_X *= (8.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
+            press_Y *= (8.0/Lx/Ly*1e20*1000)/N_a;
             //press_X = R*temperature*rho_central + press_X;
             //press_Y = R*temperature*rho_central + press_Y;
             Energy = Energy/Pt;
@@ -414,13 +430,13 @@ for(temperature = 300; temperature < 1210; temperature += deltaT)
             }
 */
      // Write the calculated data to a file
-     writeData(temperature, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, press_X, press_Y, Lx, Ly);
+     writeData(potential, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, press_X, press_Y, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
 		 cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << Energy/n_central/1000.0 << " kJ/mol" << endl;
-     cout << "temp=" << temperature << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
+     cout << "potential=" << potential << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
 
    }
  return 0;

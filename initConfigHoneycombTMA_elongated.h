@@ -3,21 +3,21 @@ using namespace std;
 void initConfigHoneycombTMA_elongated (int &nPart, double &density, double &gas_density, double &centralPart, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
-double h_bond_dist = 9.730; //9.775; // It requires r_min for h-bonding
+double h_bond_dist = 9.73; // It requires r_min for h-bonding
 
 double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
 double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
 
 
-double free_space = 0.0;
+double free_space = 0.15;
 
 int cells = nPart/4.0;
-int number_in_y = 2;
-int number_in_x = cells/number_in_y;// + 2;
+int number_in_y = 3;
+int number_in_x = cells/number_in_y;
 
 double pre_Lx = number_in_x*x_uc;
 
-Lx = pre_Lx*(1.0 + free_space);
+Lx = pre_Lx*(1.0 + free_space*2.0);
 Ly = number_in_y*y_uc;
 
 double move_from_border = (Lx - pre_Lx)/2.0;
@@ -58,7 +58,9 @@ for(int i = 0; i < number_in_x; i++)
           molecule++;
       }
     }
-while(molecule > nPart)
+    nPart = molecule;
+    cout << "MOLECULES:" << nPart << endl;
+/*while(molecule > nPart)
   {
     int max_numb,min_numb;double max_coord = -1e20,min_coord = 1e20;
     for(int j = 0; j < molecule; j++)
@@ -78,7 +80,7 @@ while(molecule > nPart)
       coordinates[k] = coordinates[k+1];
     }
     molecule--;
-  }
+  }*/
 
 
 density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);

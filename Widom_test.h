@@ -1,4 +1,4 @@
-void Widom_test(int &nPart, vector <state> &coordinates, double &Lx, double &Ly, double &beta, int &N_test, double &e_test)
+void Widom_test(int &nPart, vector <state> &coordinates, double &Lx, double &Ly, double &beta, int &N_test, double &e_test, double potential)
 {
   state test_particle;
   double test_particle_energy = 0;
@@ -13,7 +13,7 @@ void Widom_test(int &nPart, vector <state> &coordinates, double &Lx, double &Ly,
 
   for (int l = 0; l < nPart; l++){test_particle_energy = test_particle_energy +  energies_and_forces(test_particle, coordinates[l], Lx, Ly,beta,false).energy;}
 
-  test_particle_energy += external_field(test_particle.x, Lx);
+  test_particle_energy += external_field(test_particle.x, Lx, potential);
   e_test += exp(-test_particle_energy*beta);
   N_test ++;
 }

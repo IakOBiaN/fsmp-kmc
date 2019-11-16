@@ -1,4 +1,4 @@
-void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates)
+void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates, double potential)
 {
     double CC_max_coord = (Lx/16.0)*9.0, CC_min_coord = (Lx/16.0)*7.0;
 
@@ -72,13 +72,13 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       }
 
       delta_EP = new_EP - old_EP;
-      delta_EP.energy +=  (external_field(new_coordinates.x, Lx) - external_field(coordinates[trialPart].x, Lx));
+      delta_EP.energy +=  (external_field(new_coordinates.x, Lx,potential) - external_field(coordinates[trialPart].x, Lx, potential));
       //cout << "Metropolis_energy: " << delta_EP.energy*beta << endl;
       if(RanGen.Random() < exp(-delta_EP.energy*beta))
       {
           if ((coordinates[trialPart].x > CC_min_coord && coordinates[trialPart].x < CC_max_coord) && (new_coordinates.x > CC_min_coord && new_coordinates.x < CC_max_coord))
               {
-                EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;//(new_EP_central - old_EP_central) + (new_EP_out - old_EP_out)/2.0;
+                EN_AND_PR_counter = EN_AND_PR_counter + (new_EP_central - old_EP_central) + (new_EP_out - old_EP_out)/2.0;
                 //cout << "Energy:" << EN_AND_PR_counter.energy << " P_x:" << EN_AND_PR_counter.p_X << " P_y:" << EN_AND_PR_counter.p_Y << endl;
                 //cout << "nEnergy:" << delta_EP.energy << " P_x:" << delta_EP.p_X << " P_y:" << delta_EP.p_Y << endl;
               }

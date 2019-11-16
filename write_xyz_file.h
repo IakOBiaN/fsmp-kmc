@@ -2,7 +2,7 @@ void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature
 {
 
  stringstream name;
- name << "xyz_N" << nPart << "_T=" << temperature << ".xyz";
+ name << "xyz_N" << nPart << "_Pot=" << temperature << ".xyz";
  if (init) {ofstream fileOutput(name.str().c_str(), ios_base::trunc);fileOutput.close();}
  else {
 			ofstream fileOutput(name.str().c_str(), ios_base::app);
