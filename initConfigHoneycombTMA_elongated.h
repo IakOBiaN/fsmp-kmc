@@ -3,13 +3,13 @@ using namespace std;
 void initConfigHoneycombTMA_elongated (int &nPart, double &density, double &gas_density, double &centralPart, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
-double h_bond_dist = 9.73; // It requires r_min for h-bonding
+double h_bond_dist = 9.74; // It requires r_min for h-bonding
 
 double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
 double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
 
 
-double free_space = 0.15;
+double free_space = 0.45;
 
 int cells = nPart/4.0;
 int number_in_y = 3;
@@ -34,6 +34,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 30.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
@@ -41,6 +42,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 90.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x;
@@ -48,6 +50,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 30.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x - h_bond_dist*cos(30.0/180.0*PI);
@@ -55,6 +58,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 90.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
           molecule++;
       }
     }

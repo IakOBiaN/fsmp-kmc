@@ -44,6 +44,13 @@ results operator/(double b) {
          res.p_Y = this->p_Y/b;
          return res;
       }
+results operator*(double b) {
+         results res;
+         res.energy = this->energy*b;
+         res.p_X = this->p_X*b;
+         res.p_Y = this->p_Y*b;
+         return res;
+      }
 };
 
 //constructor
@@ -65,6 +72,7 @@ double sin_phi;
 double cos_phi;
 double energy;
 double mob;
+double cent;
 };
 
 
@@ -105,6 +113,7 @@ int frame = 0;
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
+#include "cent_potential.h"
 #include "density_in_central_cell.h"
 #include "initConfigHoneycombTMA_elongated.h"
 #include "initConfigFlowerTMA.h"
@@ -175,15 +184,16 @@ int main()
    distribution[i] = 0;
  }
 
-
+ vector <double> pressure_avr_X;
+ vector <double> pressure_avr_Y;
 
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 369; // Amount of molecules in the layer
- int nSteps = 400000;            // Total amount of MCS
+ int nPart = 360; // Amount of molecules in the layer
+ int nSteps = 200000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 200000;           // MCS for relaxation
+ int nStepsEq = 150000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  double state_dens = 1.291163; // mkMol of TMA per A^2
@@ -193,7 +203,7 @@ int main()
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "Potential" << "\t" << "Density(central)" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "T" << "\t" << "Potential" << "\t" << "Density(central)" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_T" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -203,14 +213,15 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete an initial distribution of molecules at fixed density
-double potential,first_potential = 10000.0,potential_step = 10000.0;
+double potential,first_potential = 0.0,potential_step = 10000.0;
 potential = first_potential;
 initConfigHoneycombTMA_elongated(nPart, density, gas_density, centralPart, coordinates, Lx, Ly, state_dens);
 write_xyz_file_TMA (nPart, Lx, Ly, potential, coordinates, 0, 1, true);
-double deltaT = 10.0;
+double deltaT = 20.0;
 temperature = 300.0;
-//for(temperature = 300; temperature < 2010; temperature += deltaT)
-for(potential = first_potential; potential < 700000; potential += potential_step)
+potential = 300000;
+for(temperature = 300; temperature < 2010; temperature += deltaT)
+//for(potential = first_potential; potential < 700000; potential += potential_step)
 {
 //double delta_rho = 0.1;
 //for (density = density; density < 2.6; density += delta_rho)
@@ -274,9 +285,10 @@ for(potential = first_potential; potential < 700000; potential += potential_step
            density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
            cout << "Potential = " << potential << " cent_rho: " << density << " gas_density:" << gas_density << " " << "Ly=" << Ly << " " << int(iter*100.0/nIter) << " %" << endl;
            cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
+					 cout << "Energy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
            PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-           cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
-           cout << "Energy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
+           cout << "np_X:" << EN_AND_PR_counter.p_X << " np_Y:" << EN_AND_PR_counter.p_Y << endl;
+           cout << "nEnergy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
            /*double test_Px = EN_AND_PR_counter.p_X;
            double test_Py = EN_AND_PR_counter.p_Y;
            double test_energy = EN_AND_PR_counter.energy;
@@ -302,7 +314,7 @@ for(potential = first_potential; potential < 700000; potential += potential_step
         // Pressure balance //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         balanceEq++;
-        BALANCE_STEPS = 2000;
+        BALANCE_STEPS = 100;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
             Pt += dt;
@@ -312,10 +324,10 @@ for(potential = first_potential; potential < 700000; potential += potential_step
             {
                 press_X /= Pt;
                 press_Y /= Pt;
-                /*if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
+                if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
                 if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
                 if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
-                if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }*/
+                if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
                 if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 4000;}
 
                 pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
@@ -364,6 +376,8 @@ for(potential = first_potential; potential < 700000; potential += potential_step
             en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
             press_X += EN_AND_PR_counter.p_X*dt;
             press_Y += EN_AND_PR_counter.p_Y*dt;
+						pressure_avr_X.push_back(EN_AND_PR_counter.p_X);
+						pressure_avr_Y.push_back(EN_AND_PR_counter.p_Y);
             Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test, potential);
 /*
             //CALCULATE THE ENERGY DISTRIBUTION
@@ -410,8 +424,17 @@ for(potential = first_potential; potential < 700000; potential += potential_step
             press_Y /= Pt;
             press_X *= (8.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
             press_Y *= (8.0/Lx/Ly*1e20*1000)/N_a;
-            //press_X = R*temperature*rho_central + press_X;
-            //press_Y = R*temperature*rho_central + press_Y;
+						double rmse_X = 0;
+            double rmse_Y = 0;
+            for (int i = 0; i < pressure_avr_X.size(); i++)
+            {
+              rmse_X += pow((press_X - pressure_avr_X[i]),2);
+              rmse_Y += pow((press_Y - pressure_avr_Y[i]),2);
+            }
+            rmse_X = sqrt(rmse_X/pressure_avr_X.size());
+            rmse_Y = sqrt(rmse_Y/pressure_avr_Y.size());
+            rmse_X *= (8.0/Lx/Ly*1e20*1000)/N_a;
+            rmse_Y *= (8.0/Lx/Ly*1e20*1000)/N_a;
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
             mu = log(rho_gas*N_test/(rho_central*e_test)); // Excess chemical potential
@@ -430,13 +453,14 @@ for(potential = first_potential; potential < 700000; potential += potential_step
             }
 */
      // Write the calculated data to a file
-     writeData(potential, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, press_X, press_Y, Lx, Ly);
+     writeData(temperature, potential, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, press_X, press_Y, (press_X + press_Y)/2.0, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
 		 cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << Energy/n_central/1000.0 << " kJ/mol" << endl;
      cout << "potential=" << potential << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
+		 cout << "rmse_X=" << rmse_X << " rmse_Y=" << rmse_Y << endl;
 
    }
  return 0;
