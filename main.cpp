@@ -184,16 +184,13 @@ int main()
    distribution[i] = 0;
  }
 
- vector <double> pressure_avr_X;
- vector <double> pressure_avr_Y;
-
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 360; // Amount of molecules in the layer
- int nSteps = 200000;            // Total amount of MCS
+ int nPart = 400; // Amount of molecules in the layer
+ int nSteps = 150000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 150000;           // MCS for relaxation
+ int nStepsEq = 100000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  double state_dens = 1.291163; // mkMol of TMA per A^2
@@ -213,16 +210,18 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete an initial distribution of molecules at fixed density
-double potential,first_potential = 0.0,potential_step = 10000.0;
+double potential,first_potential = 300000.0,potential_step = 10000.0;
 potential = first_potential;
-initConfigHoneycombTMA_elongated(nPart, density, gas_density, centralPart, coordinates, Lx, Ly, state_dens);
-write_xyz_file_TMA (nPart, Lx, Ly, potential, coordinates, 0, 1, true);
-double deltaT = 20.0;
 temperature = 300.0;
-potential = 300000;
+double deltaT = 20.0;
+initConfigHoneycombTMA_elongated(nPart, density, gas_density, centralPart, coordinates, Lx, Ly, state_dens);
+write_xyz_file_TMA (nPart, Lx, Ly, temperature, potential, coordinates, 0, 1, true);
 for(temperature = 300; temperature < 2010; temperature += deltaT)
 //for(potential = first_potential; potential < 700000; potential += potential_step)
 {
+
+	vector <double> pressure_avr_X;
+	vector <double> pressure_avr_Y;
 //double delta_rho = 0.1;
 //for (density = density; density < 2.6; density += delta_rho)
 
@@ -232,7 +231,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 		 //if (temperature > 750){deltaT = 10.0;}
 		 //write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
      frame = 1;
-     write_xyz_file_TMA (nPart, Lx, Ly, potential, coordinates, frame, 1, false);
+     write_xyz_file_TMA (nPart, Lx, Ly, temperature, potential, coordinates, frame, 1, false);
 
      ///////////////////////////////////////////////////////////////////////////////////////////////////
      //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////
@@ -281,9 +280,10 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
          if(persent > nIter/100.0)
          {
            frame++;
-           write_xyz_file_TMA (nPart, Lx, Ly, potential, coordinates, frame, 1, false);
+           write_xyz_file_TMA (nPart, Lx, Ly, temperature, potential, coordinates, frame, 1, false);
            density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
-           cout << "Potential = " << potential << " cent_rho: " << density << " gas_density:" << gas_density << " " << "Ly=" << Ly << " " << int(iter*100.0/nIter) << " %" << endl;
+					 cout << "Uex: " << potential << " T: " << temperature << endl;
+           cout << "cent_rho: " << density << " gas_density:" << gas_density << " " << "Ly=" << Ly << " " << int(iter*100.0/nIter) << " %" << endl;
            cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
 					 cout << "Energy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
            PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
@@ -422,19 +422,19 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             rho_gas /= Pt;
             press_X /= Pt;
             press_Y /= Pt;
-            press_X *= (8.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
-            press_Y *= (8.0/Lx/Ly*1e20*1000)/N_a;
+            press_X *= (4.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
+            press_Y *= (4.0/Lx/Ly*1e20*1000)/N_a;
 						double rmse_X = 0;
             double rmse_Y = 0;
-            for (int i = 0; i < pressure_avr_X.size(); i++)
-            {
-              rmse_X += pow((press_X - pressure_avr_X[i]),2);
-              rmse_Y += pow((press_Y - pressure_avr_Y[i]),2);
-            }
-            rmse_X = sqrt(rmse_X/pressure_avr_X.size());
-            rmse_Y = sqrt(rmse_Y/pressure_avr_Y.size());
-            rmse_X *= (8.0/Lx/Ly*1e20*1000)/N_a;
-            rmse_Y *= (8.0/Lx/Ly*1e20*1000)/N_a;
+//            for (int i = 0; i < pressure_avr_X.size(); i++)
+//            {
+//              rmse_X += pow((press_X - pressure_avr_X[i]),2);
+//              rmse_Y += pow((press_Y - pressure_avr_Y[i]),2);
+//            }
+//            rmse_X = sqrt(rmse_X/pressure_avr_X.size());
+//            rmse_Y = sqrt(rmse_Y/pressure_avr_Y.size());
+//            rmse_X *= (4.0/Lx/Ly*1e20*1000)/N_a;
+//            rmse_Y *= (4.0/Lx/Ly*1e20*1000)/N_a;
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
             mu = log(rho_gas*N_test/(rho_central*e_test)); // Excess chemical potential
@@ -458,8 +458,9 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
+		 cout << "Uex: " << potential << "\t" << "T: " << temperature << endl;
 		 cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << Energy/n_central/1000.0 << " kJ/mol" << endl;
-     cout << "potential=" << potential << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
+     cout << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
 		 cout << "rmse_X=" << rmse_X << " rmse_Y=" << rmse_Y << endl;
 
    }

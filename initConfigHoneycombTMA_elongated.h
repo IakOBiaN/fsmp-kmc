@@ -3,7 +3,7 @@ using namespace std;
 void initConfigHoneycombTMA_elongated (int &nPart, double &density, double &gas_density, double &centralPart, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
-double h_bond_dist = 9.74; // It requires r_min for h-bonding
+double h_bond_dist = 9.8; // It requires r_min for h-bonding
 
 double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
 double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
