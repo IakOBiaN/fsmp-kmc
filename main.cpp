@@ -110,10 +110,10 @@ int frame = 0;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "cent_potential.h"
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
-#include "cent_potential.h"
 #include "density_in_central_cell.h"
 #include "initConfigHoneycombTMA_elongated.h"
 #include "initConfigFlowerTMA.h"
@@ -187,7 +187,7 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 400; // Amount of molecules in the layer
+ int nPart = 360; // Amount of molecules in the layer
  int nSteps = 150000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 100000;           // MCS for relaxation
@@ -200,7 +200,7 @@ int main()
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "T" << "\t" << "Potential" << "\t" << "Density(central)" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_T" << "\t" << "Lx" << "\t" << "Ly" << endl;
+ fileOutput << "T" << "\t" << "Potential" << "\t" << "Density of diluted zone" << "\t" << "Density in central cell" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "Mu without gas" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_T" << "\t" << "Lx" << "\t" << "Ly" << endl;
  fileOutput.close();
 
  ////////////////////////////////////////////////////////////
@@ -210,10 +210,10 @@ int main()
  //for(int nPart = minPart; nPart < maxPart; nPart += stepPart)
 
  //Generete an initial distribution of molecules at fixed density
-double potential,first_potential = 300000.0,potential_step = 10000.0;
+double potential,first_potential = 0.0,potential_step = 10000.0;
 potential = first_potential;
 temperature = 300.0;
-double deltaT = 20.0;
+double deltaT = 10.0;
 initConfigHoneycombTMA_elongated(nPart, density, gas_density, centralPart, coordinates, Lx, Ly, state_dens);
 write_xyz_file_TMA (nPart, Lx, Ly, temperature, potential, coordinates, 0, 1, true);
 for(temperature = 300; temperature < 2010; temperature += deltaT)
@@ -257,8 +257,8 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 	   double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
 
      // Write the item for average image
-     vector <vector <double> > xy_matrix(3000, vector<double> (10000));
-     for(int i = 0; i < 3000; i++){for(int j = 0; j < 10000; j++){xy_matrix[i][j] = 0;}}
+     vector <vector <double> > xy_matrix(6000, vector<double> (20000));
+     for(int i = 0; i < 6000; i++){for(int j = 0; j < 20000; j++){xy_matrix[i][j] = 0;}}
 
      // Calculate initial energy
 		 PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
@@ -314,7 +314,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
         // Pressure balance //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         balanceEq++;
-        BALANCE_STEPS = 100;
+        BALANCE_STEPS = 1000;
         if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
         {
             Pt += dt;
@@ -322,14 +322,14 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             press_Y += EN_AND_PR_counter.p_Y*dt;
             if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
             {
-                press_X /= Pt;
+/*                press_X /= Pt;
                 press_Y /= Pt;
                 if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
                 if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
                 if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
                 if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
                 if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 4000;}
-
+*/
                 pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
                 Pt = 0;
                 press_X = 0;
@@ -415,6 +415,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
        }
 
      double mu = 0;
+		 double mu_ex = 0;
      if(rosenbluth) {mu = log(Mconf/Lx/Ly) - log(Time);}
 
             n_central /= Pt;
@@ -437,7 +438,8 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 //            rmse_Y *= (4.0/Lx/Ly*1e20*1000)/N_a;
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
-            mu = log(rho_gas*N_test/(rho_central*e_test)); // Excess chemical potential
+            mu = log(rho_gas*N_test/(rho_central*e_test)); // Chemical potential
+						mu_ex = log(N_test/(e_test)); // Chemical potential
 /*
             if (dist_switch)
             {
@@ -453,15 +455,16 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             }
 */
      // Write the calculated data to a file
-     writeData(temperature, potential, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, press_X, press_Y, (press_X + press_Y)/2.0, Lx, Ly);
+     writeData(temperature, potential, rho_gas, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, mu_ex, press_X, press_Y, (press_X + press_Y)/2.0, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
 
 		 cout << "Uex: " << potential << "\t" << "T: " << temperature << endl;
-		 cout << "rho: " << density << " mkMol/m^2 \t" << "mu: " << mu << "\t" << "en: " << Energy/n_central/1000.0 << " kJ/mol" << endl;
+		 cout << "Density in central cell: " << rho_central << " mkMol/m^2 \t" << "Density of diluted zone: " << rho_gas << endl;
+		 cout << "mu: " << mu << "\t" << "mu without gas: " << mu_ex << "\t" << "en: " << Energy/n_central/1000.0 << " kJ/mol" << endl;
      cout << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
-		 cout << "rmse_X=" << rmse_X << " rmse_Y=" << rmse_Y << endl;
+//		 cout << "rmse_X=" << rmse_X << " rmse_Y=" << rmse_Y << endl;
 
    }
  return 0;

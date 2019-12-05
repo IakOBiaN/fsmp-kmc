@@ -1,6 +1,6 @@
 void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates, double potential)
 {
-    double CC_max_coord = (Lx/16.0)*9.0, CC_min_coord = (Lx/16.0)*7.0;
+//    double CC_max_coord = (Lx/16.0)*9.0, CC_min_coord = (Lx/16.0)*7.0;
 
     int trialPart = RanGen.IRandom(0,(nPart-1));
     double angle;

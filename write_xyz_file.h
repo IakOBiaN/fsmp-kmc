@@ -12,6 +12,11 @@ void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature
 
 			for(int i = 0; i < nPart; i++)
 				{
+					string element = "N ";
+					if (coordinates[i].cent > 0.00001){element = "O ";}
+					if (coordinates[i].cent > 0.99999){element = "C ";}
+
+
 					double dop = coordinates[i].x + dn2 * coordinates[i].cos_phi;
 					if (dop > Lx) {dop -= Lx;}
 					if (dop < 0)  {dop += Lx;}
@@ -20,7 +25,7 @@ void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature
 					if (dop > Ly) {dop -= Ly;}
 					if (dop < 0)  {dop += Ly;}
 					double yyy = dop;
-					fileOutput << "N " << xxx << " " << yyy << " " << 0 << endl;
+					fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
 
 					dop = coordinates[i].x + dn2 * (-0.5*coordinates[i].cos_phi - 0.86602540378443864676372317075294*coordinates[i].sin_phi);
 					if (dop > Lx) {dop -= Lx;}
@@ -30,7 +35,7 @@ void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature
 					if (dop > Ly) {dop -= Ly;}
 					if (dop < 0)  {dop += Ly;}
 					yyy = dop;
-					fileOutput << "N " << xxx << " " << yyy << " " << 0 << endl;
+					fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
 
 					dop = coordinates[i].x + dn2 * (-0.5*coordinates[i].cos_phi + 0.86602540378443864676372317075294*coordinates[i].sin_phi);
 					if (dop > Lx) {dop -= Lx;}
@@ -40,7 +45,7 @@ void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature
 					if (dop > Ly) {dop -= Ly;}
 					if (dop < 0)  {dop += Ly;}
 					yyy = dop;
-					fileOutput << "N " << xxx << " " << yyy << " " << 0 << endl;
+					fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
 
 					fileOutput << "H " << coordinates[i].x << " " << coordinates[i].y << " " << 0 << endl;
 
