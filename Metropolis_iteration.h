@@ -19,6 +19,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
     results old_EP_cent;
 		results new_EP_cent;
 
+		double delta_ext_press = 0;
+
     if(RanGen.Random() < 0.5) // Move or Rotate a molecule
       {
        new_coordinates.x = coordinates[trialPart].x + (2 * delta * RanGen.Random() - delta); // random(-delta; delta)
@@ -56,7 +58,9 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
     delta_EP.energy +=  (external_field(new_coordinates.x, Lx,potential) - external_field(coordinates[trialPart].x, Lx, potential));
     if(RanGen.Random() < exp(-delta_EP.energy*beta))
      {
-	    EN_AND_PR_counter = EN_AND_PR_counter + delta_EP_cent;
+	    EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
+			EN_AND_PR_counter_central_cell = EN_AND_PR_counter_central_cell + delta_EP_cent;
+			ext_pressure += (external_pressure(new_coordinates.x, Lx,potential) - external_pressure(coordinates[trialPart].x, Lx, potential));
 	     //cout << "Energy:" << EN_AND_PR_counter.energy << " P_x:" << EN_AND_PR_counter.p_X << " P_y:" << EN_AND_PR_counter.p_Y << endl;
 	     //cout << "nEnergy:" << delta_EP.energy << " P_x:" << delta_EP.p_X << " P_y:" << delta_EP.p_Y << endl;
 	    coordinates[trialPart] = new_coordinates;     // Update position

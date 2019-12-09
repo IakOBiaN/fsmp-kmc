@@ -82,6 +82,7 @@ double cent;
 
 bool rosenbluth = false; //kMC NOT WORKING NOW!!!// If rosenbluth = false then Metropolis algorithm works
 results EN_AND_PR_counter;                           //energy and pressures in the system.
+results EN_AND_PR_counter_central_cell;              //energy and pressures in the central cell.
 double ACCEPTANCE_RATIO_r[2] = {0, 0};               //0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};               //0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;                             //steps for balance statistics
@@ -95,6 +96,7 @@ double density;                // Actual density of the layer in mkMol per m^2
 double gas_density,centralPart;
 int N_test;
 double e_test;
+double ext_pressure;
 bool close = false;
 
 // Forcefield for N2-N2 pair
@@ -122,6 +124,7 @@ int frame = 0;
 #include "initConfigHexTMA_ak.h"
 #include "PotentialEnergy.h"
 #include "external_field.h"
+#include "external_pressure.h"
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
 #include "layer_map.h"
@@ -166,7 +169,7 @@ int main()
  // Set configuration parameters
 
  double Pt = 0;
- double press_X = 0, press_Y = 0, Energy=0;
+ double press_X = 0, press_Y = 0, press_X_central_cell = 0, press_Y_central_cell = 0, Energy=0;
  double en_2_av = 0;
  double cap_n = 1.0;
  double fluent_capacity = 0;
@@ -239,9 +242,14 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
      EN_AND_PR_counter.energy = 0;
      EN_AND_PR_counter.p_X = 0;
      EN_AND_PR_counter.p_Y = 0;
+		 EN_AND_PR_counter_central_cell.energy = 0;
+		 EN_AND_PR_counter_central_cell.p_X = 0;
+		 EN_AND_PR_counter_central_cell.p_Y = 0;
   	 Pt = 0;
      press_X = 0;
      press_Y = 0;
+		 press_X_central_cell = 0;
+		 press_Y_central_cell = 0;
   	 ACCEPTANCE_RATIO_r[0] = 0;  // rejected rotations
   	 ACCEPTANCE_RATIO_r[1] = 0;  // accepted rotations
   	 ACCEPTANCE_RATIO_m[0] = 0;  // rejected translations
@@ -262,7 +270,10 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 
      // Calculate initial energy
 		 PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-		 cout << "Energy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
+		 cout << "Energy in central cell=" << EN_AND_PR_counter_central_cell.energy/1000.0/centralPart << endl;
+		 // Calculate initial external pressure
+		 ext_pressure = 0;
+		 for (int i = 0; i < nPart; i ++){ext_pressure += external_pressure(coordinates[i].x, Lx, potential);}
 
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
@@ -284,11 +295,11 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
            density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
 					 cout << "Uex: " << potential << " T: " << temperature << endl;
            cout << "cent_rho: " << density << " gas_density:" << gas_density << " " << "Ly=" << Ly << " " << int(iter*100.0/nIter) << " %" << endl;
-           cout << "p_X:" << EN_AND_PR_counter.p_X << " p_Y:" << EN_AND_PR_counter.p_Y << endl;
-					 cout << "Energy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
+           cout << "p_X in central cell:" << EN_AND_PR_counter_central_cell.p_X << " p_Y in central cell:" << EN_AND_PR_counter_central_cell.p_Y << endl;
+					 cout << "Energy in central cell: " << EN_AND_PR_counter_central_cell.energy/1000.0/centralPart << endl;
            PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-           cout << "np_X:" << EN_AND_PR_counter.p_X << " np_Y:" << EN_AND_PR_counter.p_Y << endl;
-           cout << "nEnergy=" << EN_AND_PR_counter.energy/1000.0/centralPart << endl;
+           cout << "np_X in central cell:" << EN_AND_PR_counter_central_cell.p_X << " np_Y in central cell:" << EN_AND_PR_counter_central_cell.p_Y << endl;
+           cout << "nEnergy in central cell" << EN_AND_PR_counter_central_cell.energy/1000.0/centralPart << endl;
            /*double test_Px = EN_AND_PR_counter.p_X;
            double test_Py = EN_AND_PR_counter.p_Y;
            double test_energy = EN_AND_PR_counter.energy;
@@ -320,6 +331,8 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             Pt += dt;
             press_X += EN_AND_PR_counter.p_X*dt;
             press_Y += EN_AND_PR_counter.p_Y*dt;
+						press_X_central_cell += EN_AND_PR_counter_central_cell.p_X*dt;
+						press_Y_central_cell += EN_AND_PR_counter_central_cell.p_Y*dt;
             if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
             {
 /*                press_X /= Pt;
@@ -330,10 +343,12 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
                 if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
                 if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 4000;}
 */
-                pressure_balance (press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+                pressure_balance (press_X_central_cell*4.0/Lx/Ly, press_Y_central_cell*4.0/Lx/Ly, ext_pressure/2.0/Ly, Lx, Ly, nPart, coordinates, beta);
                 Pt = 0;
                 press_X = 0;
                 press_Y = 0;
+								press_X_central_cell = 0;
+								press_Y_central_cell = 0;
                 balanceEq = 0;
                 ACCEPTANCE_RATIO_r[0] = 0;
                 ACCEPTANCE_RATIO_r[1] = 0;
@@ -352,6 +367,8 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
                 en_2_av = 0;
                 press_X = 0;
                 press_Y = 0;
+								press_X_central_cell = 0;
+								press_Y_central_cell = 0;
                 Pt = 0;
                 n_central = 0;
                 rho_central = 0;
@@ -364,7 +381,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             if(rosenbluth) {Time += dt; Mconf++;}
 
             layer_map_TMA(nPart, coordinates, xy_matrix, Lx, Ly);
-            if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter.energy)*(Energy/(Pt+1) - EN_AND_PR_counter.energy);}
+            if (cap_n > 1) {fluent_capacity = (cap_n - 1.0)/cap_n*fluent_capacity + (cap_n-1.0)/(cap_n*cap_n)*(Energy/(Pt+1) - EN_AND_PR_counter_central_cell.energy)*(Energy/(Pt+1) - EN_AND_PR_counter_central_cell.energy);}
 
             cap_n++;
             Pt += dt;
@@ -372,12 +389,14 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             n_central += centralPart;
             rho_central += density;
             rho_gas += gas_density;
-            Energy += EN_AND_PR_counter.energy*dt;
-            en_2_av += EN_AND_PR_counter.energy*EN_AND_PR_counter.energy*dt;
+            Energy += EN_AND_PR_counter_central_cell.energy*dt;
+            en_2_av += EN_AND_PR_counter_central_cell.energy*EN_AND_PR_counter_central_cell.energy*dt;
             press_X += EN_AND_PR_counter.p_X*dt;
             press_Y += EN_AND_PR_counter.p_Y*dt;
-						pressure_avr_X.push_back(EN_AND_PR_counter.p_X);
-						pressure_avr_Y.push_back(EN_AND_PR_counter.p_Y);
+						press_X_central_cell += EN_AND_PR_counter_central_cell.p_X*dt;
+						press_Y_central_cell += EN_AND_PR_counter_central_cell.p_Y*dt;
+						pressure_avr_X.push_back(EN_AND_PR_counter_central_cell.p_X);
+						pressure_avr_Y.push_back(EN_AND_PR_counter_central_cell.p_Y);
             Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test, potential);
 /*
             //CALCULATE THE ENERGY DISTRIBUTION
@@ -423,8 +442,12 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             rho_gas /= Pt;
             press_X /= Pt;
             press_Y /= Pt;
-            press_X *= (4.0/Lx/Ly*1e20*1000)/N_a;  //it means p_x_lj = p_x_lj/Lx/Ly/sigma/sigma*1e20*1000 mN/m
+						press_X_central_cell /= Pt;
+						press_Y_central_cell /= Pt;
+            press_X *= (4.0/Lx/Ly*1e20*1000)/N_a;
             press_Y *= (4.0/Lx/Ly*1e20*1000)/N_a;
+						press_X_central_cell *= (4.0/Lx/Ly*1e20*1000)/N_a;
+						press_Y_central_cell *= (4.0/Lx/Ly*1e20*1000)/N_a;
 						double rmse_X = 0;
             double rmse_Y = 0;
 //            for (int i = 0; i < pressure_avr_X.size(); i++)
@@ -455,7 +478,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
             }
 */
      // Write the calculated data to a file
-     writeData(temperature, potential, rho_gas, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, mu_ex, press_X, press_Y, (press_X + press_Y)/2.0, Lx, Ly);
+     writeData(temperature, potential, rho_gas, rho_central, fluent_capacity/R/temperature/temperature, (en_2_av-pow(Energy,2))/R/temperature/temperature, Energy/1000.0/n_central, mu, mu_ex, press_X_central_cell, press_Y_central_cell, (press_X_central_cell + press_Y_central_cell)/2.0, Lx, Ly);
 
      // Write the xy-matrix
      write_xy_matrix(nPart, Lx, Ly, temperature, xy_matrix);
@@ -463,7 +486,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 		 cout << "Uex: " << potential << "\t" << "T: " << temperature << endl;
 		 cout << "Density in central cell: " << rho_central << " mkMol/m^2 \t" << "Density of diluted zone: " << rho_gas << endl;
 		 cout << "mu: " << mu << "\t" << "mu without gas: " << mu_ex << "\t" << "en: " << Energy/n_central/1000.0 << " kJ/mol" << endl;
-     cout << " P_X=" << press_X << " P_Y=" << press_Y  << endl;
+     cout << " P_X in central cell: " << press_X_central_cell << " P_Y in central cell: " << press_Y_central_cell  << endl;
 //		 cout << "rmse_X=" << rmse_X << " rmse_Y=" << rmse_Y << endl;
 
    }

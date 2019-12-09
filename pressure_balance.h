@@ -1,4 +1,4 @@
-void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
+void pressure_balance(double press_X, double press_Y, double ext_pressure, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
 {
 /*    double dL, Ly_new;    // Linear sizes of the box after correction
     dL = dr/2.0; //0.005;
