@@ -99,9 +99,6 @@ double e_test;
 double ext_pressure;
 bool close = false;
 
-// Forcefield for N2-N2 pair
-vector <vector <vector <double> > > forcefield;
-vector <vector <vector <double> > > energy;
 // Minimal (hard core distance) and maximal distance between the molecules
 double min_dist,max_dist;
 // Delta between neighbor distances in the forcefield in A
@@ -113,7 +110,6 @@ int frame = 0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "cent_potential.h"
-#include "read_forcefield.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
 #include "density_in_central_cell.h"
@@ -136,32 +132,6 @@ int frame = 0;
 
 int main()
 {
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-  // Fill in the forcefield
-  // First dimension is distance
-  // Second dimension is angle of first molecule
-  // Third dimension is angle of second molecule
-  for (int i = 0; i < 551; i++) {
-      vector< vector<double> > mat; // Create an empty matrix
-      for (int j = 0; j < 361; j++) {
-          vector<double> row; // Create an empty row
-              for (int k =0; k <361; k++) {
-                  row.push_back(0);
-              }
-          mat.push_back(row); // Add an element (column) to the row
-      }
-      forcefield.push_back(mat); // Add the row to the main vector
-  }
-  // Read the forcefield from "forcefield.dat"
-  cout << "read forcefield.dat file" << endl;
-  read_forcefield ("forcefield_comp2_TMA.dat", forcefield, min_dist,max_dist, dr, da);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
-
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -273,7 +243,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 		 cout << "Energy in central cell=" << EN_AND_PR_counter_central_cell.energy/1000.0/centralPart << endl;
 		 // Calculate initial external pressure
 		 ext_pressure = 0;
-		 for (int i = 0; i < nPart; i ++){ext_pressure += external_pressure(coordinates[i].x, Lx, potential);}
+		 for (int i = 0; i < nPart; i ++) {ext_pressure += external_pressure(coordinates[i].x, Lx, potential);}
 
      //////////////////////////////////////////////////
      //             Monte Carlo Simulation           //
