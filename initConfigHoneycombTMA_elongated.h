@@ -12,7 +12,7 @@ double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
 double free_space = 0.0;//0.45;
 
 int cells = nPart/4.0;
-int number_in_y = 3;
+int number_in_y = sqrt(cells/2.0);
 int number_in_x = cells/number_in_y;
 
 double pre_Lx = number_in_x*x_uc;
