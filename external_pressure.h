@@ -10,5 +10,5 @@ double external_pressure(double x, double Lx, double potential)
 	else if(x > 0.5*Lx){v = 8.0*(x - 0.5*Lx)/Lx;}
 		if(v > v0){p = 4*c*(v - 2.0)/Lx;}
 			else if(v <= v0) {p = 0;}
- return p;
+ return 0;
 }
