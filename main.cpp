@@ -67,6 +67,18 @@ class state {
 public:
 double x;
 double y;
+double q1x_p;
+double q1y_p;
+double q2x_p;
+double q2y_p;
+double q3x_p;
+double q3y_p;
+double q1x_n;
+double q1y_n;
+double q2x_n;
+double q2y_n;
+double q3x_n;
+double q3y_n;
 double phi;
 double sin_phi;
 double cos_phi;
@@ -100,7 +112,7 @@ double ext_pressure;
 bool close = false;
 
 // Minimal (hard core distance) and maximal distance between the molecules
-double min_dist,max_dist;
+double min_dist = 6.0,max_dist = 11.0;
 // Delta between neighbor distances in the forcefield in A
 double dr;
 // Delta between orientation angle of the single molecule
@@ -108,6 +120,40 @@ double da;
 int frame = 0;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void charges_coordinates (state &mol)
+{
+  double d_charges = 4.2; // A
+  // for positive charges
+  double mol_sin_add_half_carbox_p = (-mol.sin_phi)*0.9659258 + mol.cos_phi*(-0.258819);
+  double mol_cos_add_half_carbox_p = mol.cos_phi*0.9659258 - (-mol.sin_phi)*(-0.258819);
+  double mol_sin_add_half_carbox_p_120 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*0.866;
+  double mol_cos_add_half_carbox_p_120 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*0.866;
+  double mol_sin_add_half_carbox_p_240 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*(-0.866);
+  double mol_cos_add_half_carbox_p_240 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*(-0.866);
+
+  // for negative charges
+  double mol_sin_add_half_carbox_n = (-mol.sin_phi)*0.9659258 - mol.cos_phi*(-0.258819);
+  double mol_cos_add_half_carbox_n = mol.cos_phi*0.9659258 + (-mol.sin_phi)*(-0.258819);
+  double mol_sin_add_half_carbox_n_120 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-0.866);
+  double mol_cos_add_half_carbox_n_120 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.866);
+  double mol_sin_add_half_carbox_n_240 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-(-0.866));
+  double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-(-0.866));
+
+  // x,y - coordinates of six charges (3 positive and 3 negative) in the A molecule
+  mol.q1x_p = mol.x + d_charges*mol_cos_add_half_carbox_p;
+  mol.q1y_p = mol.y + d_charges*mol_sin_add_half_carbox_p;
+  mol.q2x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_120;
+  mol.q2y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_120;
+  mol.q3x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_240;
+  mol.q3y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_240;
+  mol.q1x_n = mol.x + d_charges*mol_cos_add_half_carbox_n;
+  mol.q1y_n = mol.y + d_charges*mol_sin_add_half_carbox_n;
+  mol.q2x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_120;
+  mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
+  mol.q3x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_240;
+  mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
+}
 
 #include "cent_potential.h"
 #include "PBC2D.h"

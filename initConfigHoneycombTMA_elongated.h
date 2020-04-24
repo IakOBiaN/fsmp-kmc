@@ -3,7 +3,7 @@ using namespace std;
 void initConfigHoneycombTMA_elongated (int &nPart, double &density, double &gas_density, double &centralPart, vector <state> &coordinates, double &Lx, double &Ly, double &state_dens)
 {
 
-double h_bond_dist = 9.8; // It requires r_min for h-bonding 9.74
+double h_bond_dist = 10.0; // It requires r_min for h-bonding 9.74
 
 double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
 double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
@@ -35,6 +35,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
@@ -43,6 +44,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x;
@@ -51,6 +53,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x - h_bond_dist*cos(30.0/180.0*PI);
@@ -59,6 +62,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 					coordinates[molecule].cent = cent_potential(coordinates[molecule].x, Lx);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
       }
     }
