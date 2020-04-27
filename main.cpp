@@ -121,40 +121,6 @@ int frame = 0;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void charges_coordinates (state &mol)
-{
-  double d_charges = 4.2; // A
-  // for positive charges
-  double mol_sin_add_half_carbox_p = (-mol.sin_phi)*0.9659258 + mol.cos_phi*(-0.258819);
-  double mol_cos_add_half_carbox_p = mol.cos_phi*0.9659258 - (-mol.sin_phi)*(-0.258819);
-  double mol_sin_add_half_carbox_p_120 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*0.866;
-  double mol_cos_add_half_carbox_p_120 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*0.866;
-  double mol_sin_add_half_carbox_p_240 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*(-0.866);
-  double mol_cos_add_half_carbox_p_240 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*(-0.866);
-
-  // for negative charges
-  double mol_sin_add_half_carbox_n = (-mol.sin_phi)*0.9659258 - mol.cos_phi*(-0.258819);
-  double mol_cos_add_half_carbox_n = mol.cos_phi*0.9659258 + (-mol.sin_phi)*(-0.258819);
-  double mol_sin_add_half_carbox_n_120 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-0.866);
-  double mol_cos_add_half_carbox_n_120 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.866);
-  double mol_sin_add_half_carbox_n_240 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-(-0.866));
-  double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-(-0.866));
-
-  // x,y - coordinates of six charges (3 positive and 3 negative) in the A molecule
-  mol.q1x_p = mol.x + d_charges*mol_cos_add_half_carbox_p;
-  mol.q1y_p = mol.y + d_charges*mol_sin_add_half_carbox_p;
-  mol.q2x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_120;
-  mol.q2y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_120;
-  mol.q3x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_240;
-  mol.q3y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_240;
-  mol.q1x_n = mol.x + d_charges*mol_cos_add_half_carbox_n;
-  mol.q1y_n = mol.y + d_charges*mol_sin_add_half_carbox_n;
-  mol.q2x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_120;
-  mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
-  mol.q3x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_240;
-  mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
-}
-
 #include "cent_potential.h"
 #include "PBC2D.h"
 #include "energies_and_forces.h"
@@ -308,7 +274,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
          {
            frame++;
            write_xyz_file_TMA (nPart, Lx, Ly, temperature, potential, coordinates, frame, 1, false);
-           density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
+           //density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
 					 cout << "Uex: " << potential << " T: " << temperature << endl;
            cout << "cent_rho: " << density << " gas_density:" << gas_density << " " << "Ly=" << Ly << " " << int(iter*100.0/nIter) << " %" << endl;
            cout << "p_X in central cell:" << EN_AND_PR_counter_central_cell.p_X << " p_Y in central cell:" << EN_AND_PR_counter_central_cell.p_Y << endl;
