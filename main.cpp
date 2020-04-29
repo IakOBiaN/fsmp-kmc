@@ -173,7 +173,7 @@ int main()
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 360; // Amount of molecules in the layer
- int nSteps = 150000;            // Total amount of MCS
+ int nSteps = 200000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 100000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
@@ -199,9 +199,10 @@ double potential,first_potential = 0.0,potential_step = 10000.0;
 potential = first_potential;
 temperature = 300.0;
 double deltaT = 10.0;
+
 initConfigHoneycombTMA_elongated(nPart, density, gas_density, centralPart, coordinates, Lx, Ly, state_dens);
 write_xyz_file_TMA (nPart, Lx, Ly, temperature, potential, coordinates, 0, 1, true);
-for(temperature = 300; temperature < 2010; temperature += deltaT)
+for(temperature = 10; temperature < 400; temperature += deltaT)
 //for(potential = first_potential; potential < 700000; potential += potential_step)
 {
 
@@ -274,14 +275,9 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
          {
            frame++;
            write_xyz_file_TMA (nPart, Lx, Ly, temperature, potential, coordinates, frame, 1, false);
-           //density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
-					 cout << "Uex: " << potential << " T: " << temperature << endl;
+           density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
+					 //cout << "Uex: " << potential << " T: " << temperature << endl;
            cout << "cent_rho: " << density << " gas_density:" << gas_density << " " << "Ly=" << Ly << " " << int(iter*100.0/nIter) << " %" << endl;
-           cout << "p_X in central cell:" << EN_AND_PR_counter_central_cell.p_X << " p_Y in central cell:" << EN_AND_PR_counter_central_cell.p_Y << endl;
-					 cout << "Energy in central cell: " << EN_AND_PR_counter_central_cell.energy/1000.0/centralPart << endl;
-           PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-           cout << "np_X in central cell:" << EN_AND_PR_counter_central_cell.p_X << " np_Y in central cell:" << EN_AND_PR_counter_central_cell.p_Y << endl;
-           cout << "nEnergy in central cell" << EN_AND_PR_counter_central_cell.energy/1000.0/centralPart << endl;
            /*double test_Px = EN_AND_PR_counter.p_X;
            double test_Py = EN_AND_PR_counter.p_Y;
            double test_energy = EN_AND_PR_counter.energy;
@@ -367,7 +363,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 
             cap_n++;
             Pt += dt;
-            density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
+            //density_in_central_cell (nPart, density, gas_density, centralPart, coordinates, Lx, Ly);
             n_central += centralPart;
             rho_central += density;
             rho_gas += gas_density;
@@ -443,7 +439,7 @@ for(temperature = 300; temperature < 2010; temperature += deltaT)
 //            rmse_Y *= (4.0/Lx/Ly*1e20*1000)/N_a;
             Energy = Energy/Pt;
             en_2_av = en_2_av/Pt;
-            mu = log(rho_gas*N_test/(rho_central*e_test)); // Chemical potential
+            //mu = log(rho_gas*N_test/(rho_central*e_test)); // Chemical potential
 						mu_ex = log(N_test/(e_test)); // Chemical potential
 /*
             if (dist_switch)

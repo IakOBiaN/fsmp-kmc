@@ -46,8 +46,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
     for (int l = 0; l < nPart; l++)
     {
          if (l == trialPart){continue;}
-         old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta,false);
-         new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta,false);
+         old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta,true);
+         new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta,true);
 				 old_EP_Part_cent = old_EP_Part*coordinates[trialPart].cent * coordinates[l].cent;
 				 new_EP_Part_cent = new_EP_Part*new_coordinates.cent*coordinates[l].cent;
 				 old_EP = old_EP + old_EP_Part;

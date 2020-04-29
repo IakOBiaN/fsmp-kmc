@@ -129,6 +129,11 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
           if (abs(dist_y) > max_dist) {continue;}
              r2 = dist_x*dist_x + dist_y*dist_y;
              r = sqrt(r2);
+             if (r < 7.5887)
+             {
+               energy += 1e20;
+               continue;
+             }
              if (r <= max_dist)
              {
                  energy = energy + energy_calculation(molA, molB, r);

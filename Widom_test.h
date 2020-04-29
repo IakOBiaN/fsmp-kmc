@@ -3,17 +3,24 @@ void Widom_test(int &nPart, vector <state> &coordinates, double &Lx, double &Ly,
   state test_particle;
   double test_particle_energy = 0;
 
-  if((N_test%2) == 0)
+  /*if((N_test%2) == 0)
     {
       test_particle.x = 0.25*Lx * RanGen.Random();
     }
-    else {test_particle.x = Lx * (1.0 - 0.25 * RanGen.Random());}
-  test_particle.y = Ly * delta * RanGen.Random();
+    else {test_particle.x = Lx * (1.0 - 0.25 * RanGen.Random());}*/
+  test_particle.x = Lx * RanGen.Random();
+  test_particle.y = Ly * RanGen.Random();
   test_particle.phi = 360.0 * RanGen.Random();
+  test_particle.sin_phi = sin(test_particle.phi/180.0*PI);
+  test_particle.cos_phi = cos(test_particle.phi/180.0*PI);
+  charges_coordinates(test_particle);
 
-  for (int l = 0; l < nPart; l++){test_particle_energy = test_particle_energy +  energies_and_forces(test_particle, coordinates[l], Lx, Ly,beta,false).energy;}
+  for (int l = 0; l < nPart; l++)
+    {
+      test_particle_energy = test_particle_energy +  energies_and_forces(test_particle, coordinates[l], Lx, Ly,beta,false).energy;
+    }
 
-  test_particle_energy += external_field(test_particle.x, Lx, potential);
+  //test_particle_energy += external_field(test_particle.x, Lx, potential);
   e_test += exp(-test_particle_energy*beta);
-  N_test ++;
+  N_test++;
 }

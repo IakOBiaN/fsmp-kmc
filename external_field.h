@@ -15,5 +15,6 @@ double external_field(double x, double Lx, double potential)
         //if(v > v1){f1 = -v + 3.0 - log(4.0 - v);}
          //else if(v <= v1) {f1 = 0;}
  //return (f0 + f1);
- return f0;
+ //return f0;
+ return 0;
 }
