@@ -1,8 +1,7 @@
-void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature, double &potential, vector <state> &coordinates, int frame, double distance, bool init)
+void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature, vector <state> &coordinates, int frame, double distance, bool init)
 {
-
  stringstream name;
- name << "xyz_N" << nPart << "_T" << temperature << "_Uex" << potential << ".xyz";
+ name << "xyz_N" << nPart << "_T" << temperature << ".xyz";
  if (init) {ofstream fileOutput(name.str().c_str(), ios_base::trunc);fileOutput.close();}
  else {
 			ofstream fileOutput(name.str().c_str(), ios_base::app);
@@ -13,10 +12,6 @@ void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature
 			for(int i = 0; i < nPart; i++)
 				{
 					string element = "N ";
-					if (coordinates[i].cent > 0.00001){element = "O ";}
-					if (coordinates[i].cent > 0.99999){element = "C ";}
-
-
 					double dop = coordinates[i].x + dn2 * coordinates[i].cos_phi;
 					if (dop > Lx) {dop -= Lx;}
 					if (dop < 0)  {dop += Lx;}
@@ -48,7 +43,6 @@ void write_xyz_file_TMA (int &nPart, double &Lx, double &Ly, double &temperature
 					fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
 
 					fileOutput << "H " << coordinates[i].x << " " << coordinates[i].y << " " << 0 << endl;
-
 				}
 			fileOutput.close();
 			}

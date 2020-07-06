@@ -38,9 +38,9 @@ double energy_calculation(state &molA, state &molB, double &r)
   double alpha = 15.0; // Half of angle between oxygens in the carboxylic group of TMA molecule
   double gamma = 120.0;
   double double_gamma = 240.0;
-  double r0 = 7.5887; // Hard core radius in A
-  double sigma_r0 = 11.052 - 7.5887; // in A
-  double eps = 82.525; // in J/mol or eps/k_B = 360 K
+  double r0 = 7.5877; // Hard core radius in A
+  double sigma_r0 = 11.052 - r0; // in A
+  double eps = 360.0*R; // in J/mol or eps/k_B = 360 K
   const double Ke = 8.987551e+19; // in J*A/C^2
   double N_a = 6.02214e+23;
   double q = 0.45*1.6e-19; // in C
@@ -111,7 +111,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
   	double energy = 0,pressure_X = 0, pressure_Y = 0;
   	double dist_x_plus_delta, dist_y_plus_delta; // Distance between A and B molecules including derivation step
-    double delta = 0.1;
+    double delta_press = 0.01;
     double ang_molA = molA.phi;
     double ang_molB = molB.phi;
     double var_press[2];
@@ -129,7 +129,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
           if (abs(dist_y) > max_dist) {continue;}
              r2 = dist_x*dist_x + dist_y*dist_y;
              r = sqrt(r2);
-             if (r < 7.5887)
+						 double r_initial = r;
+             if (r < 7.5877)
              {
                energy += 1e20;
                continue;
@@ -144,7 +145,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                  press_calc = true;
                  for (int diff_x = -1; diff_x < 3; diff_x += 2)
                  {
-                       dist_x_plus_delta = dist_x + diff_x*delta*2.0;
+                       dist_x_plus_delta = dist_x + diff_x*delta_press*2.0;
                        r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
                        r = sqrt(r2);
                        if (r > max_dist || r < min_dist) {press_calc=false;break;}
@@ -152,20 +153,21 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                        var_press[numerator] = energy_calculation(molA, molB, r);
                        numerator++;
                   }
-                  if (press_calc) {pressure_X += (var_press[0]-var_press[1])/(delta*4.0)*dist_x;}
+                  if (press_calc) {pressure_X += (var_press[0]-var_press[1])/(delta_press*4.0)*dist_x*dist_x/r_initial;}
                   numerator = 0;
                   press_calc = true;
                   for (int diff_y = -1; diff_y < 3; diff_y += 2)
                   {
-                        dist_y_plus_delta = dist_y + diff_y*delta*2.0;
+                        dist_y_plus_delta = dist_y + diff_y*delta_press*2.0;
                         r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
                         r = sqrt(r2);
+//												cout << "r: " << r << endl;
                         if (r > max_dist || r < min_dist) {press_calc=false;break;}
 
                         var_press[numerator] = energy_calculation(molA, molB, r);
                         numerator++;
                    }
-                   if (press_calc) {pressure_Y += (var_press[0]-var_press[1])/(delta*4.0)*dist_y;}
+                   if (press_calc) {pressure_Y += (var_press[0]-var_press[1])/(delta_press*4.0)*dist_y*dist_y/r_initial;}
              }
        }
     }
