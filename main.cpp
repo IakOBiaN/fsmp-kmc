@@ -149,13 +149,6 @@ int main()
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
 
- // Write the model parameters to data-file
- stringstream name;
- name <<  "statistics.dat";
- ofstream fileOutput(name.str().c_str(), ios_base::trunc);
- fileOutput << "T" << "\t" << "Density" << "\t" << "Heat.Capacity(reccurent)" << "\t" << "Heat.Capacity" << "\t" << "E_per_molecule" << "\t" << "Mu" << "\t" << "p_X" << "\t" << "p_Y" << "\t" << "p_T" << "\t" << "Lx" << "\t" << "Ly" << endl;
- fileOutput.close();
-
  ////////////////////////////////////////////////////////////
  //         MC simulation of systems with different N      //
  ////////////////////////////////////////////////////////////
