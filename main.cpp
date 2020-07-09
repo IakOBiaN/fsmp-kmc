@@ -119,7 +119,8 @@ int frame = 0; // For visualization purpose
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "PBC2D.h"
-#include "energies_and_forces_exact.h"
+//#include "energies_and_forces_exact.h"
+#include "energies_and_forces_exact_ab.h"
 //#include "energies_and_forces.h"
 #include "initConfigHoneycombTMA.h"
 #include "write_xyz_file.h"
@@ -142,9 +143,9 @@ int main()
  // Set the Monte Carlo run //
  /////////////////////////////
  int nPart = 512; // Amount of molecules in the layer
- int nSteps = 500000;            // Total amount of MCS
+ int nSteps = 50000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 100000;           // MCS for relaxation
+ int nStepsEq = 10000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
@@ -192,7 +193,8 @@ int main()
 	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-	cout << "Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << "Energy_QQ: " << EN_AND_PR_counter.energy_QQ/1000.0/nPart << "\t" << "P_T: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
+	cout << "Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << "Energy_QQ: " << EN_AND_PR_counter.energy_QQ/1000.0/nPart << "\t" << "P: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
+cout << "P_ex: " << ((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
 	//////////////////////////////////////////////////
 	//             Monte Carlo Simulation           //
 	//////////////////////////////////////////////////
@@ -230,6 +232,7 @@ int main()
 	double mu_ex = log(N_test/(e_test));
 
 	cout << "Energy_MC: " << Energy/1000.0/nPart << " Energe_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
+	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << endl;
  }
  return 0;
 }

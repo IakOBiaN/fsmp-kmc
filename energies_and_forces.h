@@ -232,7 +232,7 @@ results energies_and_forces_exact(state molA, state molB, double &Lx, double &Ly
 										 var_press[numerator] = tU_LJ + tU_QQ;
 										 numerator++;
 								}
-								pressure_X += (var_press[0]-var_press[1])/(diff_delta*2.0)*dist_x;
+								pressure_X += -(var_press[0]-var_press[1])/(diff_delta*2.0)*dist_x;
 
 								numerator = 0;
 								double dist_y_plus_delta;
@@ -252,7 +252,7 @@ results energies_and_forces_exact(state molA, state molB, double &Lx, double &Ly
  										 var_press[numerator] = tU_LJ + tU_QQ;
  										 numerator++;
  								}
-								pressure_Y += (var_press[0]-var_press[1])/(diff_delta*2.0)*dist_y;
+								pressure_Y += -(var_press[0]-var_press[1])/(diff_delta*2.0)*dist_y;
              }
        }
     }
