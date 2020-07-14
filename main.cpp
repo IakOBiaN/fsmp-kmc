@@ -119,9 +119,9 @@ int frame = 0; // For visualization purpose
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "PBC2D.h"
-//#include "energies_and_forces_exact.h"
-#include "energies_and_forces_exact_ab.h"
-//#include "energies_and_forces.h"
+//#include "energies_and_forces_exact_not.h"
+#include "energies_and_forces_exact.h"
+//#include "energies_and_forces_approx.h"
 #include "initConfigHoneycombTMA.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
@@ -158,12 +158,11 @@ int main()
  double temperature = 300.0;
  double deltaT = 10.0;
 
- initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly);
- write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
-
- for(temperature = 300; temperature < 310; temperature += deltaT)
+ //for(temperature = 300; temperature < 310; temperature += deltaT)
+ for(min_dist = 7.5877; min_dist < 10.0; min_dist += 0.02)
  {
-
+	 initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly);
+	 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
 //	vector <double> pressure_avr_X;
 //	vector <double> pressure_avr_Y;
 	frame = 1;
@@ -231,7 +230,7 @@ cout << "P_ex: " << ((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1
 	press_Y *= (1.0/Lx/Ly*1e23)/N_a;
 	double mu_ex = log(N_test/(e_test));
 
-	cout << "Energy_MC: " << Energy/1000.0/nPart << " Energe_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
+	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Energe_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
 	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << endl;
  }
  return 0;

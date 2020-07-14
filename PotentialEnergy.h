@@ -9,7 +9,7 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordin
 	{
 		for(int molB = (molA + 1); molB < nPart; molB++)
 			{
-				en_and_press = energies_and_forces_exact_ab(coordinates[molA], coordinates[molB], Lx, Ly, beta);
+				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta);
 //				en_and_press = energies_and_forces_exact(coordinates[molA], coordinates[molB], Lx, Ly, beta);
 //				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, true);
 				EN_AND_PR_counter = EN_AND_PR_counter + en_and_press;
