@@ -1,4 +1,4 @@
-void charges_coordinates (state &mol)
+void charges_coordinates (state &mol, double &Lx, double &Ly)
 {
   double d_charges = 4.2; // A
   // for positive charges
@@ -18,18 +18,18 @@ void charges_coordinates (state &mol)
   double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.866);
 
   // x,y - coordinates of six charges (3 positive and 3 negative) in the A molecule
-  mol.q1x_p = mol.x + d_charges*mol_cos_add_half_carbox_p;
-  mol.q1y_p = mol.y + d_charges*mol_sin_add_half_carbox_p;
-  mol.q2x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_120;
-  mol.q2y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_120;
-  mol.q3x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_240;
-  mol.q3y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_240;
-  mol.q1x_n = mol.x + d_charges*mol_cos_add_half_carbox_n;
-  mol.q1y_n = mol.y + d_charges*mol_sin_add_half_carbox_n;
-  mol.q2x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_120;
-  mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
-  mol.q3x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_240;
-  mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
+	mol.q1x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p);
+  mol.q1y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p);
+  mol.q2x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p_120);
+  mol.q2y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p_120);
+  mol.q3x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p_240);
+  mol.q3y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p_240);
+  mol.q1x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n);
+  mol.q1y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n);
+  mol.q2x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n_120);
+  mol.q2y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n_120);
+  mol.q3x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n_240);
+  mol.q3y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n_240);
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta)

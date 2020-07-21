@@ -231,7 +231,7 @@ cout << "P_ex: " << ((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1
 	double mu_ex = log(N_test/(e_test));
 
 	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Energe_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
-	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << endl;
+	cout << "P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << " Lx: " << Lx << " Ly: " << Ly << endl;
  }
  return 0;
 }
