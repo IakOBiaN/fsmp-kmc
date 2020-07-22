@@ -1,4 +1,4 @@
-void charges_coordinates (state &mol, double &Lx, double &Ly)
+void charges_coordinates (state &mol)
 {
   double d_charges = 4.2; // A
   // for positive charges
@@ -18,18 +18,18 @@ void charges_coordinates (state &mol, double &Lx, double &Ly)
   double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.866);
 
   // x,y - coordinates of six charges (3 positive and 3 negative) in the A molecule
-	mol.q1x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p);
-  mol.q1y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p);
-  mol.q2x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p_120);
-  mol.q2y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p_120);
-  mol.q3x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p_240);
-  mol.q3y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p_240);
-  mol.q1x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n);
-  mol.q1y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n);
-  mol.q2x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n_120);
-  mol.q2y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n_120);
-  mol.q3x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n_240);
-  mol.q3y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n_240);
+	mol.q1x_p = mol.x + d_charges*mol_cos_add_half_carbox_p;
+	mol.q1y_p = mol.y + d_charges*mol_sin_add_half_carbox_p;
+	mol.q2x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_120;
+	mol.q2y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_120;
+	mol.q3x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_240;
+	mol.q3y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_240;
+	mol.q1x_n = mol.x + d_charges*mol_cos_add_half_carbox_n;
+	mol.q1y_n = mol.y + d_charges*mol_sin_add_half_carbox_n;
+	mol.q2x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_120;
+	mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
+	mol.q3x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_240;
+	mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta)
@@ -39,8 +39,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double r;	// Distance between A and B molecules
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
-    double ang_molA = molA.phi;
-    double ang_molB = molB.phi;
+    state molB_clone = molB;
 
 
 		double U_LJ = 0, U_QQ = 0;
@@ -98,73 +97,78 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 							 double u_columb = 0;
 							 derivative_QQ_x = 0;
 							 derivative_QQ_y = 0;
+
+							 molB_clone.x = molB.x + id*Lx;
+							 molB_clone.y = molB.y + jd*Ly;
+							 charges_coordinates (molB_clone);
+
 							 // Positive charges of A molecule and positive charges of B molecule
-							 dist_ab_x = (molB.q1x_p - molA.q1x_p);
-							 dist_ab_y = (molB.q1y_p - molA.q1y_p);
+							 dist_ab_x = (molB_clone.q1x_p - molA.q1x_p);
+							 dist_ab_y = (molB_clone.q1y_p - molA.q1y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_p - molA.q1x_p);
-							 dist_ab_y = (molB.q2y_p - molA.q1y_p);
+							 dist_ab_x = (molB_clone.q2x_p - molA.q1x_p);
+							 dist_ab_y = (molB_clone.q2y_p - molA.q1y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_p - molA.q1x_p);
-							 dist_ab_y = (molB.q3y_p - molA.q1y_p);
+							 dist_ab_x = (molB_clone.q3x_p - molA.q1x_p);
+							 dist_ab_y = (molB_clone.q3y_p - molA.q1y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_p - molA.q2x_p);
-							 dist_ab_y = (molB.q1y_p - molA.q2y_p);
+							 dist_ab_x = (molB_clone.q1x_p - molA.q2x_p);
+							 dist_ab_y = (molB_clone.q1y_p - molA.q2y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_p - molA.q2x_p);
-							 dist_ab_y = (molB.q2y_p - molA.q2y_p);
+							 dist_ab_x = (molB_clone.q2x_p - molA.q2x_p);
+							 dist_ab_y = (molB_clone.q2y_p - molA.q2y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_p - molA.q2x_p);
-							 dist_ab_y = (molB.q3y_p - molA.q2y_p);
+							 dist_ab_x = (molB_clone.q3x_p - molA.q2x_p);
+							 dist_ab_y = (molB_clone.q3y_p - molA.q2y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_p - molA.q3x_p);
-							 dist_ab_y = (molB.q1y_p - molA.q3y_p);
+							 dist_ab_x = (molB_clone.q1x_p - molA.q3x_p);
+							 dist_ab_y = (molB_clone.q1y_p - molA.q3y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_p - molA.q3x_p);
-							 dist_ab_y = (molB.q2y_p - molA.q3y_p);
+							 dist_ab_x = (molB_clone.q2x_p - molA.q3x_p);
+							 dist_ab_y = (molB_clone.q2y_p - molA.q3y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_p - molA.q3x_p);
-							 dist_ab_y = (molB.q3y_p - molA.q3y_p);
+							 dist_ab_x = (molB_clone.q3x_p - molA.q3x_p);
+							 dist_ab_y = (molB_clone.q3y_p - molA.q3y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
@@ -172,72 +176,72 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 							 U_QQ += u_columb;
 
 							 // Negative charges of A molecule and negative charges of B molecule
-							 dist_ab_x = (molB.q1x_n - molA.q1x_n);
-							 dist_ab_y = (molB.q1y_n - molA.q1y_n);
+							 dist_ab_x = (molB_clone.q1x_n - molA.q1x_n);
+							 dist_ab_y = (molB_clone.q1y_n - molA.q1y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_n - molA.q1x_n);
-							 dist_ab_y = (molB.q2y_n - molA.q1y_n);
+							 dist_ab_x = (molB_clone.q2x_n - molA.q1x_n);
+							 dist_ab_y = (molB_clone.q2y_n - molA.q1y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_n - molA.q1x_n);
-							 dist_ab_y = (molB.q3y_n - molA.q1y_n);
+							 dist_ab_x = (molB_clone.q3x_n - molA.q1x_n);
+							 dist_ab_y = (molB_clone.q3y_n - molA.q1y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_n - molA.q2x_n);
-							 dist_ab_y = (molB.q1y_n - molA.q2y_n);
+							 dist_ab_x = (molB_clone.q1x_n - molA.q2x_n);
+							 dist_ab_y = (molB_clone.q1y_n - molA.q2y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;;
 
-							 dist_ab_x = (molB.q2x_n - molA.q2x_n);
-							 dist_ab_y = (molB.q2y_n - molA.q2y_n);
+							 dist_ab_x = (molB_clone.q2x_n - molA.q2x_n);
+							 dist_ab_y = (molB_clone.q2y_n - molA.q2y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_n - molA.q2x_n);
-							 dist_ab_y = (molB.q3y_n - molA.q2y_n);
+							 dist_ab_x = (molB_clone.q3x_n - molA.q2x_n);
+							 dist_ab_y = (molB_clone.q3y_n - molA.q2y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_n - molA.q3x_n);
-							 dist_ab_y = (molB.q1y_n - molA.q3y_n);
+							 dist_ab_x = (molB_clone.q1x_n - molA.q3x_n);
+							 dist_ab_y = (molB_clone.q1y_n - molA.q3y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_n - molA.q3x_n);
-							 dist_ab_y = (molB.q2y_n - molA.q3y_n);
+							 dist_ab_x = (molB_clone.q2x_n - molA.q3x_n);
+							 dist_ab_y = (molB_clone.q2y_n - molA.q3y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_n - molA.q3x_n);
-							 dist_ab_y = (molB.q3y_n - molA.q3y_n);
+							 dist_ab_x = (molB_clone.q3x_n - molA.q3x_n);
+							 dist_ab_y = (molB_clone.q3y_n - molA.q3y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
@@ -245,72 +249,72 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 							 U_QQ += u_columb;
 
 							 // Negative charges of A molecule and positive charges of B molecule
-							 dist_ab_x = (molB.q1x_p - molA.q1x_n);
-							 dist_ab_y = (molB.q1y_p - molA.q1y_n);
+							 dist_ab_x = (molB_clone.q1x_p - molA.q1x_n);
+							 dist_ab_y = (molB_clone.q1y_p - molA.q1y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_p - molA.q1x_n);
-							 dist_ab_y = (molB.q2y_p - molA.q1y_n);
+							 dist_ab_x = (molB_clone.q2x_p - molA.q1x_n);
+							 dist_ab_y = (molB_clone.q2y_p - molA.q1y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_p - molA.q1x_n);
-							 dist_ab_y = (molB.q3y_p - molA.q1y_n);
+							 dist_ab_x = (molB_clone.q3x_p - molA.q1x_n);
+							 dist_ab_y = (molB_clone.q3y_p - molA.q1y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_p - molA.q2x_n);
-							 dist_ab_y = (molB.q1y_p - molA.q2y_n);
+							 dist_ab_x = (molB_clone.q1x_p - molA.q2x_n);
+							 dist_ab_y = (molB_clone.q1y_p - molA.q2y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_p - molA.q2x_n);
-							 dist_ab_y = (molB.q2y_p - molA.q2y_n);
+							 dist_ab_x = (molB_clone.q2x_p - molA.q2x_n);
+							 dist_ab_y = (molB_clone.q2y_p - molA.q2y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_p - molA.q2x_n);
-							 dist_ab_y = (molB.q3y_p - molA.q2y_n);
+							 dist_ab_x = (molB_clone.q3x_p - molA.q2x_n);
+							 dist_ab_y = (molB_clone.q3y_p - molA.q2y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_p - molA.q3x_n);
-							 dist_ab_y = (molB.q1y_p - molA.q3y_n);
+							 dist_ab_x = (molB_clone.q1x_p - molA.q3x_n);
+							 dist_ab_y = (molB_clone.q1y_p - molA.q3y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_p - molA.q3x_n);
-							 dist_ab_y = (molB.q2y_p - molA.q3y_n);
+							 dist_ab_x = (molB_clone.q2x_p - molA.q3x_n);
+							 dist_ab_y = (molB_clone.q2y_p - molA.q3y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_p - molA.q3x_n);
-							 dist_ab_y = (molB.q3y_p - molA.q3y_n);
+							 dist_ab_x = (molB_clone.q3x_p - molA.q3x_n);
+							 dist_ab_y = (molB_clone.q3y_p - molA.q3y_n);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
@@ -318,72 +322,72 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 							 U_QQ += u_columb;
 
 							 // Positive charges of A molecule and negative charges of B molecule
-							 dist_ab_x = (molB.q1x_n - molA.q1x_p);
-							 dist_ab_y = (molB.q1y_n - molA.q1y_p);
+							 dist_ab_x = (molB_clone.q1x_n - molA.q1x_p);
+							 dist_ab_y = (molB_clone.q1y_n - molA.q1y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_n - molA.q1x_p);
-							 dist_ab_y = (molB.q2y_n - molA.q1y_p);
+							 dist_ab_x = (molB_clone.q2x_n - molA.q1x_p);
+							 dist_ab_y = (molB_clone.q2y_n - molA.q1y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_n - molA.q1x_p);
-							 dist_ab_y = (molB.q3y_n - molA.q1y_p);
+							 dist_ab_x = (molB_clone.q3x_n - molA.q1x_p);
+							 dist_ab_y = (molB_clone.q3y_n - molA.q1y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_n - molA.q2x_p);
-							 dist_ab_y = (molB.q1y_n - molA.q2y_p);
+							 dist_ab_x = (molB_clone.q1x_n - molA.q2x_p);
+							 dist_ab_y = (molB_clone.q1y_n - molA.q2y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_n - molA.q2x_p);
-							 dist_ab_y = (molB.q2y_n - molA.q2y_p);
+							 dist_ab_x = (molB_clone.q2x_n - molA.q2x_p);
+							 dist_ab_y = (molB_clone.q2y_n - molA.q2y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_n - molA.q2x_p);
-							 dist_ab_y = (molB.q3y_n - molA.q2y_p);
+							 dist_ab_x = (molB_clone.q3x_n - molA.q2x_p);
+							 dist_ab_y = (molB_clone.q3y_n - molA.q2y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q1x_n - molA.q3x_p);
-							 dist_ab_y = (molB.q1y_n - molA.q3y_p);
+							 dist_ab_x = (molB_clone.q1x_n - molA.q3x_p);
+							 dist_ab_y = (molB_clone.q1y_n - molA.q3y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q2x_n - molA.q3x_p);
-							 dist_ab_y = (molB.q2y_n - molA.q3y_p);
+							 dist_ab_x = (molB_clone.q2x_n - molA.q3x_p);
+							 dist_ab_y = (molB_clone.q2y_n - molA.q3y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;
 							 derivative_QQ_y += -u_columb*dist_ab_y/dist2;
 							 U_QQ += u_columb;
 
-							 dist_ab_x = (molB.q3x_n - molA.q3x_p);
-							 dist_ab_y = (molB.q3y_n - molA.q3y_p);
+							 dist_ab_x = (molB_clone.q3x_n - molA.q3x_p);
+							 dist_ab_y = (molB_clone.q3y_n - molA.q3y_p);
 							 dist2 = (dist_ab_x*dist_ab_x + dist_ab_y*dist_ab_y);
 							 u_columb = -QQ_const/sqrt(dist2);
 							 derivative_QQ_x += -u_columb*dist_ab_x/dist2;

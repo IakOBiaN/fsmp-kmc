@@ -31,7 +31,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 30.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-          charges_coordinates(coordinates[molecule], Lx, Ly);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
@@ -39,7 +39,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 90.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-          charges_coordinates(coordinates[molecule], Lx, Ly);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x;
@@ -47,7 +47,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 30.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-          charges_coordinates(coordinates[molecule], Lx, Ly);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x - h_bond_dist*cos(30.0/180.0*PI);
@@ -55,7 +55,7 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 90.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-          charges_coordinates(coordinates[molecule], Lx, Ly);
+          charges_coordinates(coordinates[molecule]);
           molecule++;
       }
     }

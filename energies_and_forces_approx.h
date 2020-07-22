@@ -1,35 +1,36 @@
-void charges_coordinates (state &mol, double &Lx, double &Ly)
+void charges_coordinates (state &mol)
 {
   double d_charges = 4.2; // A
   // for positive charges
-  double mol_sin_add_half_carbox_p = mol.sin_phi*0.9659258 + mol.cos_phi*0.258819;
-  double mol_cos_add_half_carbox_p = mol.cos_phi*0.9659258 - mol.sin_phi*0.258819;
-  double mol_sin_add_half_carbox_p_120 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*0.866;
-  double mol_cos_add_half_carbox_p_120 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*0.866;
-  double mol_sin_add_half_carbox_p_240 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*(-0.866);
-  double mol_cos_add_half_carbox_p_240 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*(-0.866);
+  double mol_sin_add_half_carbox_p = mol.sin_phi*0.9659258262890682867497431997289 + mol.cos_phi*0.25881904510252076234889883762405;
+  double mol_cos_add_half_carbox_p = mol.cos_phi*0.9659258262890682867497431997289 - mol.sin_phi*0.25881904510252076234889883762405;
+  double mol_sin_add_half_carbox_p_120 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*0.86602540378443864676372317075294;
+  double mol_cos_add_half_carbox_p_120 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*0.86602540378443864676372317075294;
+  double mol_sin_add_half_carbox_p_240 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*(-0.86602540378443864676372317075294);
+  double mol_cos_add_half_carbox_p_240 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*(-0.86602540378443864676372317075294);
 
   // for negative charges
-  double mol_sin_add_half_carbox_n = mol.sin_phi*0.9659258 - mol.cos_phi*0.258819;
-  double mol_cos_add_half_carbox_n = mol.cos_phi*0.9659258 + mol.sin_phi*0.258819;
-  double mol_sin_add_half_carbox_n_120 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*0.866;
-  double mol_cos_add_half_carbox_n_120 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*0.866;
-  double mol_sin_add_half_carbox_n_240 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-0.866);
-  double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.866);
+  double mol_sin_add_half_carbox_n = mol.sin_phi*0.9659258262890682867497431997289 - mol.cos_phi*0.25881904510252076234889883762405;
+  double mol_cos_add_half_carbox_n = mol.cos_phi*0.9659258262890682867497431997289 + mol.sin_phi*0.25881904510252076234889883762405;
+  double mol_sin_add_half_carbox_n_120 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*0.86602540378443864676372317075294;
+  double mol_cos_add_half_carbox_n_120 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*0.86602540378443864676372317075294;
+  double mol_sin_add_half_carbox_n_240 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-0.86602540378443864676372317075294);
+  double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.86602540378443864676372317075294);
 
   // x,y - coordinates of six charges (3 positive and 3 negative) in the A molecule
-  mol.q1x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p);
-  mol.q1y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p);
-  mol.q2x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p_120);
-  mol.q2y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p_120);
-  mol.q3x_p = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_p_240);
-  mol.q3y_p = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_p_240);
-  mol.q1x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n);
-  mol.q1y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n);
-  mol.q2x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n_120);
-  mol.q2y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n_120);
-  mol.q3x_n = PBC2D(Lx, mol.x + d_charges*mol_cos_add_half_carbox_n_240);
-  mol.q3y_n = PBC2D(Ly, mol.y + d_charges*mol_sin_add_half_carbox_n_240);
+	mol.q1x_p = mol.x + d_charges*mol_cos_add_half_carbox_p;
+	mol.q2x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_120;
+	mol.q3x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_240;
+	mol.q1x_n = mol.x + d_charges*mol_cos_add_half_carbox_n;
+	mol.q2x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_120;
+	mol.q3x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_240;
+
+	mol.q1y_p = mol.y + d_charges*mol_sin_add_half_carbox_p;
+  mol.q2y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_120;
+  mol.q3y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_240;
+  mol.q1y_n = mol.y + d_charges*mol_sin_add_half_carbox_n;
+  mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
+  mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
 }
 
 void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double &U_LJ, double &U_QQ)
@@ -188,6 +189,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		double derivative_LJ, derivative_QQ;
 		double r0 = 7.5877; // Hard core radius in A
 		double pressure_X = 0, pressure_Y = 0;
+		state molB_clone = molB;
 
 		int numerator;
 
@@ -196,11 +198,13 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 			 dist_x = 0;
 			 dist_y = 0;
 			 r = 0;
-       dist_x = (molB.x - molA.x + id*Lx);
+			 molB_clone.x = molB.x + id*Lx;
+       dist_x = molB_clone.x - molA.x;
        if (abs(dist_x) > max_dist) {continue;}
        for (int jd = -1; jd < 2; jd++)
        {
-          dist_y = (molB.y - molA.y + jd*Ly);
+				  molB_clone.y = molB.y + jd*Ly;
+          dist_y = molB_clone.y - molA.y;
           if (abs(dist_y) > max_dist) {continue;}
              r2 = dist_x*dist_x + dist_y*dist_y;
              r = sqrt(r2);
@@ -212,32 +216,34 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
              if (r > min_dist && r <= max_dist)
              {
 								double t_U_LJ = 0, t_U_QQ = 0;
-								energy_calculation(molA, molB, Lx, Ly, beta, r, t_U_LJ, t_U_QQ);
+								charges_coordinates(molB_clone);
+								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ, t_U_QQ);
 
 								U_LJ += t_U_LJ;
 								U_QQ += t_U_QQ;
 
 								double dist_x_plus_delta, dist_y_plus_delta;
 								double t_U_LJ_delta = 0, t_U_QQ_delta = 0;
-								state molB_clone = molB;
-								molB_clone.x = PBC2D(Lx, molB.x - diff_delta);
-								charges_coordinates(molB_clone, Lx, Ly);
-								dist_x_plus_delta = molB_clone.x - molA.x + id*Lx;
+
+								molB_clone.x = molB_clone.x - diff_delta;
+								dist_x_plus_delta = molB_clone.x - molA.x;
 								r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
 								r = sqrt(r2);
+								charges_coordinates(molB_clone);
 								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
 								pressure_X += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_x;
+								molB_clone.x = molB_clone.x + diff_delta;
 
 								t_U_LJ_delta = 0;
 								t_U_QQ_delta = 0;
-								molB_clone.x = molB.x;
-							 	molB_clone.y = PBC2D(Ly, molB.y - diff_delta);
-							  charges_coordinates(molB_clone, Lx, Ly);
-								dist_y_plus_delta = molB_clone.y - molA.y + jd*Ly;
+								molB_clone.y = molB_clone.y - diff_delta;
+								dist_y_plus_delta = molB_clone.y - molA.y;
 								r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
 							  r = sqrt(r2);
+								charges_coordinates(molB_clone);
 								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
 								pressure_Y += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_y;
+								molB_clone.y = molB_clone.y + diff_delta;
              }
        }
     }

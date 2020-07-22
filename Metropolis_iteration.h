@@ -21,7 +21,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        // Apply periodic boundary conditions
        new_coordinates.x = PBC2D(Lx, new_coordinates.x);
        new_coordinates.y = PBC2D(Ly, new_coordinates.y);
-       charges_coordinates(new_coordinates, Lx, Ly);
+       charges_coordinates(new_coordinates);
       }
     else
       {
@@ -31,7 +31,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        new_coordinates.phi = angle;
        new_coordinates.sin_phi = sin(new_coordinates.phi/180.0*PI);
        new_coordinates.cos_phi = cos(new_coordinates.phi/180.0*PI);
-       charges_coordinates(new_coordinates, Lx, Ly);
+       charges_coordinates(new_coordinates);
        angle_change = true;
       }
 		for (int l = 0; l < nPart; l++)
