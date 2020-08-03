@@ -4,19 +4,19 @@ void initConfigHoneycombTMA (int &nPart, double &density, vector <state> &coordi
 {
 // collision diameter = 11.052 A
 // Ly = 23.84 * 11.052 = 263.4797 A
-// Lx = Lx*2/sqrt(3) = 27.53 = 27.53 * 11.052 =  304.2616 A
-// h_bond_dist = 10.978 A
-double h_bond_dist = 10.978;
+// Lx = Lx*2/sqrt(3) = 27.53 = 27.53 * 11.052 =  304.24 A
+// h_bond_dist = 10.97832 A
+double h_bond_dist = 10.97832;
 
-double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI); // 19.142 A
-double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI); // 33.156 A
+double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
+double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
 
 int cells = nPart/4.0;
 int number_in_y = sqrt(cells/2.0);
 int number_in_x = cells/number_in_y;
 
-Lx = number_in_x*x_uc; // 306.272 if h_bond_dist = collision diameter
-Ly = number_in_y*y_uc; // 265.248 if h_bond_dist = collision diameter
+Lx = number_in_x*x_uc;
+Ly = number_in_y*y_uc;
 
 
 int molecule = 0; // Molecules counter

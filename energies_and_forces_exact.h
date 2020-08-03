@@ -2,20 +2,20 @@ void charges_coordinates (state &mol)
 {
   double d_charges = 4.2; // A
   // for positive charges
-  double mol_sin_add_half_carbox_p = mol.sin_phi*0.9659258 + mol.cos_phi*0.258819;
-  double mol_cos_add_half_carbox_p = mol.cos_phi*0.9659258 - mol.sin_phi*0.258819;
-  double mol_sin_add_half_carbox_p_120 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*0.866;
-  double mol_cos_add_half_carbox_p_120 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*0.866;
-  double mol_sin_add_half_carbox_p_240 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*(-0.866);
-  double mol_cos_add_half_carbox_p_240 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*(-0.866);
+	double mol_sin_add_half_carbox_p = mol.sin_phi*0.9659258262890682867497431997289 + mol.cos_phi*0.25881904510252076234889883762405;
+  double mol_cos_add_half_carbox_p = mol.cos_phi*0.9659258262890682867497431997289 - mol.sin_phi*0.25881904510252076234889883762405;
+  double mol_sin_add_half_carbox_p_120 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*0.86602540378443864676372317075294;
+  double mol_cos_add_half_carbox_p_120 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*0.86602540378443864676372317075294;
+  double mol_sin_add_half_carbox_p_240 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*(-0.86602540378443864676372317075294);
+  double mol_cos_add_half_carbox_p_240 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*(-0.86602540378443864676372317075294);
 
   // for negative charges
-  double mol_sin_add_half_carbox_n = mol.sin_phi*0.9659258 - mol.cos_phi*0.258819;
-  double mol_cos_add_half_carbox_n = mol.cos_phi*0.9659258 + mol.sin_phi*0.258819;
-  double mol_sin_add_half_carbox_n_120 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*0.866;
-  double mol_cos_add_half_carbox_n_120 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*0.866;
-  double mol_sin_add_half_carbox_n_240 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-0.866);
-  double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.866);
+  double mol_sin_add_half_carbox_n = mol.sin_phi*0.9659258262890682867497431997289 - mol.cos_phi*0.25881904510252076234889883762405;
+  double mol_cos_add_half_carbox_n = mol.cos_phi*0.9659258262890682867497431997289 + mol.sin_phi*0.25881904510252076234889883762405;
+  double mol_sin_add_half_carbox_n_120 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*0.86602540378443864676372317075294;
+  double mol_cos_add_half_carbox_n_120 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*0.86602540378443864676372317075294;
+  double mol_sin_add_half_carbox_n_240 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-0.86602540378443864676372317075294);
+  double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.86602540378443864676372317075294);
 
   // x,y - coordinates of six charges (3 positive and 3 negative) in the A molecule
 	mol.q1x_p = mol.x + d_charges*mol_cos_add_half_carbox_p;
@@ -47,9 +47,9 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		double r0 = 7.5877; // Hard core radius in A
 		double sigma_r0 = 11.052 - r0; // in A
 		double eps = 360.0*R; // in J/mol
-		const double Ke = 8.987551e+19; // in J*A/C^2
-		double N_a = 6.02214e+23;
-		double q = 0.45*1.6e-19; // in C
+		const double Ke = 8.9875517923e+19; // in J*A/C^2
+		double N_a = 6.02214076e+23;
+		double q = 0.45*1.602176634e-19; // in C
 		double q2 = q*q;
 		double QQ_const = Ke*q2*N_a;
 		double pressure_X = 0, pressure_Y = 0;
@@ -76,7 +76,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
              r = sqrt(r2);
              if (r <= min_dist)
              {
-               en_and_press.energy += 1e20;
+               //en_and_press.energy += 1e20;
+							 U_LJ = 1e20;
                continue;
              }
              if (r > min_dist && r <= max_dist)
@@ -396,6 +397,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 
 							 pressure_X += -derivative_LJ*dist_x*dist_x/r - derivative_QQ_x*dist_x;
 							 pressure_Y += -derivative_LJ*dist_y*dist_y/r - derivative_QQ_y*dist_y;
+//							 pressure_X += - derivative_QQ_x*dist_x;
+//							 pressure_Y += - derivative_QQ_y*dist_y;
              }
        }
     }

@@ -103,8 +103,8 @@ double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 
 int BALANCE_STEPS = 100;												// steps for balance statistics
 double delta = 1.5;															// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
-double R = 8.3144598;														// Gas constant in J per mol
-double N_a = 6.02214e+23;												//	Avogadro constant
+double R = 8.31446261815324;														// Gas constant in J per mol
+double N_a = 6.02214076e+23;												//	Avogadro constant
 const double PI = 3.14159265358979323846;
 double density;																	// Actual density of the layer in mkMol per m^2
 int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
@@ -112,7 +112,7 @@ double e_test;																	// Counter for energy change due to the insertion
 
 // Minimal (hard core distance) and maximal distance between the molecules
 // Hard core radius = 7.5877 A
-double min_dist = 7.5877, max_dist = 20.0;
+double min_dist = 7.5877, max_dist = 11.052*5.0;
 
 int frame = 0; // For visualization purpose
 
@@ -127,6 +127,7 @@ int frame = 0; // For visualization purpose
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
 #include "Widom_test.h"
+#include "bootstrap_error.h"
 
 int main()
 {
@@ -149,6 +150,9 @@ int main()
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
+ vector <double> pressure_stat(nIter - nIterEq);
+ vector <double> energy_stat(nIter - nIterEq);
+ vector <double> energy_QQ_stat(nIter - nIterEq);
 
  ////////////////////////////////////////////////////////////
  //         MC simulation of systems with different N      //
@@ -159,7 +163,8 @@ int main()
  double deltaT = 10.0;
 
  //for(temperature = 300; temperature < 310; temperature += deltaT)
- for(min_dist = 7.5877; min_dist < 10.0; min_dist += 0.02)
+ //for(min_dist = 7.5877; min_dist < 10.1; min_dist += 0.02)
+ for(max_dist = 11.052*5.0; max_dist < 11.052*21.0; max_dist += 11.052)
  {
 	 initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly);
 	 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
@@ -193,7 +198,7 @@ int main()
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 	cout << "Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << "Energy_QQ: " << EN_AND_PR_counter.energy_QQ/1000.0/nPart << "\t" << "P: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
-cout << "P_ex: " << ((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
+	cout << "P_X: " << (EN_AND_PR_counter.p_X/Lx/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/Lx/Ly*1e23/N_a) <<  endl;
 	//////////////////////////////////////////////////
 	//             Monte Carlo Simulation           //
 	//////////////////////////////////////////////////
@@ -218,6 +223,9 @@ cout << "P_ex: " << ((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1
 					Energy_QQ += EN_AND_PR_counter.energy_QQ;
 					press_X += EN_AND_PR_counter.p_X;
 					press_Y += EN_AND_PR_counter.p_Y;
+					energy_stat[sum_iterations] = EN_AND_PR_counter.energy;
+					energy_QQ_stat[sum_iterations] = EN_AND_PR_counter.energy_QQ;
+					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0;
 					Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
 				}
 		}
@@ -230,8 +238,14 @@ cout << "P_ex: " << ((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1
 	press_Y *= (1.0/Lx/Ly*1e23)/N_a;
 	double mu_ex = log(N_test/(e_test));
 
+	double energy_error = bootstrap_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
+	double energy_QQ_error = bootstrap_error_calculation(energy_QQ_stat, sum_iterations)/1000.0/nPart;
+	double pressure_error = bootstrap_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
+
+
 	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Energe_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
 	cout << "P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << " Lx: " << Lx << " Ly: " << Ly << endl;
+	cout << "energy_error: " << energy_error << " energy_QQ_error: " << energy_QQ_error << " pressure_error: " << pressure_error << endl;
  }
  return 0;
 }
