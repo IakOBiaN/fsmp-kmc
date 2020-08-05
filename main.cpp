@@ -127,13 +127,22 @@ int frame = 0; // For visualization purpose
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
 #include "Widom_test.h"
-#include "bootstrap_error.h"
+//#include "bootstrap_error.h"
+#include "block_error.h"
 
 int main()
 {
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
+
+ // Write the model parameters to data-file
+ stringstream name;
+ name <<  "statistics.dat";
+ ofstream fileOutput(name.str().c_str(), ios_base::trunc);
+// fileOutput << "Cutoff" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
+ fileOutput << "T" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
+ fileOutput.close();
 
  // Set configuration parameters
 
@@ -162,10 +171,11 @@ int main()
  double temperature = 300.0;
  double deltaT = 10.0;
 
- //for(temperature = 300; temperature < 310; temperature += deltaT)
+ for(temperature = 300; temperature < 310; temperature += deltaT)
  //for(min_dist = 7.5877; min_dist < 10.1; min_dist += 0.02)
- for(max_dist = 11.052*5.0; max_dist < 11.052*21.0; max_dist += 11.052)
+ //for(max_dist = 11.052; max_dist < 11.052*31; max_dist += 11.052*0.5)
  {
+
 	 initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly);
 	 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
 //	vector <double> pressure_avr_X;
@@ -197,8 +207,9 @@ int main()
 	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-	cout << "Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << "Energy_QQ: " << EN_AND_PR_counter.energy_QQ/1000.0/nPart << "\t" << "P: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
+	cout << "max_dist: " << max_dist/11.052 << "\t" << "Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << "Energy_QQ: " << EN_AND_PR_counter.energy_QQ/1000.0/nPart << "\t" << "P: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
 	cout << "P_X: " << (EN_AND_PR_counter.p_X/Lx/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/Lx/Ly*1e23/N_a) <<  endl;
+
 	//////////////////////////////////////////////////
 	//             Monte Carlo Simulation           //
 	//////////////////////////////////////////////////
@@ -238,14 +249,26 @@ int main()
 	press_Y *= (1.0/Lx/Ly*1e23)/N_a;
 	double mu_ex = log(N_test/(e_test));
 
-	double energy_error = bootstrap_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
-	double energy_QQ_error = bootstrap_error_calculation(energy_QQ_stat, sum_iterations)/1000.0/nPart;
-	double pressure_error = bootstrap_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
+/////////// Bootstrap Error Calculation ////////////
+//	double energy_error = bootstrap_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
+//	double energy_QQ_error = bootstrap_error_calculation(energy_QQ_stat, sum_iterations)/1000.0/nPart;
+//	double pressure_error = bootstrap_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
+
+/////////// Block Error Calculation ////////////
+	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
+	double energy_QQ_error = block_error_calculation(energy_QQ_stat, sum_iterations)/1000.0/nPart;
+	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
 
 
 	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Energe_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
 	cout << "P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << " Lx: " << Lx << " Ly: " << Ly << endl;
 	cout << "energy_error: " << energy_error << " energy_QQ_error: " << energy_QQ_error << " pressure_error: " << pressure_error << endl;
+
+	ofstream fileOutput("statistics.dat", ios_base::app);
+	//fileOutput << max_dist << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << Energy_QQ/1000.0/nPart << "\t" << energy_QQ_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
+	fileOutput << temperature << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << Energy_QQ/1000.0/nPart << "\t" << energy_QQ_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
+	fileOutput.close();
+
  }
  return 0;
 }

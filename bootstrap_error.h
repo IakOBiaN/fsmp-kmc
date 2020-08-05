@@ -2,7 +2,7 @@ using namespace std;
 
 double bootstrap_error_calculation(vector <double> data, double num_elements)
 {
-	int n = 5;
+	int n = 500;
 	double error_estimation;
 	vector <double> avrg(n);
 	for(int i = 0; i < n; i++)
