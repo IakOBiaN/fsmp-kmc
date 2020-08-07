@@ -41,9 +41,9 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	double sigma_r0 = 11.052 - r0; // in A
 	double sigma_r0_6 = sigma_r0*sigma_r0*sigma_r0*sigma_r0*sigma_r0*sigma_r0;
 	double eps = 360.0*R; // in J/mol
-	const double Ke = 8.987551e+19; // in J*A/C^2
-	double N_a = 6.02214e+23;
-	double q = 0.45*1.6e-19; // in C
+	const double Ke = 8.9875517923e+19; // in J*A/C^2
+	double N_a = 6.02214076e+23;
+	double q = 0.45*1.602176634e-19; // in C
 	double q2 = q*q;
 	double QQ_const = Ke*q2*N_a;
 	double dist2 = 0;
