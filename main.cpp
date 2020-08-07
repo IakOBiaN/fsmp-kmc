@@ -101,8 +101,8 @@ results EN_AND_PR_counter;											// energy and pressures in the system.
 double ACCEPTANCE_RATIO_r[2] = {0, 0};					// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;												// steps for balance statistics
-double delta = 1.5;															// MC parameter. Maximal shift of the molecule
-double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
+double delta = 0.5;															// MC parameter. Maximal shift of the molecule
+double delta_angle = 20.0;    										// MC parameter. Maximal rotation in degrees
 double R = 8.31446261815324;														// Gas constant in J per mol
 double N_a = 6.02214076e+23;												//	Avogadro constant
 const double PI = 3.14159265358979323846;
@@ -147,7 +147,7 @@ int main()
  // Set configuration parameters
 
  double press_X = 0, press_Y = 0, Energy=0, Energy_QQ = 0;
- double persent = 0;
+ double persent = 0,AR_r,AR_m;
 
  /////////////////////////////
  // Set the Monte Carlo run //
@@ -226,6 +226,33 @@ int main()
 					percent = 0;
 				}
 			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+
+				balanceEq++;
+        BALANCE_STEPS = 1000;
+        if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
+        {
+            if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
+            {
+								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
+				        AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
+								cout << "AR_m: " << AR_m << " delta: " << delta << " AR_r: " << AR_r << " delta_ang: " << delta_angle << endl;
+								if (AR_r < 0.25 && delta_angle > 5.0)
+				         {delta_angle -= 1.0;}
+				        if (AR_r > 0.3 && delta_angle < 85.0)
+				         {delta_angle += 1.0;}
+								if (AR_m < 0.25 && delta > 0.05)
+				         {delta -= 0.02;}
+				        if (AR_m > 0.3 && delta < 0.8)
+				         {delta += 0.02;}
+
+                balanceEq = 0;
+                ACCEPTANCE_RATIO_r[0] = 0;
+                ACCEPTANCE_RATIO_r[1] = 0;
+                ACCEPTANCE_RATIO_m[0] = 0;
+                ACCEPTANCE_RATIO_m[1] = 0;
+            }
+        }
+
 			if(iter > nIterEq)
 				{
 					if (iter == nIterEq+1){Energy = 0; Energy_QQ = 0; press_X = 0; press_Y = 0; sum_iterations = 0; N_test = 0; e_test = 0;}
