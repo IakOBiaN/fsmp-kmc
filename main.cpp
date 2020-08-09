@@ -107,6 +107,7 @@ double R = 8.31446261815324;														// Gas constant in J per mol
 double N_a = 6.02214076e+23;												//	Avogadro constant
 const double PI = 3.14159265358979323846;
 double density;																	// Actual density of the layer in mkMol per m^2
+double state_dens, state_Ly;
 int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
 double e_test;																	// Counter for energy change due to the insertion of the test particle
 
@@ -120,15 +121,17 @@ int frame = 0; // For visualization purpose
 
 #include "PBC2D.h"
 //#include "energies_and_forces_exact_not.h"
-#include "energies_and_forces_exact.h"
-//#include "energies_and_forces_approx.h"
+//#include "energies_and_forces_exact.h"
+#include "energies_and_forces_approx.h"
 #include "initConfigHoneycombTMA.h"
+#include "initConfigFlowerTMA.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
 #include "Widom_test.h"
 //#include "bootstrap_error.h"
 #include "block_error.h"
+#include "density_to_Ly.h"
 
 int main()
 {
@@ -147,12 +150,13 @@ int main()
  // Set configuration parameters
 
  double press_X = 0, press_Y = 0, Energy=0, Energy_QQ = 0;
- double persent = 0,AR_r,AR_m;
+ double persent = 0, AR_r, AR_m;
 
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 512; // Amount of molecules in the layer
+ int nPart = 864; // Amount of molecules in the layer
+ state_Ly = 28.35*11.052;
  int nSteps = 50000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 10000;           // MCS for relaxation
@@ -176,8 +180,8 @@ int main()
  //for(max_dist = 11.052; max_dist < 11.052*31; max_dist += 11.052*0.5)
  {
 
-	 initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly);
-	 write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.2656));
+	write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
 //	vector <double> pressure_avr_X;
 //	vector <double> pressure_avr_Y;
 	frame = 1;
@@ -287,7 +291,7 @@ int main()
 	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
 
 
-	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Energe_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
+	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Energy_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
 	cout << "P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << " Lx: " << Lx << " Ly: " << Ly << endl;
 	cout << "energy_error: " << energy_error << " energy_QQ_error: " << energy_QQ_error << " pressure_error: " << pressure_error << endl;
 
