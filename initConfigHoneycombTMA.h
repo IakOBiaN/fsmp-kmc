@@ -61,20 +61,20 @@ for(int i = 0; i < number_in_x; i++)
     }
     nPart = molecule;
 
-		double Ly_correction, Lx_correction;
 		if (state_Ly > 0)
 		{
-			Ly_correction = state_Ly/Ly;
-			Lx_correction = state_Ly*ratio_x_to_y/Lx;
+			double Ly_correction = state_Ly/Ly;
+			double Lx_correction = state_Ly*ratio_x_to_y/Lx;
 			for (int i = 0; i < nPart; i++)
 			{
 				coordinates[i].x *= Lx_correction;
 				coordinates[i].y *= Ly_correction;
 				charges_coordinates(coordinates[i]);
 			}
-		}
 		Ly *= Ly_correction;
 		Lx *= Lx_correction;
+		}
+
 
     density = (1.0e+26)*nPart/(Lx*Ly)/N_a;
 
