@@ -113,18 +113,32 @@ double e_test;																	// Counter for energy change due to the insertion
 
 // Minimal (hard core distance) and maximal distance between the molecules
 // Hard core radius = 7.5877 A
-double min_dist = 7.5877, max_dist = 11.052*5.0;
+
+// Forcefield for N2-N2 pair
+vector <vector <vector <double> > > forcefield;
+vector <vector <vector <double> > > energy;
+// Minimal (hard core distance) and maximal distance between the molecules
+double min_dist,max_dist;
+// Delta between neighbor distances in the forcefield in A
+double dr;
+// Delta between orientation angle of the single molecule
+double da;
+
+//double min_dist = 7.5877, max_dist = 11.052*5.0;
 
 int frame = 0; // For visualization purpose
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "read_forcefield.h"
 #include "PBC2D.h"
 //#include "energies_and_forces_exact_not.h"
 //#include "energies_and_forces_exact.h"
-#include "energies_and_forces_approx.h"
+//#include "energies_and_forces_approx.h"
+#include "energies_and_forces_numerical_simple_model.h"
 #include "initConfigHoneycombTMA.h"
 #include "initConfigFlowerTMA.h"
+#include "initConfigSuperFlowerTMA.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
@@ -138,6 +152,28 @@ int main()
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
+
+ //////////////////////////////////////////////////////////////////////////////////////
+ //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
+ /////////////////////////////////////////////////////////////////////////////////////
+	// Fill in the forcefield
+	// First dimension is distance
+	// Second dimension is angle of first molecule
+	// Third dimension is angle of second molecule
+	for (int i = 0; i < 2384; i++) {
+		vector< vector<double> > mat; // Create an empty matrix
+			for (int j = 0; j < 361; j++) {
+				vector<double> row; // Create an empty row
+					for (int k =0; k <361; k++) {
+						row.push_back(0);
+					}
+					mat.push_back(row); // Add an element (column) to the row
+			}
+			forcefield.push_back(mat); // Add the row to the main vector
+	}
+   // Read the forcefield from "forcefield.dat"
+   cout << "read forcefield.dat file" << endl;
+   read_forcefield ("simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
 
  // Write the model parameters to data-file
  stringstream name;
@@ -155,11 +191,14 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 864; // Amount of molecules in the layer
- state_Ly = 28.35*11.052;
- int nSteps = 50000;            // Total amount of MCS
+ int nPart = 512; // Honeycomb
+// int nPart = 864; // Flower-1
+// int nPart = 450; // Superflower
+ state_Ly = 23.84*11.052; // Honeycomb
+// state_Ly = 28.35*11.052; // Flower-1
+ int nSteps = 5000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 10000;           // MCS for relaxation
+ int nStepsEq = 1000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
@@ -179,8 +218,10 @@ int main()
  //for(min_dist = 7.5877; min_dist < 10.1; min_dist += 0.02)
  //for(max_dist = 11.052; max_dist < 11.052*31; max_dist += 11.052*0.5)
  {
-
-	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.2656));
+	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, 0);
+//	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.0606));
+//	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.2656));
+//	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.5525));
 	write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
 //	vector <double> pressure_avr_X;
 //	vector <double> pressure_avr_Y;
@@ -259,21 +300,18 @@ int main()
 
 			if(iter > nIterEq)
 				{
-					if (iter == nIterEq+1){Energy = 0; Energy_QQ = 0; press_X = 0; press_Y = 0; sum_iterations = 0; N_test = 0; e_test = 0;}
+					if (iter == nIterEq+1){Energy = 0; press_X = 0; press_Y = 0; sum_iterations = 0; N_test = 0; e_test = 0;}
 					sum_iterations += 1;
 					Energy += EN_AND_PR_counter.energy;
-					Energy_QQ += EN_AND_PR_counter.energy_QQ;
 					press_X += EN_AND_PR_counter.p_X;
 					press_Y += EN_AND_PR_counter.p_Y;
 					energy_stat[sum_iterations] = EN_AND_PR_counter.energy;
-					energy_QQ_stat[sum_iterations] = EN_AND_PR_counter.energy_QQ;
 					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0;
 					Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
 				}
 		}
 
 	Energy /= sum_iterations;
-	Energy_QQ /= sum_iterations;
 	press_X /= sum_iterations;
 	press_Y /= sum_iterations;
 	press_X *= (1.0/Lx/Ly*1e23)/N_a;
@@ -287,17 +325,16 @@ int main()
 
 /////////// Block Error Calculation ////////////
 	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
-	double energy_QQ_error = block_error_calculation(energy_QQ_stat, sum_iterations)/1000.0/nPart;
 	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
 
 
-	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Energy_QQ: " << Energy_QQ/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
+	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
 	cout << "P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << " Lx: " << Lx << " Ly: " << Ly << endl;
-	cout << "energy_error: " << energy_error << " energy_QQ_error: " << energy_QQ_error << " pressure_error: " << pressure_error << endl;
+	cout << "energy_error: " << energy_error << " pressure_error: " << pressure_error << endl;
 
 	ofstream fileOutput("statistics.dat", ios_base::app);
 	//fileOutput << max_dist << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << Energy_QQ/1000.0/nPart << "\t" << energy_QQ_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
-	fileOutput << temperature << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << Energy_QQ/1000.0/nPart << "\t" << energy_QQ_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
+	fileOutput << temperature << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
 	fileOutput.close();
 
  }

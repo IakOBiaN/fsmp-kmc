@@ -59,24 +59,24 @@ for(int i = 0; i < number_in_x; i++)
           molecule++;
       }
     }
-    nPart = molecule;
+nPart = molecule;
 
-		if (state_Ly > 0)
-		{
-			double Ly_correction = state_Ly/Ly;
-			double Lx_correction = state_Ly*ratio_x_to_y/Lx;
-			for (int i = 0; i < nPart; i++)
-			{
-				coordinates[i].x *= Lx_correction;
-				coordinates[i].y *= Ly_correction;
-				charges_coordinates(coordinates[i]);
-			}
-		Ly *= Ly_correction;
-		Lx *= Lx_correction;
-		}
+if (state_Ly > 0)
+{
+	double Ly_correction = state_Ly/Ly;
+	double Lx_correction = state_Ly*ratio_x_to_y/Lx;
+	for (int i = 0; i < nPart; i++)
+	{
+		coordinates[i].x *= Lx_correction;
+		coordinates[i].y *= Ly_correction;
+		charges_coordinates(coordinates[i]);
+	}
+Ly *= Ly_correction;
+Lx *= Lx_correction;
+}
 
 
-    density = (1.0e+26)*nPart/(Lx*Ly)/N_a;
+density = (1.0e+26)*nPart/(Lx*Ly)/N_a;
 
  cout << "Honeycomb TMA Structure: " << endl;
  cout << "N: " << molecule << "\t" << "density: " << density << " mikro mol/m2" << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
