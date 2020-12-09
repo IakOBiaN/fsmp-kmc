@@ -65,11 +65,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double r;	// Distance between A and B molecules
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
-		double diff_delta = 0.000001;
+		double diff_delta = 0.01;
 
 
 		double r0 = 7.5877; // Hard core radius in A
 		state molB_clone = molB;
+		state molA_clone = molA;
 		double energy_cur = 0;
 		double pressure_X = 0, pressure_Y = 0;
 
@@ -93,36 +94,55 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
                en_and_press.energy += 1e20;
                continue;
              }
-             if (r > min_dist && r <= max_dist)
+             if (r > min_dist && r <= (max_dist-2.0*diff_delta))
              {
 								double t_U;
-								charges_coordinates(molB_clone);
 								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y, t_U);
 								energy_cur += t_U;
 
 								// Pressure calculation
 
 								double dist_x_plus_delta, dist_y_plus_delta;
-								double t_U_delta = 0;
+								double t_U_delta_1 = 0, t_U_delta_2 = 0;
 
 								molB_clone.x = molB_clone.x - diff_delta;
-								dist_x_plus_delta = molB_clone.x - molA.x;
+								molA_clone.x = molA_clone.x + diff_delta;
+								dist_x_plus_delta = molB_clone.x - molA_clone.x;
 								r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
 								r = sqrt(r2);
-								charges_coordinates(molB_clone);
-								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta);
-								pressure_X += -(t_U-t_U_delta)/diff_delta*dist_x;
-								molB_clone.x = molB_clone.x + diff_delta;
+								energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta_1);
 
-								t_U_delta = 0;
+								molB_clone.x = molB_clone.x + 2.0*diff_delta;
+								molA_clone.x = molA_clone.x - 2.0*diff_delta;
+								dist_x_plus_delta = molB_clone.x - molA_clone.x;
+								r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
+								r = sqrt(r2);
+								energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta_2);
+
+								pressure_X += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_x;
+								molB_clone.x = molB_clone.x - diff_delta;
+								molA_clone.x = molA_clone.x + diff_delta;
+
+								t_U_delta_1 = 0;
+								t_U_delta_2 = 0;
+
 								molB_clone.y = molB_clone.y - diff_delta;
-								dist_y_plus_delta = molB_clone.y - molA.y;
+								molA_clone.y = molA_clone.y + diff_delta;
+								dist_y_plus_delta = molB_clone.y - molA_clone.y;
 								r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
 							  r = sqrt(r2);
-								charges_coordinates(molB_clone);
-								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta);
-								pressure_Y += -(t_U-t_U_delta)/diff_delta*dist_y;
-								molB_clone.y = molB_clone.y + diff_delta;
+								energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta_1);
+
+								molB_clone.y = molB_clone.y + 2.0*diff_delta;
+								molA_clone.y = molA_clone.y - 2.0*diff_delta;
+								dist_y_plus_delta = molB_clone.y - molA_clone.y;
+								r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
+							  r = sqrt(r2);
+								energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta_2);
+
+								pressure_Y += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_y;
+								molB_clone.y = molB_clone.y - diff_delta;
+								molA_clone.y = molA_clone.y + diff_delta;
              }
        }
     }
