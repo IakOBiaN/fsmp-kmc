@@ -132,17 +132,15 @@ int frame = 0; // For visualization purpose
 
 #include "read_forcefield.h"
 #include "PBC2D.h"
-//#include "energies_and_forces_exact_not.h"
-//#include "energies_and_forces_exact.h"
-//#include "energies_and_forces_approx.h"
-#include "energies_and_forces_numerical_simple_model.h"
+#include "energies_and_forces_numerical_Dreiding_TMA.h"
+//#include "energies_and_forces_numerical_simple_model.h"
 #include "initConfigHoneycombTMA.h"
-#include "initConfigFlowerTMA.h"
-#include "initConfigSuperFlowerTMA.h"
+//#include "initConfigFlowerTMA.h"
+//#include "initConfigSuperFlowerTMA.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
-#include "Widom_test.h"
+//#include "Widom_test.h"
 //#include "bootstrap_error.h"
 #include "block_error.h"
 #include "density_to_Ly.h"
@@ -160,7 +158,7 @@ int main()
 	// First dimension is distance
 	// Second dimension is angle of first molecule
 	// Third dimension is angle of second molecule
-	for (int i = 0; i < 2384; i++) {
+	for (int i = 0; i < 551; i++) {
 		vector< vector<double> > mat; // Create an empty matrix
 			for (int j = 0; j < 361; j++) {
 				vector<double> row; // Create an empty row
@@ -173,14 +171,15 @@ int main()
 	}
    // Read the forcefield from "forcefield.dat"
    cout << "read forcefield.dat file" << endl;
-   read_forcefield ("simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
+   read_forcefield ("7.0_Dreiding_ff_TMA.dat", forcefield, min_dist, max_dist, dr, da);
 
  // Write the model parameters to data-file
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
 // fileOutput << "Cutoff" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
- fileOutput << "T" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
+// fileOutput << "T" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
+ fileOutput << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t" << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << endl;
  fileOutput.close();
 
  // Set configuration parameters
@@ -194,11 +193,11 @@ int main()
  int nPart = 512; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- state_Ly = 23.84*11.052; // Honeycomb
+// state_Ly = 23.84*11.052; // Honeycomb
 // state_Ly = 28.35*11.052; // Flower-1
- int nSteps = 5000;            // Total amount of MCS
+ int nSteps = 100000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 1000;           // MCS for relaxation
+ int nStepsEq = 50000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
@@ -212,21 +211,23 @@ int main()
 
  //Generete an initial distribution of molecules at fixed density
  double temperature = 300.0;
- double deltaT = 10.0;
+// double deltaT = 10.0;
 
- for(temperature = 300; temperature < 310; temperature += deltaT)
+ for(state_dens = 1.00; state_dens < 1.50; state_dens += 0.05)
+ //for(temperature = 300; temperature < 310; temperature += deltaT)
  //for(min_dist = 7.5877; min_dist < 10.1; min_dist += 0.02)
  //for(max_dist = 11.052; max_dist < 11.052*31; max_dist += 11.052*0.5)
  {
-	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, 0);
+//	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, 0);
+	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.0606));
 //	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.2656));
 //	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.5525));
-	write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, 0, 1, true);
+	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 //	vector <double> pressure_avr_X;
 //	vector <double> pressure_avr_Y;
 	frame = 1;
-	write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
+	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////
@@ -252,7 +253,7 @@ int main()
 	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-	cout << "max_dist: " << max_dist/11.052 << "\t" << "Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << "Energy_QQ: " << EN_AND_PR_counter.energy_QQ/1000.0/nPart << "\t" << "P: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
+	cout << "Density: " << density << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
 	cout << "P_X: " << (EN_AND_PR_counter.p_X/Lx/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/Lx/Ly*1e23/N_a) <<  endl;
 
 	//////////////////////////////////////////////////
@@ -266,7 +267,7 @@ int main()
 			if(percent > nIter/100.0)
 				{
 					frame++;
-					write_xyz_file_TMA (nPart, Lx, Ly, temperature, coordinates, frame, 1, false);
+					write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
 					cout << int(iter*100.0/nIter) << " %" << endl;
 					percent = 0;
 				}
@@ -307,7 +308,7 @@ int main()
 					press_Y += EN_AND_PR_counter.p_Y;
 					energy_stat[sum_iterations] = EN_AND_PR_counter.energy;
 					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0;
-					Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
+//					Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
 				}
 		}
 
@@ -316,7 +317,7 @@ int main()
 	press_Y /= sum_iterations;
 	press_X *= (1.0/Lx/Ly*1e23)/N_a;
 	press_Y *= (1.0/Lx/Ly*1e23)/N_a;
-	double mu_ex = log(N_test/(e_test));
+//	double mu_ex = log(N_test/(e_test));
 
 /////////// Bootstrap Error Calculation ////////////
 //	double energy_error = bootstrap_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
@@ -328,13 +329,13 @@ int main()
 	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
 
 
-	cout << "Min_dist: " << min_dist << " Energy_MC: " << Energy/1000.0/nPart << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " P_ex_MC: " << (press_X + press_Y)/2.0 << " Chem. potential: " << mu_ex << endl;
-	cout << "P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << " Lx: " << Lx << " Ly: " << Ly << endl;
-	cout << "energy_error: " << energy_error << " pressure_error: " << pressure_error << endl;
+	cout << "Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
+	cout << "Energy_MC: " << Energy/1000.0/nPart << " energy_error: " << energy_error << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
+	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << endl;
 
 	ofstream fileOutput("statistics.dat", ios_base::app);
 	//fileOutput << max_dist << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << Energy_QQ/1000.0/nPart << "\t" << energy_QQ_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
-	fileOutput << temperature << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
+	fileOutput << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
 	fileOutput.close();
 
  }
