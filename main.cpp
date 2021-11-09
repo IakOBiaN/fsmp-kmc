@@ -218,11 +218,11 @@ int main()
  //for(min_dist = 7.5877; min_dist < 10.1; min_dist += 0.02)
  //for(max_dist = 11.052; max_dist < 11.052*31; max_dist += 11.052*0.5)
  {
-//	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, 0);
-	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
-//	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.0606));
-//	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.2656));
-//	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.5525));
+  initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
+  //initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
+  //initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly_SF(nPart, state_dens));
+
+
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 //	vector <double> pressure_avr_X;
 //	vector <double> pressure_avr_Y;
