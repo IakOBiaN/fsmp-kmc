@@ -81,6 +81,7 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 						if (a2 >= 360) {a2 -= 360;}
 						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 0.15*abs(forcefield[i][a2][a1]))
 						{
+						 cout << "distance: " << min_dist+i*0.02 << " angle1: " << j << " angle2: " << k << endl;
 						 cout << "Potential error. Energy=" << forcefield[i][j][k] << " must be close energy=" << forcefield[i][a2][a1] << endl;
 						}
 						if (forcefield[i][j][k] < forcefield[i][a2][a1])

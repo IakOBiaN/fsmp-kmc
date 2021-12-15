@@ -17,26 +17,25 @@ Lx = number_in_x*x_uc;
 Ly = number_in_y*y_uc;
 
 int molecule = 0; // Molecules counter
+double start_position = 3.0;
 
 for(int i = 0; i < number_in_x; i++)
 		{
      for(int j = 0; j < number_in_y; j++)
 			{
               //unit cell
-							coordinates[molecule].x = 3.0 + i*x_uc;
-							coordinates[molecule].y = 3.0 + j*y_uc;
+							coordinates[molecule].x = PBC2D(Lx, start_position + i*x_uc);
+							coordinates[molecule].y = PBC2D(Ly, start_position + j*y_uc);
 							coordinates[molecule].phi = 60.0;
 							coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 							coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
 							molecule++;
 
-							coordinates[molecule].x = coordinates[molecule-1].x + h3_bond_dist*sin(60.0/180.0*PI);
-							coordinates[molecule].y = coordinates[molecule-1].y + h3_bond_dist*cos(60.0/180.0*PI);
+							coordinates[molecule].x = PBC2D(Lx, coordinates[molecule-1].x + h3_bond_dist*sin(60.0/180.0*PI));
+							coordinates[molecule].y = PBC2D(Ly, coordinates[molecule-1].y + h3_bond_dist*cos(60.0/180.0*PI));
 							coordinates[molecule].phi = 60.0;
 							coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 							coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
 							molecule++;
 						}
 			}
@@ -51,7 +50,6 @@ if (state_Ly > 0)
 	{
 		coordinates[i].x *= Ly_correction;
 		coordinates[i].y *= Lx_correction;
-		charges_coordinates(coordinates[i]);
 	}
 	Ly *= Ly_correction;
 	Lx *= Lx_correction;
