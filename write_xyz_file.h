@@ -1,9 +1,10 @@
 void write_xyz_file_TMA (int &nPart, double &density, double &Lx, double &Ly, double &temperature, vector <state> &coordinates, int frame, double distance, bool init)
 {
- stringstream name;
- name << "rho_" << density << ".xyz";
- if (init) {ofstream fileOutput(name.str().c_str(), ios_base::trunc);fileOutput.close();}
- else {
+	stringstream name;
+// name << "rho_" << density << ".xyz";
+	name << "p0_T" << temperature << ".xyz";
+	if (init) {ofstream fileOutput(name.str().c_str(), ios_base::trunc);fileOutput.close();}
+	else {
 			ofstream fileOutput(name.str().c_str(), ios_base::app);
 			fileOutput << nPart*4 << endl;
 			fileOutput << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\"" << endl;

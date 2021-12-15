@@ -31,7 +31,6 @@ for(int i = 0; i < number_in_x; i++)
               coordinates[molecule].phi = 90.0;
               coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
               coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
               molecule++;
 
               coordinates[molecule].x = PBC2D(Lx, coordinates[molecule-1].x + h3_bond_dist);
@@ -39,7 +38,6 @@ for(int i = 0; i < number_in_x; i++)
               coordinates[molecule].phi = 90.0;
               coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
               coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
               molecule++;
 
 
@@ -48,7 +46,6 @@ for(int i = 0; i < number_in_x; i++)
               coordinates[molecule].phi = 30.0;
               coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
               coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
               molecule++;
 
 							coordinates[molecule].x = PBC2D(Lx, coordinates[molecule-1].x + h3_bond_dist*sin(30.0/180.0*PI));
@@ -56,7 +53,6 @@ for(int i = 0; i < number_in_x; i++)
               coordinates[molecule].phi = 30.0;
               coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
               coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
               molecule++;
 
 							coordinates[molecule].x = PBC2D(Lx, coordinates[molecule-1].x - h3_bond_dist);
@@ -64,7 +60,6 @@ for(int i = 0; i < number_in_x; i++)
 							coordinates[molecule].phi = 30.0;
 							coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 							coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
 							molecule++;
 
 							coordinates[molecule].x = PBC2D(Lx, coordinates[molecule-1].x - h_bond_dist*cos(30.0/180.0*PI));
@@ -72,7 +67,6 @@ for(int i = 0; i < number_in_x; i++)
 							coordinates[molecule].phi = 90.0;
 							coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 							coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							charges_coordinates(coordinates[molecule]);
 							molecule++;
 
       }
@@ -87,7 +81,6 @@ if (state_Ly > 0)
 	{
 		coordinates[i].x *= Ly_correction;
 		coordinates[i].y *= Lx_correction;
-		charges_coordinates(coordinates[i]);
 	}
 	Ly *= Ly_correction;
 	Lx *= Lx_correction;

@@ -101,8 +101,8 @@ results EN_AND_PR_counter;											// energy and pressures in the system.
 double ACCEPTANCE_RATIO_r[2] = {0, 0};					// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;												// steps for balance statistics
-double delta = 0.5;															// MC parameter. Maximal shift of the molecule
-double delta_angle = 20.0;    										// MC parameter. Maximal rotation in degrees
+double delta = 2.5;															// MC parameter. Maximal shift of the molecule
+double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
 double R = 8.31446261815324;														// Gas constant in J per mol
 double N_a = 6.02214076e+23;												//	Avogadro constant
 const double PI = 3.14159265358979323846;
@@ -140,6 +140,7 @@ int frame = 0; // For visualization purpose
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
+#include "pressure_balance.h"
 //#include "Widom_test.h"
 //#include "bootstrap_error.h"
 #include "block_error.h"
@@ -158,7 +159,7 @@ int main()
 	// First dimension is distance
 	// Second dimension is angle of first molecule
 	// Third dimension is angle of second molecule
-	for (int i = 0; i < 551; i++) {
+	for (int i = 0; i < 1303; i++) {
 		vector< vector<double> > mat; // Create an empty matrix
 			for (int j = 0; j < 361; j++) {
 				vector<double> row; // Create an empty row
@@ -171,7 +172,7 @@ int main()
 	}
    // Read the forcefield from "forcefield.dat"
    cout << "read forcefield.dat file" << endl;
-   read_forcefield ("7.0_Dreiding_ff_TMA.dat", forcefield, min_dist, max_dist, dr, da);
+   read_forcefield ("Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
 
  // Write the model parameters to data-file
  stringstream name;
@@ -179,7 +180,7 @@ int main()
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
 // fileOutput << "Cutoff" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
 // fileOutput << "T" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
- fileOutput << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t" << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << endl;
+ fileOutput << "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t" << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << endl;
  fileOutput.close();
 
  // Set configuration parameters
@@ -195,9 +196,9 @@ int main()
 // int nPart = 450; // Superflower
 // state_Ly = 23.84*11.052; // Honeycomb
 // state_Ly = 28.35*11.052; // Flower-1
- int nSteps = 100000;            // Total amount of MCS
+ int nSteps = 150000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 50000;           // MCS for relaxation
+ int nStepsEq = 100000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
@@ -210,18 +211,19 @@ int main()
  ////////////////////////////////////////////////////////////
 
  //Generete an initial distribution of molecules at fixed density
- double temperature = 300.0;
-// double deltaT = 10.0;
+ double temperature = 400.0;
+ double deltaT = 20.0;
+ state_dens = 1.283; // mkmol/m2
 
- for(state_dens = 1.00; state_dens < 1.50; state_dens += 0.05)
- //for(temperature = 300; temperature < 310; temperature += deltaT)
+// for(state_dens = 1.50; state_dens < 1.60; state_dens += 0.005)
+for(temperature = 400; temperature <= 2000; temperature += deltaT)
  //for(min_dist = 7.5877; min_dist < 10.1; min_dist += 0.02)
  //for(max_dist = 11.052; max_dist < 11.052*31; max_dist += 11.052*0.5)
  {
-//	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, 0);
 	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.0606));
 //	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.2656));
+//	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.5525));
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 //	vector <double> pressure_avr_X;
@@ -274,30 +276,46 @@ int main()
 			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
 
 				balanceEq++;
-        BALANCE_STEPS = 1000;
-        if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
-        {
-            if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
-            {
+				BALANCE_STEPS = 100;
+				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
+					{
+						sum_iterations += 1;
+						press_X += EN_AND_PR_counter.p_X;
+						press_Y += EN_AND_PR_counter.p_Y;
+
+						if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
+							{
+								press_X /= sum_iterations;
+								press_Y /= sum_iterations;
+								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
+								if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
+								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
+								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
+								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
+								zero_pressure_balance(press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
-				        AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
+								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
 								cout << "AR_m: " << AR_m << " delta: " << delta << " AR_r: " << AR_r << " delta_ang: " << delta_angle << endl;
 								if (AR_r < 0.25 && delta_angle > 5.0)
-				         {delta_angle -= 1.0;}
-				        if (AR_r > 0.3 && delta_angle < 85.0)
-				         {delta_angle += 1.0;}
+								{delta_angle -= 1.0;}
+								if (AR_r > 0.3 && delta_angle < 120.0)
+								{delta_angle += 1.0;}
 								if (AR_m < 0.25 && delta > 0.05)
-				         {delta -= 0.02;}
-				        if (AR_m > 0.3 && delta < 0.8)
-				         {delta += 0.02;}
+								{delta -= 0.02;}
+								if (AR_m > 0.3 && delta < 0.8)
+								{delta += 0.02;}
 
-                balanceEq = 0;
-                ACCEPTANCE_RATIO_r[0] = 0;
-                ACCEPTANCE_RATIO_r[1] = 0;
-                ACCEPTANCE_RATIO_m[0] = 0;
-                ACCEPTANCE_RATIO_m[1] = 0;
-            }
-        }
+								sum_iterations = 0;
+								press_X = 0;
+								press_Y = 0;
+								balanceEq = 0;
+								ACCEPTANCE_RATIO_r[0] = 0;
+								ACCEPTANCE_RATIO_r[1] = 0;
+								ACCEPTANCE_RATIO_m[0] = 0;
+								ACCEPTANCE_RATIO_m[1] = 0;
+							}
+					}
 
 			if(iter > nIterEq)
 				{
@@ -329,13 +347,13 @@ int main()
 	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
 
 
-	cout << "Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
+	cout << "T: " << temperature << " Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
 	cout << "Energy_MC: " << Energy/1000.0/nPart << " energy_error: " << energy_error << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
 	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << endl;
 
 	ofstream fileOutput("statistics.dat", ios_base::app);
 	//fileOutput << max_dist << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << Energy_QQ/1000.0/nPart << "\t" << energy_QQ_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
-	fileOutput << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
+	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
 	fileOutput.close();
 
  }
