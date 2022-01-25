@@ -111,6 +111,8 @@ double state_dens, state_Ly;
 int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
 double e_test;																	// Counter for energy change due to the insertion of the test particle
 
+bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
+
 // Minimal (hard core distance) and maximal distance between the molecules
 // Hard core radius = 7.5877 A
 

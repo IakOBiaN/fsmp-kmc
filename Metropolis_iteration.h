@@ -41,7 +41,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       }
 
 		delta_EP = new_EP - old_EP;
-		if(RanGen.Random() < exp(-delta_EP.energy*beta))
+		if(RanGen.Random() < exp(-delta_EP.energy*beta) && !HC_radius)
       {
           coordinates[trialPart] = new_coordinates;     // Update position
           EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
@@ -52,4 +52,5 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
 				if(angle_change){ACCEPTANCE_RATIO_r[0] += 1.0;}
 				else{ACCEPTANCE_RATIO_m[0] += 1.0;}
       }
+      HC_radius = false;
 }

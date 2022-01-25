@@ -56,6 +56,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
              r = sqrt(r2);
              if (r <= min_dist)
              {
+               HC_radius = true;
                en_and_press.energy += 1e20;
                continue;
              }
