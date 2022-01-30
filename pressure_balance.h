@@ -4,7 +4,7 @@ void zero_pressure_balance(double press_X, double press_Y, double &Lx, double &L
 	double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
 	dL = 0.005;
 
-	if((press_X + press_Y)/2.0 < 0)
+	if(nPart/beta+(press_X + press_Y)/2.0 < 0)
 		{
 			Lx_new = Lx - dL;
 		}
@@ -30,6 +30,6 @@ void zero_pressure_balance(double press_X, double press_Y, double &Lx, double &L
 	// Recalculate energies after compressing or expanding the box
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 
-	cout << "pX: " << press_X*(1.0/Lx/Ly*1e23)/N_a << " pY: " << press_Y*(1.0/Lx/Ly*1e23)/N_a << " avg_p: " << (press_X + press_Y)*(1.0/Lx/Ly*1e23)/N_a/2.0 << endl;
+	cout << "pX: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + press_X*(1.0/Lx/Ly*1e23)/N_a << " pY: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + press_Y*(1.0/Lx/Ly*1e23)/N_a << " avg_p: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + (press_X + press_Y)*(1.0/Lx/Ly*1e23)/N_a/2.0 << endl;
 	cout << "Lx: " << Lx << " Ly: " << Ly << " density: " << density << endl;
 }
