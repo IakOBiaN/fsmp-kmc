@@ -33,3 +33,35 @@ void zero_pressure_balance(double press_X, double press_Y, double &Lx, double &L
 	cout << "pX: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + press_X*(1.0/Lx/Ly*1e23)/N_a << " pY: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + press_Y*(1.0/Lx/Ly*1e23)/N_a << " avg_p: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + (press_X + press_Y)*(1.0/Lx/Ly*1e23)/N_a/2.0 << endl;
 	cout << "Lx: " << Lx << " Ly: " << Ly << " density: " << density << endl;
 }
+
+void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
+{
+    double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
+    double S = Lx*Ly;
+    dL = 0.005;
+
+       if(press_X < press_Y)
+       {
+        Lx_new = Lx - dL;
+        Ly_new = S/Lx_new;  // Area of the adlayer is kept constant
+       }
+       else
+       {
+        Lx_new = Lx + dL;
+        Ly_new = S/Lx_new;
+       }
+       for(int i = 0; i < nPart; i++)
+          {
+            // Coordinates of the molecules change proportionally to
+            // the change of the box size
+            coordinates[i].x = (Lx_new/Lx)*coordinates[i].x;
+            coordinates[i].y = (Ly_new/Ly)*coordinates[i].y;
+          }
+       Lx = Lx_new;
+       Ly = Ly_new;
+       // Recalculate energies after compressing or expanding the box
+       PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+			 
+			 cout << "pX: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + press_X*(1.0/Lx/Ly*1e23)/N_a << " pY: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + press_Y*(1.0/Lx/Ly*1e23)/N_a << " avg_p: " << (1.0e+23*nPart/(Lx*Ly)/N_a/beta) + (press_X + press_Y)*(1.0/Lx/Ly*1e23)/N_a/2.0 << endl;
+			 cout << "Lx: " << Lx << " Ly: " << Ly << " density: " << density << endl;
+}

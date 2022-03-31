@@ -144,7 +144,6 @@ int frame = 0; // For visualization purpose
 #include "Metropolis_iteration.h"
 #include "pressure_balance.h"
 //#include "Widom_test.h"
-//#include "bootstrap_error.h"
 #include "block_error.h"
 #include "density_to_Ly.h"
 
@@ -174,14 +173,12 @@ int main()
 	}
    // Read the forcefield from "forcefield.dat"
    cout << "read forcefield.dat file" << endl;
-   read_forcefield ("Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+   read_forcefield ("Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
 
  // Write the model parameters to data-file
  stringstream name;
  name <<  "statistics.dat";
  ofstream fileOutput(name.str().c_str(), ios_base::trunc);
-// fileOutput << "Cutoff" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
-// fileOutput << "T" << "\t" << "Energy" << "\t" << "Energy_Err" << "\t" << "Energy_QQ" << "\t" << "Energy_QQ_Err" << "\t" << "Pressure" << "\t" << "Pressure_Err" << "\t" << "Chemical Potential" << endl;
  fileOutput << "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t" << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << endl;
  fileOutput.close();
 
@@ -196,11 +193,9 @@ int main()
  int nPart = 512; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
-// state_Ly = 23.84*11.052; // Honeycomb
-// state_Ly = 28.35*11.052; // Flower-1
- int nSteps = 150000;            // Total amount of MCS
+ int nSteps = 15000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 100000;           // MCS for relaxation
+ int nStepsEq = 10000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
@@ -214,22 +209,16 @@ int main()
 
  //Generete an initial distribution of molecules at fixed density
  double temperature = 400.0;
- double deltaT = 20.0;
- state_dens = 1.283; // mkmol/m2
+ double deltaT = 2000.0;
+ state_dens = 1.283; // Density that you want in mkmol/m2
 
 // for(state_dens = 1.50; state_dens < 1.60; state_dens += 0.005)
 for(temperature = 400; temperature <= 2000; temperature += deltaT)
- //for(min_dist = 7.5877; min_dist < 10.1; min_dist += 0.02)
- //for(max_dist = 11.052; max_dist < 11.052*31; max_dist += 11.052*0.5)
  {
 	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
-//	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.0606));
-//	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.2656));
 //	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
-//	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, 1.5525));
+//	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly_SF(nPart, state_dens));
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
-//	vector <double> pressure_avr_X;
-//	vector <double> pressure_avr_Y;
 	frame = 1;
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
 
@@ -295,6 +284,7 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
 								zero_pressure_balance(press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+//								pressure_balance(press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
@@ -339,22 +329,17 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 	press_Y *= (1.0/Lx/Ly*1e23)/N_a;
 //	double mu_ex = log(N_test/(e_test));
 
-/////////// Bootstrap Error Calculation ////////////
-//	double energy_error = bootstrap_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
-//	double energy_QQ_error = bootstrap_error_calculation(energy_QQ_stat, sum_iterations)/1000.0/nPart;
-//	double pressure_error = bootstrap_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
-
 /////////// Block Error Calculation ////////////
 	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
 	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
 
 
-	cout << "T: " << temperature << " Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
-	cout << "Energy_MC: " << Energy/1000.0/nPart << " energy_error: " << energy_error << " Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
+	cout << "Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
+	cout << "T: " << temperature << " Energy_MC: " << Energy/1000.0/nPart << " energy_error: " << energy_error << endl;
+	cout << "Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
 	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << endl;
 
 	ofstream fileOutput("statistics.dat", ios_base::app);
-	//fileOutput << max_dist << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << Energy_QQ/1000.0/nPart << "\t" << energy_QQ_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << mu_ex << endl;
 	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
 	fileOutput.close();
 
