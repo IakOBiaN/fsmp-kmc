@@ -136,7 +136,8 @@ int frame = 0; // For visualization purpose
 #include "PBC2D.h"
 #include "energies_and_forces_numerical_Dreiding_TMA.h"
 //#include "energies_and_forces_numerical_simple_model.h"
-#include "initConfigHoneycombTMA.h"
+#include "initConfigHoneycombTMA_elongated_cell.h"
+//#include "initConfigHoneycombTMA.h"
 //#include "initConfigFlowerTMA.h"
 //#include "initConfigSuperFlowerTMA.h"
 #include "write_xyz_file.h"
@@ -156,6 +157,7 @@ int main()
  //////////////////////////////////////////////////////////////////////////////////////
  //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
  /////////////////////////////////////////////////////////////////////////////////////
+ /*
 	// Fill in the forcefield
 	// First dimension is distance
 	// Second dimension is angle of first molecule
@@ -174,7 +176,7 @@ int main()
    // Read the forcefield from "forcefield.dat"
    cout << "read forcefield.dat file" << endl;
    read_forcefield ("Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
-
+*/
  // Write the model parameters to data-file
  stringstream name;
  name <<  "statistics.dat";
@@ -198,7 +200,7 @@ int main()
  int nStepsEq = 10000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
- vector <state> coordinates(nPart); // Vector of the molecules coordinates, angles and charges
+ vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
  vector <double> pressure_stat(nIter - nIterEq);
  vector <double> energy_stat(nIter - nIterEq);
  vector <double> energy_QQ_stat(nIter - nIterEq);
@@ -215,7 +217,8 @@ int main()
 // for(state_dens = 1.50; state_dens < 1.60; state_dens += 0.005)
 for(temperature = 400; temperature <= 2000; temperature += deltaT)
  {
-	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
+	initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
+//	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly_SF(nPart, state_dens));
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
