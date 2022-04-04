@@ -175,7 +175,7 @@ int main()
 	}
    // Read the forcefield from "forcefield.dat"
    cout << "read forcefield.dat file" << endl;
-   read_forcefield ("Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+   read_forcefield ("simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
 */
  // Write the model parameters to data-file
  stringstream name;
@@ -192,7 +192,7 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 512; // Honeycomb
+ int nPart = 640; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
  int nSteps = 15000;            // Total amount of MCS
@@ -217,7 +217,7 @@ int main()
 // for(state_dens = 1.50; state_dens < 1.60; state_dens += 0.005)
 for(temperature = 400; temperature <= 2000; temperature += deltaT)
  {
-	initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
+	initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
 //	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly_SF(nPart, state_dens));

@@ -1,24 +1,21 @@
 using namespace std;
 
-void initConfigHoneycombTMA_elongated_cell(int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double state_Ly)
+void initConfigHoneycombTMA_elongated_cell(int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double state_dens)
 {
 
-double h_bond_dist = 10.97832;
+int cells = nPart/4.0;  //4 molecules in unit cell (amount)
+int number_in_x = sqrt(5.0/4.0*nPart);  //unit cells along x directions
+int number_in_y = cells/number_in_x;  //unit cells along y directions
+double state_Ly = sqrt((1.0e+26)*nPart/(state_dens*N_a*5.0/sqrt(3.0)));  //y-size of the cell from density
+double y_uc = state_Ly/number_in_y;  //y-size of the unit cell
+double x_uc = y_uc/sqrt(3.0);  //x-size of the unit cell
+double h_bond_dist = y_uc/3.0;  //hydrogen bond distance related
+double pre_Lx = number_in_x*x_uc;  //initial x-size of the crystal
 
-double x_uc = 2.0*h_bond_dist*cos(30.0/180.0*PI);
-double y_uc = 2.0*h_bond_dist + 2.0*h_bond_dist*sin(30.0/180.0*PI);
+Lx = pre_Lx*(1.0 + (3.0/16.0)*2.0); //add vacuum slab at both sides
+Ly = number_in_y*y_uc;  //y-size of the cell
 
-int cells = nPart/4.0;
-int number_in_y = sqrt(cells/2.0);
-int number_in_x = cells/number_in_y;
-
-double pre_Lx = number_in_x*x_uc;
-
-Lx = pre_Lx*(1.0 + free_space*2.0);
-Ly = number_in_y*y_uc;
-Lx = 4.0*Ly*(2.0/sqrt(3));
-
-double move_from_border = (Lx - pre_Lx)/2.0;
+double move_from_border = (Lx - pre_Lx)/2.0; //shift of the crystal from the initial position
 
 int molecule = 0; // Molecules counter
 
