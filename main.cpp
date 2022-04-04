@@ -74,21 +74,11 @@ class state {
 public:
 double x;
 double y;
-double q1x_p;
-double q1y_p;
-double q2x_p;
-double q2y_p;
-double q3x_p;
-double q3y_p;
-double q1x_n;
-double q1y_n;
-double q2x_n;
-double q2y_n;
-double q3x_n;
-double q3y_n;
 double phi;
 double sin_phi;
 double cos_phi;
+double damping_coeff;
+double ex_field_coeff;
 double energy;
 };
 
@@ -110,7 +100,8 @@ double density;																	// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
 int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
 double e_test;																	// Counter for energy change due to the insertion of the test particle
-
+double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
+double u_m = - 5000.0;													// Parameter of the external field
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 
 // Minimal (hard core distance) and maximal distance between the molecules
@@ -134,6 +125,7 @@ int frame = 0; // For visualization purpose
 
 #include "read_forcefield.h"
 #include "PBC2D.h"
+#include "fields.h"
 #include "energies_and_forces_numerical_Dreiding_TMA.h"
 //#include "energies_and_forces_numerical_simple_model.h"
 #include "initConfigHoneycombTMA_elongated_cell.h"
@@ -157,12 +149,12 @@ int main()
  //////////////////////////////////////////////////////////////////////////////////////
  //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
  /////////////////////////////////////////////////////////////////////////////////////
- /*
+
 	// Fill in the forcefield
 	// First dimension is distance
 	// Second dimension is angle of first molecule
 	// Third dimension is angle of second molecule
-	for (int i = 0; i < 1303; i++) {
+	for (int i = 0; i < 2385; i++) {
 		vector< vector<double> > mat; // Create an empty matrix
 			for (int j = 0; j < 361; j++) {
 				vector<double> row; // Create an empty row
@@ -176,7 +168,7 @@ int main()
    // Read the forcefield from "forcefield.dat"
    cout << "read forcefield.dat file" << endl;
    read_forcefield ("simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
-*/
+
  // Write the model parameters to data-file
  stringstream name;
  name <<  "statistics.dat";
@@ -268,7 +260,7 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 					percent = 0;
 				}
 			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
-
+/*
 				balanceEq++;
 				BALANCE_STEPS = 100;
 				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
@@ -311,7 +303,7 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 								ACCEPTANCE_RATIO_m[1] = 0;
 							}
 					}
-
+*/
 			if(iter > nIterEq)
 				{
 					if (iter == nIterEq+1){Energy = 0; press_X = 0; press_Y = 0; sum_iterations = 0; N_test = 0; e_test = 0;}

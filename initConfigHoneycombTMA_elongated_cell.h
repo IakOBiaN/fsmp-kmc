@@ -29,6 +29,8 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 30.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
+					coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
@@ -36,6 +38,8 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 90.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
+					coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x;
@@ -43,6 +47,8 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 30.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
+					coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
           molecule++;
 
           coordinates[molecule].x = coordinates[molecule-1].x - h_bond_dist*cos(30.0/180.0*PI);
@@ -50,6 +56,8 @@ for(int i = 0; i < number_in_x; i++)
           coordinates[molecule].phi = 90.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
+					coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
+					coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
           molecule++;
       }
     }
@@ -76,18 +84,6 @@ while(molecule > nPart)
     molecule--;
   }
 */
-	if (state_Ly > 0)
-	{
-		double Ly_correction = state_Ly/Ly;
-		double Lx_correction = 4.0*state_Ly*(2.0/sqrt(3))/Lx;
-		for (int i = 0; i < nPart; i++)
-		{
-			coordinates[i].x *= Lx_correction;
-			coordinates[i].y *= Ly_correction;
-		}
-	Ly *= Ly_correction;
-	Lx *= Lx_correction;
-	}
 
  cout << "Honeycomb TMA Structure in central cell: " << endl;
  cout << "N: " << molecule << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
