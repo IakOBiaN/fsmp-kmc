@@ -43,8 +43,18 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
 		delta_EP = new_EP - old_EP;
 		if(RanGen.Random() < exp(-delta_EP.energy*beta) && !HC_radius)
       {
+        for (int l = 0; l < nPart; l++)
+          {
+            if (l == trialPart){continue;}
+            //Choose exact or numerical energy and pressure calculation
+            old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
+            new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta);
+            delta_EP = new_EP_Part - old_EP_Part;
+            delta_EP.energy /= 2.0;
+            coordinates[l].en_and_pr = coordinates[l].en_and_pr + delta_EP;
+    				new_coordinates.en_and_pr = new_coordinates.en_and_pr + delta_EP;
+          }
           coordinates[trialPart] = new_coordinates;     // Update position
-          EN_AND_PR_counter = EN_AND_PR_counter + delta_EP;
           if (angle_change) {ACCEPTANCE_RATIO_r[1] += 1.0;} else {ACCEPTANCE_RATIO_m[1] += 1.0;}
       }
 			else

@@ -21,13 +21,11 @@ CRandomSFMT0 RanGen(seed);
 class results {
 public:
 double energy;
-double energy_QQ;
 double p_X, p_Y;
 results();      //constructor
 results operator+(const results& b) {
          results res;
          res.energy = this->energy + b.energy;
-				 res.energy_QQ = this->energy_QQ + b.energy_QQ;
          res.p_X = this->p_X + b.p_X;
          res.p_Y = this->p_Y + b.p_Y;
          return res;
@@ -35,7 +33,6 @@ results operator+(const results& b) {
 results operator-(const results& b) {
          results res;
          res.energy = this->energy - b.energy;
-				 res.energy_QQ = this->energy_QQ - b.energy_QQ;
          res.p_X = this->p_X - b.p_X;
          res.p_Y = this->p_Y - b.p_Y;
          return res;
@@ -43,7 +40,6 @@ results operator-(const results& b) {
 results operator/(double b) {
          results res;
          res.energy = this->energy/b;
-				 res.energy_QQ = this->energy_QQ/b;
          res.p_X = this->p_X/b;
          res.p_Y = this->p_Y/b;
          return res;
@@ -51,7 +47,6 @@ results operator/(double b) {
 results operator*(double b) {
          results res;
          res.energy = this->energy*b;
-				 res.energy_QQ = this->energy_QQ*b;
          res.p_X = this->p_X*b;
          res.p_Y = this->p_Y*b;
          return res;
@@ -61,7 +56,6 @@ results operator*(double b) {
 //constructor
 results::results(void) {
    energy = 0;
-	 energy_QQ = 0;
    p_X = 0;
    p_Y = 0;
 }
@@ -79,7 +73,8 @@ double sin_phi;
 double cos_phi;
 double damping_coeff;
 double ex_field_coeff;
-double energy;
+double stat_weight;
+results en_and_pr;
 };
 
 
@@ -178,13 +173,13 @@ int main()
 
  // Set configuration parameters
 
- double press_X = 0, press_Y = 0, Energy=0, Energy_QQ = 0;
+ double press_X = 0, press_Y = 0, Energy=0;
  double persent = 0, AR_r, AR_m;
 
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 640; // Honeycomb
+ int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
  int nSteps = 15000;            // Total amount of MCS
@@ -195,7 +190,6 @@ int main()
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
  vector <double> pressure_stat(nIter - nIterEq);
  vector <double> energy_stat(nIter - nIterEq);
- vector <double> energy_QQ_stat(nIter - nIterEq);
 
  ////////////////////////////////////////////////////////////
  //         MC simulation of systems with different N      //
@@ -221,7 +215,6 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 	EN_AND_PR_counter.energy = 0;
-	EN_AND_PR_counter.energy_QQ = 0;
 	EN_AND_PR_counter.p_X = 0;
 	EN_AND_PR_counter.p_Y = 0;
 	press_X = 0;
