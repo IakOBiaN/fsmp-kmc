@@ -83,6 +83,7 @@ results en_and_pr;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 results EN_AND_PR_counter;											// energy and pressures in the system.
+double nPart_in_central_cell = 0;               // molecules in central cell
 double ACCEPTANCE_RATIO_r[2] = {0, 0};					// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;												// steps for balance statistics
@@ -135,6 +136,7 @@ int frame = 0; // For visualization purpose
 //#include "Widom_test.h"
 #include "block_error.h"
 #include "density_to_Ly.h"
+#include "Weighted_averages.h"
 
 int main()
 {
@@ -174,7 +176,7 @@ int main()
 
  // Set configuration parameters
 
- double press_X = 0, press_Y = 0, Energy=0;
+ double press_X = 0, press_Y = 0, Energy = 0;
  double persent = 0, AR_r, AR_m;
 
  /////////////////////////////
@@ -235,8 +237,9 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-	cout << "Density: " << density << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/Lx/Ly*1e23/N_a)<< endl;
-	cout << "P_X: " << (EN_AND_PR_counter.p_X/Lx/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/Lx/Ly*1e23/N_a) <<  endl;
+  weighted_averages(coordinates, nPart, Lx, Ly);
+	cout << "Density: " << density << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/8.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/8.0)/Ly*1e23/N_a)<< endl;
+	cout << "P_X: " << (EN_AND_PR_counter.p_X/(Lx/8.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(Lx/8.0)/Ly*1e23/N_a) <<  endl;
 
 	//////////////////////////////////////////////////
 	//             Monte Carlo Simulation           //
@@ -301,35 +304,35 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 			if(iter > nIterEq)
 				{
 					if (iter == nIterEq+1){Energy = 0; press_X = 0; press_Y = 0; sum_iterations = 0; N_test = 0; e_test = 0;}
-					sum_iterations += 1;
+          weighted_averages(coordinates, nPart, Lx, Ly);
+          sum_iterations += 1;
 					Energy += EN_AND_PR_counter.energy;
 					press_X += EN_AND_PR_counter.p_X;
 					press_Y += EN_AND_PR_counter.p_Y;
 					energy_stat[sum_iterations] = EN_AND_PR_counter.energy;
 					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0;
-//					Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
 				}
 		}
 
 	Energy /= sum_iterations;
 	press_X /= sum_iterations;
 	press_Y /= sum_iterations;
-	press_X *= (1.0/Lx/Ly*1e23)/N_a;
-	press_Y *= (1.0/Lx/Ly*1e23)/N_a;
+	press_X *= (1.0/(Lx/8.0)/Ly*1e23)/N_a;
+	press_Y *= (1.0/(Lx/8.0)/Ly*1e23)/N_a;
 //	double mu_ex = log(N_test/(e_test));
 
 /////////// Block Error Calculation ////////////
-	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/nPart;
-	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/Lx/Ly*1e23)/N_a;
+	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/nPart_in_central_cell;
+	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/8.0)/Ly*1e23)/N_a;
 
 
 	cout << "Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
-	cout << "T: " << temperature << " Energy_MC: " << Energy/1000.0/nPart << " energy_error: " << energy_error << endl;
-	cout << "Pressure: " << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
+	cout << "T: " << temperature << " Energy_MC: " << Energy/1000.0/nPart_in_central_cell << " energy_error: " << energy_error << endl;
+	cout << "Pressure: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/8.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
 	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << endl;
 
 	ofstream fileOutput("statistics.dat", ios_base::app);
-	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart/(Lx*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
+	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart_in_central_cell << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/8.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
 	fileOutput.close();
 
  }
