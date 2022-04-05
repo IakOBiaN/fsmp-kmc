@@ -1,5 +1,8 @@
 void weighted_averages(vector <state> &coordinates, int &nPart, double &Lx, double &Ly)
 {
+	EN_AND_PR_counter.energy = 0;
+	EN_AND_PR_counter.p_X = 0;
+	EN_AND_PR_counter.p_Y = 0;
 	nPart_in_central_cell = 0;
 	for (int mol = 0; mol < nPart; mol++)
 	{
