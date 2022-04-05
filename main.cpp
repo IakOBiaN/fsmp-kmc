@@ -79,6 +79,7 @@ double sin_phi;
 double cos_phi;
 double damping_coeff;
 double ex_field_coeff;
+double stat_weight;
 double energy;
 };
 
@@ -101,7 +102,8 @@ double state_dens, state_Ly;
 int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
 double e_test;																	// Counter for energy change due to the insertion of the test particle
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
-double u_m = - 5000.0;													// Parameter of the external field
+double lambda0 = 0.3;
+double u_m = -500.0;													// Parameter of the external field
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 
 // Minimal (hard core distance) and maximal distance between the molecules
