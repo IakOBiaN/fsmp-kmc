@@ -199,9 +199,9 @@ int main()
  ////////////////////////////////////////////////////////////
 
  //Generete an initial distribution of molecules at fixed density
- double temperature = 400.0;
+ double temperature = 300.0;
  double deltaT = 2000.0;
- state_dens = 1.283; // Density that you want in mkmol/m2
+ state_dens = 1.05; // Density that you want in mkmol/m2
 
 // for(state_dens = 1.50; state_dens < 1.60; state_dens += 0.005)
 for(temperature = 400; temperature <= 2000; temperature += deltaT)
@@ -238,8 +238,8 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
   weighted_averages(coordinates, nPart, Lx, Ly);
-	cout << "Density: " << density << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/8.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/8.0)/Ly*1e23/N_a)<< endl;
-	cout << "P_X: " << (EN_AND_PR_counter.p_X/(Lx/8.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(Lx/8.0)/Ly*1e23/N_a) <<  endl;
+	cout << "Density: " << density << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/4.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/4.0)/Ly*1e23/N_a)<< endl;
+	cout << "P_X: " << (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a) <<  endl;
 
 	//////////////////////////////////////////////////
 	//             Monte Carlo Simulation           //
@@ -317,22 +317,22 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 	Energy /= sum_iterations;
 	press_X /= sum_iterations;
 	press_Y /= sum_iterations;
-	press_X *= (1.0/(Lx/8.0)/Ly*1e23)/N_a;
-	press_Y *= (1.0/(Lx/8.0)/Ly*1e23)/N_a;
+	press_X *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
+	press_Y *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
 //	double mu_ex = log(N_test/(e_test));
 
 /////////// Block Error Calculation ////////////
 	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/nPart_in_central_cell;
-	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/8.0)/Ly*1e23)/N_a;
+	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1e23)/N_a;
 
 
 	cout << "Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
 	cout << "T: " << temperature << " Energy_MC: " << Energy/1000.0/nPart_in_central_cell << " energy_error: " << energy_error << endl;
-	cout << "Pressure: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/8.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
+	cout << "Pressure: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
 	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << endl;
 
 	ofstream fileOutput("statistics.dat", ios_base::app);
-	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart_in_central_cell << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/8.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
+	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart_in_central_cell << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
 	fileOutput.close();
 
  }

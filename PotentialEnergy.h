@@ -12,7 +12,7 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordin
 	{
 		for(int molB = (molA + 1); molB < nPart; molB++)
 			{
-				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta);
+				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, true);
 				en_and_press.energy /= 2.0;  //for molecules pair (pressure should be full)
 				coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + en_and_press;
 				coordinates[molB].en_and_pr = coordinates[molB].en_and_pr + en_and_press;

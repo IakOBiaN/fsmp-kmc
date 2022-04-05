@@ -39,8 +39,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
       {
 				if (l == trialPart){continue;}
 				//Choose exact or numerical energy and pressure calculation
-				old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
-				new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta);
+				old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, false);
+				new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, false);
       }
 
 		delta_EP = new_EP - old_EP;
@@ -50,8 +50,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
           {
             if (l == trialPart){continue;}
             //Choose exact or numerical energy and pressure calculation
-            old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta);
-            new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta);
+            old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, true);
+            new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, true);
             delta_EP = new_EP_Part - old_EP_Part;
             delta_EP.energy /= 2.0;
             coordinates[l].en_and_pr = coordinates[l].en_and_pr + delta_EP;
