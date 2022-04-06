@@ -268,7 +268,7 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 				BALANCE_STEPS = 100;
 				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
 					{
-            weighted_averages(coordinates, nPart, Lx, Ly);
+            weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
 						sum_iterations += 1;
 						press_X += EN_AND_PR_counter.p_X;
 						press_Y += EN_AND_PR_counter.p_Y;
