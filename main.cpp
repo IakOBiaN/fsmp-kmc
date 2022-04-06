@@ -263,11 +263,12 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 					percent = 0;
 				}
 			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
-/*
+
 				balanceEq++;
 				BALANCE_STEPS = 100;
 				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
 					{
+            weighted_averages(coordinates, nPart, Lx, Ly);
 						sum_iterations += 1;
 						press_X += EN_AND_PR_counter.p_X;
 						press_Y += EN_AND_PR_counter.p_Y;
@@ -281,8 +282,7 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
 								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
-								zero_pressure_balance(press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
-//								pressure_balance(press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+								pressure_balance(press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
@@ -306,7 +306,7 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 								ACCEPTANCE_RATIO_m[1] = 0;
 							}
 					}
-*/
+
 			if(iter > nIterEq)
 				{
 					if (iter == nIterEq+1)
