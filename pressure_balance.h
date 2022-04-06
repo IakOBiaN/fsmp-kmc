@@ -26,15 +26,19 @@ void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, in
 		Lx = Lx_new;
 		Ly = Ly_new;
 
-		if(nPart_in_central_cell/beta+(press_X + press_Y)/2.0 < 0)
+		if((1.0e+23*nPart_in_central_cell/((Lx/4.0)*Ly)/N_a/beta) + (press_X + press_Y)*(1.0/(Lx/4.0)/Ly*1e23)/N_a/2.0 < 0)
 			{
-				u_m += 20.0;
+				u_m += 0.1/beta;
 			}
 		else
 			{
-				u_m -= 20.0;
+				u_m -= 0.1/beta;
 			}
 
+			for(int mol = 0; mol < nPart; mol++)
+			{
+				coordinates[mol].ex_field_coeff = external_field(coordinates[mol].x, Lx); // u_ext
+			}
        // Recalculate energies after compressing or expanding the box
        PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 
