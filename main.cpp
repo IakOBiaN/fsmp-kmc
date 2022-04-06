@@ -84,6 +84,7 @@ results en_and_pr;
 
 results EN_AND_PR_counter;											// energy and pressures in the system.
 double nPart_in_central_cell = 0;               // molecules in central cell
+double nPart_in_gas = 0;												// molecules in gas phase
 double ACCEPTANCE_RATIO_r[2] = {0, 0};					// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;												// steps for balance statistics
@@ -92,10 +93,8 @@ double delta_angle = 60.0;    										// MC parameter. Maximal rotation in deg
 double R = 8.31446261815324;														// Gas constant in J per mol
 double N_a = 6.02214076e+23;												//	Avogadro constant
 const double PI = 3.14159265358979323846;
-double density;																	// Actual density of the layer in mkMol per m^2
+double density, gas_density;																	// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
-int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
-double e_test;																	// Counter for energy change due to the insertion of the test particle
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
 double lambda0 = 0.3;
 double u_m = -500.0;													// Parameter of the external field
@@ -176,7 +175,8 @@ int main()
 
  // Set configuration parameters
 
- double press_X = 0, press_Y = 0, Energy = 0;
+ double press_X = 0, press_Y = 0, Energy = 0, density = 0;
+ double press_X_gas = 0, press_Y_gas = 0, Energy_gas = 0, gas_density = 0;
  double persent = 0, AR_r, AR_m;
 
  /////////////////////////////
@@ -185,9 +185,9 @@ int main()
  int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 15000;            // Total amount of MCS
+ int nSteps = 1500;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 10000;           // MCS for relaxation
+ int nStepsEq = 1000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -220,8 +220,12 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 	EN_AND_PR_counter.energy = 0;
 	EN_AND_PR_counter.p_X = 0;
 	EN_AND_PR_counter.p_Y = 0;
+	Energy = 0;
 	press_X = 0;
 	press_Y = 0;
+	Energy_gas = 0;
+	press_X_gas = 0;
+	press_Y_gas = 0;
 	ACCEPTANCE_RATIO_r[0] = 0;  // rejected rotations
 	ACCEPTANCE_RATIO_r[1] = 0;  // accepted rotations
 	ACCEPTANCE_RATIO_m[0] = 0;  // rejected translations
@@ -237,9 +241,11 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
-  weighted_averages(coordinates, nPart, Lx, Ly);
-	cout << "Density: " << density << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/4.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/4.0)/Ly*1e23/N_a)<< endl;
+  weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
+	cout << endl << "Inital Data for Central Cell" << endl;
+	cout << "Density: " << nPart_in_central_cell*(1.0e+26)/(Lx/4.0*Ly)/N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/4.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/4.0)/Ly*1e23/N_a)<< endl;
 	cout << "P_X: " << (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a) <<  endl;
+	cout << endl;
 
 	//////////////////////////////////////////////////
 	//             Monte Carlo Simulation           //
@@ -303,36 +309,60 @@ for(temperature = 400; temperature <= 2000; temperature += deltaT)
 */
 			if(iter > nIterEq)
 				{
-					if (iter == nIterEq+1){Energy = 0; press_X = 0; press_Y = 0; sum_iterations = 0; N_test = 0; e_test = 0;}
-          weighted_averages(coordinates, nPart, Lx, Ly);
+					if (iter == nIterEq+1)
+						{
+							density = 0; Energy = 0; press_X = 0; press_Y = 0; sum_iterations = 0;
+							gas_density = 0; Energy_gas = 0; press_X_gas = 0; press_Y_gas = 0;
+						}
+          weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
           sum_iterations += 1;
+					density += nPart_in_central_cell;
 					Energy += EN_AND_PR_counter.energy;
 					press_X += EN_AND_PR_counter.p_X;
 					press_Y += EN_AND_PR_counter.p_Y;
 					energy_stat[sum_iterations] = EN_AND_PR_counter.energy;
 					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0;
+					weighted_averages_in_gas(coordinates, nPart, Lx, Ly);
+					gas_density += nPart_in_gas;
+					Energy_gas += EN_AND_PR_counter.energy;
+					press_X_gas += EN_AND_PR_counter.p_X;
+					press_Y_gas += EN_AND_PR_counter.p_Y;
 				}
 		}
 
+	density /= sum_iterations;
 	Energy /= sum_iterations;
 	press_X /= sum_iterations;
 	press_Y /= sum_iterations;
+	density *= (1.0e+26)/((Lx/4.0)*Ly)/N_a;
 	press_X *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
 	press_Y *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
-//	double mu_ex = log(N_test/(e_test));
+	gas_density /= sum_iterations;
+	Energy_gas /= sum_iterations;
+	press_X_gas /= sum_iterations;
+	press_Y_gas /= sum_iterations;
+	gas_density *= (1.0e+26)/((Lx/4.0)*Ly)/N_a;
+	press_X_gas *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
+	press_Y_gas *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
 
 /////////// Block Error Calculation ////////////
-	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/nPart_in_central_cell;
-	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1e23)/N_a;
+	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26);
+	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1.0e+23)/N_a;
 
+	cout << endl;
+	cout << "Crystal Data" << endl;
+	cout << "Density: " << density << " mkmol/m2 " << "Lx of central cell: " << Lx/4.0 << " Ly: " << Ly << endl;
+	cout << "T: " << temperature << "K" << " Energy per molecule: " << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << " energy_error: " << energy_error << " kJ/mol" << endl;
+	cout << "Total pressure: " << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << " mN/m" << " pressure_error: " << pressure_error << " mN/m" << endl;
+	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " mN/m" << " P_ex_MC_X: " << press_X << " mN/m" << " P_ex_MC_Y: " << press_Y << " mN/m" << endl;
 
-	cout << "Density: " << density << " Lx: " << Lx << " Ly: " << Ly << endl;
-	cout << "T: " << temperature << " Energy_MC: " << Energy/1000.0/nPart_in_central_cell << " energy_error: " << energy_error << endl;
-	cout << "Pressure: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << " pressure_error: " << pressure_error << endl;
-	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " P_ex_MC_X: " << press_X << " P_ex_MC_Y: " << press_Y << endl;
+	cout << endl;
+	cout << "Gas Phase Data" << endl;
+	cout << "Gas density: " << gas_density << " mikromol/m2" << " Gas energy per molecule: " << Energy_gas/1000.0/(gas_density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << endl;
+	cout << "Gas pressure along X: " << press_X_gas << " mN/m" << " Gas pressure along Y: " << press_Y_gas << " mN/m" << endl;
 
 	ofstream fileOutput("statistics.dat", ios_base::app);
-	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/nPart_in_central_cell << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*nPart_in_central_cell/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
+	fileOutput  << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error << "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
 	fileOutput.close();
 
  }
