@@ -42,7 +42,8 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
 				old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, false);
 				new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, false);
       }
-
+    old_EP.energy += coordinates[trialPart].ex_field_coeff;
+    new_EP.energy += new_coordinates.ex_field_coeff;
 		delta_EP = new_EP - old_EP;
 		if(RanGen.Random() < exp(-delta_EP.energy*beta) && !HC_radius)
       {

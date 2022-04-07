@@ -185,9 +185,9 @@ int main()
  int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 1500;            // Total amount of MCS
+ int nSteps = 15000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 1000;           // MCS for relaxation
+ int nStepsEq = 10000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges

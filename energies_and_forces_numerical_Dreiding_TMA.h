@@ -21,7 +21,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	a1 = (int)((ang1/da)+0.5);
 	a2 = (int)((ang2/da)+0.5);
 	if (r<min_dist){en = 1e20;}
-	else{en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff+molA.ex_field_coeff+molB.ex_field_coeff;}
+	else{en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;}
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
