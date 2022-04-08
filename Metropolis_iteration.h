@@ -21,9 +21,9 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        // Apply periodic boundary conditions
        new_coordinates.x = PBC2D(Lx, new_coordinates.x);
        new_coordinates.y = PBC2D(Ly, new_coordinates.y);
-			 new_coordinates.damping_coeff = damping_field(coordinates[trialPart].x, Lx); // Lambda^1/2
-			 new_coordinates.ex_field_coeff = external_field(coordinates[trialPart].x, Lx); // u_ext
-			 new_coordinates.stat_weight = weights_for_central_cell (coordinates[trialPart].x, Lx);
+			 new_coordinates.damping_coeff = damping_field(new_coordinates.x, Lx); // Lambda^1/2
+			 new_coordinates.ex_field_coeff = external_field(new_coordinates.x, Lx); // u_ext
+			 new_coordinates.stat_weight = weights_for_central_cell(new_coordinates.x, Lx);
       }
     else
       {
@@ -38,13 +38,14 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
 		for (int l = 0; l < nPart; l++)
       {
 				if (l == trialPart){continue;}
-				//Choose exact or numerical energy and pressure calculation
 				old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, false);
 				new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, false);
       }
-    old_EP.energy += coordinates[trialPart].ex_field_coeff;
-    new_EP.energy += new_coordinates.ex_field_coeff;
-		delta_EP = new_EP - old_EP;
+
+    old_EP.energy += coordinates[trialPart].ex_field_coeff.energy;
+    new_EP.energy += new_coordinates.ex_field_coeff.energy;
+		delta_EP.energy = new_EP.energy - old_EP.energy;
+
 		if(RanGen.Random() < exp(-delta_EP.energy*beta) && !HC_radius)
       {
         for (int l = 0; l < nPart; l++)
@@ -53,11 +54,11 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
             //Choose exact or numerical energy and pressure calculation
             old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, true);
             new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, true);
-            delta_EP = new_EP_Part - old_EP_Part;
-            delta_EP.energy /= 2.0;
+            delta_EP = (new_EP_Part - old_EP_Part)/2.0;
             coordinates[l].en_and_pr = coordinates[l].en_and_pr + delta_EP;
     				new_coordinates.en_and_pr = new_coordinates.en_and_pr + delta_EP;
           }
+					new_coordinates.en_and_pr = new_coordinates.en_and_pr + (new_coordinates.ex_field_coeff - coordinates[trialPart].ex_field_coeff);
           coordinates[trialPart] = new_coordinates;     // Update position
           if (angle_change) {ACCEPTANCE_RATIO_r[1] += 1.0;} else {ACCEPTANCE_RATIO_m[1] += 1.0;}
       }

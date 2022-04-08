@@ -1,6 +1,5 @@
 void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
 {
-
 	double ang_molA = molA.phi;
 	double ang_molB = molB.phi;
 	double dist_n; // Float index in the numerical potential
@@ -20,8 +19,9 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	dist = (int)(dist_n+0.5);
 	a1 = (int)((ang1/da)+0.5);
 	a2 = (int)((ang2/da)+0.5);
-	if (r<min_dist){en = 1e20;}
-	else{en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;}
+	molA.damping_coeff = damping_field(molA.x, Lx);
+	molB.damping_coeff = damping_field(molB.x, Lx);
+	en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
@@ -39,81 +39,80 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		double energy_cur = 0;
 		double pressure_X = 0, pressure_Y = 0;
 
-    for (int id = -1; id < 2; id++)
-    {
-			 dist_x = 0;
-			 dist_y = 0;
-			 r = 0;
-			 molB_clone.x = molB.x + id*Lx;
-       dist_x = molB_clone.x - molA.x;
-       if (abs(dist_x) > max_dist) {continue;}
-       for (int jd = -1; jd < 2; jd++)
-       {
-				  molB_clone.y = molB.y + jd*Ly;
-          dist_y = molB_clone.y - molA.y;
-          if (abs(dist_y) > max_dist) {continue;}
-             r2 = dist_x*dist_x + dist_y*dist_y;
-             r = sqrt(r2);
-             if (r <= min_dist)
-             {
-               HC_radius = true;
-               continue;
-             }
-             if (r > min_dist && r <= (max_dist-2.0*diff_delta))
-             {
-								double t_U;
-								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y, t_U);
-								energy_cur += t_U;
-								if (pressure_calc)
-								{
-									// Pressure calculation
-									double dist_x_plus_delta, dist_y_plus_delta;
-									double t_U_delta_1 = 0, t_U_delta_2 = 0;
+	 dist_x = 0;
+	 dist_y = 0;
+	 r = 0;
+   dist_x = molB.x - molA.x;
+   if (abs(dist_x) < max_dist)
+	  {
+			for (int jd = -1; jd < 2; jd++)
+			{
+				 molB_clone.y = molB.y + jd*Ly;
+				 dist_y = molB_clone.y - molA.y;
+				 if (abs(dist_y) > max_dist) {continue;}
+						r2 = dist_x*dist_x + dist_y*dist_y;
+						r = sqrt(r2);
+						if (r <= min_dist)
+						{
+							HC_radius = true;
+							continue;
+						}
+						if (r > min_dist && r <= (max_dist-2.0*diff_delta))
+						{
+							 double t_U;
+							 energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y, t_U);
+							 energy_cur += t_U;
+							 if (pressure_calc)
+							 {
+								 // Pressure calculation
+								 double dist_x_plus_delta, dist_y_plus_delta;
+								 double t_U_delta_1 = 0, t_U_delta_2 = 0;
 
-									molB_clone.x = molB_clone.x - diff_delta;
-									molA_clone.x = molA_clone.x + diff_delta;
-									dist_x_plus_delta = molB_clone.x - molA_clone.x;
-									r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
-									r = sqrt(r2);
-									energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta_1);
+								 molB_clone.x = molB_clone.x - diff_delta;
+								 molA_clone.x = molA_clone.x + diff_delta;
+								 dist_x_plus_delta = molB_clone.x - molA_clone.x;
+								 r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
+								 r = sqrt(r2);
+								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta_1);
 
-									molB_clone.x = molB_clone.x + 2.0*diff_delta;
-									molA_clone.x = molA_clone.x - 2.0*diff_delta;
-									dist_x_plus_delta = molB_clone.x - molA_clone.x;
-									r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
-									r = sqrt(r2);
-									energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta_2);
+								 molB_clone.x = molB_clone.x + 2.0*diff_delta;
+								 molA_clone.x = molA_clone.x - 2.0*diff_delta;
+								 dist_x_plus_delta = molB_clone.x - molA_clone.x;
+								 r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
+								 r = sqrt(r2);
+								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta_2);
 
-									pressure_X += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_x;
-									molB_clone.x = molB_clone.x - diff_delta;
-									molA_clone.x = molA_clone.x + diff_delta;
+								 pressure_X += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_x;
+								 molB_clone.x = molB_clone.x - diff_delta;
+								 molA_clone.x = molA_clone.x + diff_delta;
 
-									t_U_delta_1 = 0;
-									t_U_delta_2 = 0;
+								 t_U_delta_1 = 0;
+								 t_U_delta_2 = 0;
 
-									molB_clone.y = molB_clone.y - diff_delta;
-									molA_clone.y = molA_clone.y + diff_delta;
-									dist_y_plus_delta = molB_clone.y - molA_clone.y;
-									r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
-								  r = sqrt(r2);
-									energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta_1);
+								 molB_clone.y = molB_clone.y - diff_delta;
+								 molA_clone.y = molA_clone.y + diff_delta;
+								 dist_y_plus_delta = molB_clone.y - molA_clone.y;
+								 r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
+								 r = sqrt(r2);
+								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta_1);
 
-									molB_clone.y = molB_clone.y + 2.0*diff_delta;
-									molA_clone.y = molA_clone.y - 2.0*diff_delta;
-									dist_y_plus_delta = molB_clone.y - molA_clone.y;
-									r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
-								  r = sqrt(r2);
-									energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta_2);
+								 molB_clone.y = molB_clone.y + 2.0*diff_delta;
+								 molA_clone.y = molA_clone.y - 2.0*diff_delta;
+								 dist_y_plus_delta = molB_clone.y - molA_clone.y;
+								 r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
+								 r = sqrt(r2);
+								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta_2);
 
-									pressure_Y += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_y;
-									molB_clone.y = molB_clone.y - diff_delta;
-									molA_clone.y = molA_clone.y + diff_delta;
-								}
-             }
-       }
-    }
-    en_and_press.energy = energy_cur;
-    en_and_press.p_X = pressure_X;
+								 pressure_Y += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_y;
+								 molB_clone.y = molB_clone.y - diff_delta;
+								 molA_clone.y = molA_clone.y + diff_delta;
+							 }
+						}
+			}
+		}
+
+    en_and_press.energy = energy_cur; // Energy of interactions including damping effect
+    en_and_press.p_X = pressure_X; // Sum of virial and damping field pressure
     en_and_press.p_Y = pressure_Y;
     return en_and_press;
 }

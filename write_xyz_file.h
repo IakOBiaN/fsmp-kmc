@@ -2,7 +2,7 @@ void write_xyz_file_TMA (int &nPart, double &density, double &Lx, double &Ly, do
 {
 	stringstream name;
 // name << "rho_" << density << ".xyz";
-	name << "p0_T" << temperature << ".xyz";
+	name << "um_min" << abs(u_m) << "_T" << temperature << ".xyz";
 	if (init) {ofstream fileOutput(name.str().c_str(), ios_base::trunc);fileOutput.close();}
 	else {
 			ofstream fileOutput(name.str().c_str(), ios_base::app);
@@ -13,6 +13,10 @@ void write_xyz_file_TMA (int &nPart, double &density, double &Lx, double &Ly, do
 			for(int i = 0; i < nPart; i++)
 				{
 					string element = "N ";
+					if (abs(coordinates[i].ex_field_coeff.energy) < 1e-5) {element = "N ";}
+					else if (abs(coordinates[i].ex_field_coeff.energy) < abs(u_m)*0.98) {element = "O ";}
+					else {element = "C ";}
+
 					double dop = coordinates[i].x + dn2 * coordinates[i].cos_phi;
 					if (dop > Lx) {dop -= Lx;}
 					if (dop < 0)  {dop += Lx;}

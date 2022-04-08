@@ -33,3 +33,24 @@ void weighted_averages_in_gas(vector <state> &coordinates, int &nPart, double &L
 			}
 	}
 }
+
+void weighted_averages_in_transition_zone(vector <state> &coordinates, int &nPart, double &Lx, double &Ly)
+{
+	EN_AND_PR_counter.energy = 0;
+	EN_AND_PR_counter.p_X = 0;
+	EN_AND_PR_counter.p_Y = 0;
+	nPart_in_transition_zone = 0;
+	for (int mol = 0; mol < nPart; mol++)
+	{
+		double abs_x;
+		if (coordinates[mol].x > Lx/2.0){abs_x = coordinates[mol].x - Lx/2.0;} else {abs_x = Lx/2.0 - coordinates[mol].x;}
+		double ksi = 32.0*abs_x/Lx - 8.0;
+		if(ksi > -3.0 && ksi < 3.0)
+			{
+				EN_AND_PR_counter.energy += coordinates[mol].en_and_pr.energy;
+				EN_AND_PR_counter.p_X += coordinates[mol].en_and_pr.p_X;
+				EN_AND_PR_counter.p_Y += coordinates[mol].en_and_pr.p_Y;
+				nPart_in_transition_zone += 1.0;
+			}
+	}
+}
