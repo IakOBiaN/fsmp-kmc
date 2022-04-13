@@ -1,4 +1,4 @@
-void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
+void pressure_balance(double Energy, double press_X, double press_Y, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
 {
     double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
     double S = Lx*Ly;
@@ -35,13 +35,10 @@ void pressure_balance(double press_X, double press_Y, double &Lx, double &Ly, in
 				u_m -= 0.1/beta;
 			}
 */
-			for(int mol = 0; mol < nPart; mol++)
-			{
-				coordinates[mol].ex_field_coeff = external_field(coordinates[mol].x, Lx); // u_ext
-			}
        // Recalculate energies after compressing or expanding the box
        PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 
+			 cout << "u: " << Energy/1000.0/nPart_in_central_cell << endl;
 			 cout << "pX: " << (1.0e+23*nPart_in_central_cell/(Lx/4.0*Ly)/N_a/beta) + press_X*(1.0/(Lx/4.0)/Ly*1e23)/N_a << " pY: " << (1.0e+23*nPart_in_central_cell/((Lx/4.0)*Ly)/N_a/beta) + press_Y*(1.0/(Lx/4.0)/Ly*1e23)/N_a << " avg_p: " << (1.0e+23*nPart_in_central_cell/((Lx/4.0)*Ly)/N_a/beta) + (press_X + press_Y)*(1.0/(Lx/4.0)/Ly*1e23)/N_a/2.0 << endl;
-			 cout << "Lx: " << Lx << " Ly: " << Ly << " density: " << density << " Um: " << u_m << endl;
+			 cout << "Lx: " << Lx << " Ly: " << Ly << " density: " << nPart_in_central_cell*(1.0e+26)/(Lx/4.0*Ly)/N_a << " Um: " << u_m << endl;
 }

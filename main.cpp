@@ -98,7 +98,7 @@ double density, gas_density, transition_zone_density;		// Actual density of the 
 double state_dens, state_Ly;
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
 double lambda0 = 0.625;
-double u_m = -25000.0;													// Parameter of the external field
+double u_m = 0.0;													// Parameter of the external field
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 
 // Minimal (hard core distance) and maximal distance between the molecules
@@ -132,6 +132,7 @@ int frame = 0; // For visualization purpose
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
+#include "Rosenbluth_iteration.h"
 #include "pressure_balance.h"
 //#include "Widom_test.h"
 #include "block_error.h"
@@ -164,7 +165,7 @@ int main()
 			forcefield.push_back(mat); // Add the row to the main vector
 	}
    // Read the forcefield from "forcefield.dat"
-   cout << "read forcefield.dat file" << endl;
+   cout << "Now I'm reading the forcefield file." << endl;
    read_forcefield ("simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
 
  // Write the model parameters to data-file
@@ -187,9 +188,9 @@ int main()
  int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 30000;            // Total amount of MCS
+ int nSteps = 20000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 20000;           // MCS for relaxation
+ int nStepsEq = 10000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -205,10 +206,12 @@ int main()
  double deltaT = 2000.0;
  state_dens = 1.05; // Density that you want in mkmol/m2
 
- for(u_m = 0.0; state_dens >= -50000.0; state_dens += -10000.0)
-// for(temperature = 300; temperature <= 2000; temperature += deltaT)
+// for(u_m = 0.0; u_m >= -50000.0; u_m += -10000.0)
+ for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
+	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
 	initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
+	for(int i=0; i < 100*nPart; i ++){Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);}
 //	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly_SF(nPart, state_dens));
@@ -239,8 +242,6 @@ int main()
 	persent = 0;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
-
 /// Write the item for average image
 	vector <vector <double> > xy_matrix(6000, vector<double> (6000));
 	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
@@ -251,13 +252,13 @@ int main()
 	weighted_averages_in_transition_zone(coordinates, nPart, Lx, Ly);
 
 	cout << endl << "_________INITIAL DATA_________" << endl;
-	cout << "u_m: " << u_m << endl;
+	cout << endl << "u_m: " << u_m << endl;
 	cout << endl << "Central cell" << endl;
 	cout << "Density: " << nPart_in_central_cell*(1.0e+26)/(Lx/4.0*Ly)/N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/4.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/4.0)/Ly*1e23/N_a)<< endl;
 	cout << "P_X: " << (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a) <<  endl;
 	cout << endl;
 	cout << endl << "Transition zone" << endl;
-	cout << "Density: " << nPart_in_transition_zone*(1.0e+26)/(3.0*Lx/16.0*Ly)/N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_transition_zone << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_transition_zone/(3.0*Lx/16.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(3.0*Lx/16.0)/Ly*1e23/N_a)<< endl;
+	cout << "Density: " << nPart_in_transition_zone*(1.0e+26)/(3.0*Lx/8.0*Ly)/N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_transition_zone << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_transition_zone/(3.0*Lx/8.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(3.0*Lx/16.0)/Ly*1e23/N_a)<< endl;
 	cout << "P_X: " << (EN_AND_PR_counter.p_X/(3.0*Lx/16.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(3.0*Lx/16.0)/Ly*1e23/N_a) <<  endl;
 	cout << endl;
 
@@ -266,6 +267,8 @@ int main()
 	//////////////////////////////////////////////////
 	double sum_iterations = 0;
 	double percent = 0;
+	double dt = 0; // Time step in kMC. For MMC it should always be 1.0
+	double Pt = 0; // Integral time of the kinetic Monte Carlo run
 	for(int iter = 1; iter <= nIter; iter++)
 		{
 			percent += 1;
@@ -273,30 +276,38 @@ int main()
 				{
 					frame++;
 					write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
+					PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 					cout << int(iter*100.0/nIter) << " %" << endl;
 					percent = 0;
 				}
-			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+			// Metropolis Monte Carlo run //
+			//Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+			// Kinetic Monte Carlo run //
+			Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta);
+
 
 				balanceEq++;
 				BALANCE_STEPS = 500;
 				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
 					{
-            weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
+						Pt += dt;
 						sum_iterations += 1;
-						press_X += EN_AND_PR_counter.p_X;
-						press_Y += EN_AND_PR_counter.p_Y;
+						weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
+						Energy += EN_AND_PR_counter.energy*dt;
+						press_X += EN_AND_PR_counter.p_X*dt;
+						press_Y += EN_AND_PR_counter.p_Y*dt;
 
 						if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
 							{
-								press_X /= sum_iterations;
-								press_Y /= sum_iterations;
+								Energy /= Pt;
+								press_X /= Pt;
+								press_Y /= Pt;
 /*								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
 								if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
 								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
 								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
-*/								pressure_balance(press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+*/							pressure_balance(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
@@ -310,7 +321,9 @@ int main()
 								if (AR_m > 0.3 && delta < 0.8)
 								{delta += 0.02;}
 
+								Pt = 0;
 								sum_iterations = 0;
+								Energy = 0;
 								press_X = 0;
 								press_Y = 0;
 								balanceEq = 0;
@@ -325,48 +338,50 @@ int main()
 				{
 					if (iter == nIterEq+1)
 						{
-							density = 0; Energy = 0; press_X = 0; press_Y = 0; sum_iterations = 0;
+							density = 0; Energy = 0; press_X = 0; press_Y = 0; Pt = 0; sum_iterations = 0;
 							gas_density = 0; Energy_gas = 0; press_X_gas = 0; press_Y_gas = 0;
+							transition_zone_density = 0; Energy_transition_zone = 0; press_X_transition_zone = 0; press_Y_transition_zone = 0;
 						}
-          weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
+					Pt += dt;
           sum_iterations += 1;
-					density += nPart_in_central_cell;
-					Energy += EN_AND_PR_counter.energy;
-					press_X += EN_AND_PR_counter.p_X;
-					press_Y += EN_AND_PR_counter.p_Y;
-					energy_stat[sum_iterations] = EN_AND_PR_counter.energy;
-					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0;
+					weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
+					density += nPart_in_central_cell*dt;
+					Energy += EN_AND_PR_counter.energy*dt;
+					press_X += EN_AND_PR_counter.p_X*dt;
+					press_Y += EN_AND_PR_counter.p_Y*dt;
+					energy_stat[sum_iterations] = EN_AND_PR_counter.energy*dt;
+					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)*dt/2.0;
 					weighted_averages_in_gas(coordinates, nPart, Lx, Ly);
-					gas_density += nPart_in_gas;
-					Energy_gas += EN_AND_PR_counter.energy;
-					press_X_gas += EN_AND_PR_counter.p_X;
-					press_Y_gas += EN_AND_PR_counter.p_Y;
+					gas_density += nPart_in_gas*dt;
+					Energy_gas += EN_AND_PR_counter.energy*dt;
+					press_X_gas += EN_AND_PR_counter.p_X*dt;
+					press_Y_gas += EN_AND_PR_counter.p_Y*dt;
 					weighted_averages_in_transition_zone(coordinates, nPart, Lx, Ly);
-					transition_zone_density += nPart_in_transition_zone;
-					Energy_transition_zone += EN_AND_PR_counter.energy;
-					press_X_transition_zone += EN_AND_PR_counter.p_X;
-					press_Y_transition_zone += EN_AND_PR_counter.p_Y;
+					transition_zone_density += nPart_in_transition_zone*dt;
+					Energy_transition_zone += EN_AND_PR_counter.energy*dt;
+					press_X_transition_zone += EN_AND_PR_counter.p_X*dt;
+					press_Y_transition_zone += EN_AND_PR_counter.p_Y*dt;
 				}
 		}
 
-	density /= sum_iterations;
-	Energy /= sum_iterations;
-	press_X /= sum_iterations;
-	press_Y /= sum_iterations;
+	density /= Pt;
+	Energy /= Pt;
+	press_X /= Pt;
+	press_Y /= Pt;
 	density *= (1.0e+26)/((Lx/4.0)*Ly)/N_a;
 	press_X *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
 	press_Y *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
-	gas_density /= sum_iterations;
-	Energy_gas /= sum_iterations;
-	press_X_gas /= sum_iterations;
-	press_Y_gas /= sum_iterations;
+	gas_density /= Pt;
+	Energy_gas /= Pt;
+	press_X_gas /= Pt;
+	press_Y_gas /= Pt;
 	gas_density *= (1.0e+26)/((Lx/4.0)*Ly)/N_a;
 	press_X_gas *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
 	press_Y_gas *= (1.0/(Lx/4.0)/Ly*1e23)/N_a;
-	transition_zone_density /= sum_iterations;
-	Energy_transition_zone /= sum_iterations;
-	press_X_transition_zone /= sum_iterations;
-	press_Y_transition_zone /= sum_iterations;
+	transition_zone_density /= Pt;
+	Energy_transition_zone /= Pt;
+	press_X_transition_zone /= Pt;
+	press_Y_transition_zone /= Pt;
 	transition_zone_density *= (1.0e+26)/((3.0*Lx/8.0)*Ly)/N_a;
 	press_X_transition_zone *= (1.0/(3.0*Lx/16.0)/Ly*1e23)/N_a;
 	press_Y_transition_zone *= (1.0/(3.0*Lx/16.0)/Ly*1e23)/N_a;
@@ -384,7 +399,7 @@ int main()
 
 	cout << endl;
 	cout << "Transition Zone Data" << endl;
-	cout << "Transition zone density: " << transition_zone_density << " mikromol/m2" << " Energy per molecule in transition zone: " << Energy_transition_zone/1000.0/(transition_zone_density*3.0*Lx*Ly*N_a/16.0/1.0e+26) << " kJ/mol" << endl;
+	cout << "Transition zone density: " << transition_zone_density << " mikromol/m2" << " Energy per molecule in transition zone: " << Energy_transition_zone/1000.0/(transition_zone_density*3.0*Lx*Ly*N_a/8.0/1.0e+26) << " kJ/mol" << endl;
 	cout << "Pressure along X in transition zone: " << R*temperature*transition_zone_density/1000.0 + press_X_transition_zone << " mN/m" << " Pressure along X in transition zone: " << R*temperature*transition_zone_density/1000.0 + press_Y_transition_zone << " mN/m" << endl;
 
 	cout << endl;

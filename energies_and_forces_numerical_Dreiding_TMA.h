@@ -52,12 +52,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 				 if (abs(dist_y) > max_dist) {continue;}
 						r2 = dist_x*dist_x + dist_y*dist_y;
 						r = sqrt(r2);
-						if (r <= min_dist)
+						if (r <= min_dist +2.0*diff_delta)
 						{
 							HC_radius = true;
 							continue;
 						}
-						if (r > min_dist && r <= (max_dist-2.0*diff_delta))
+						if (r > (min_dist+2.0*diff_delta) && r <= (max_dist-2.0*diff_delta))
 						{
 							 double t_U;
 							 energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y, t_U);
