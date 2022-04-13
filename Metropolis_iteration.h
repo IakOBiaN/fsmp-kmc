@@ -23,7 +23,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        new_coordinates.y = PBC2D(Ly, new_coordinates.y);
 			 new_coordinates.damping_coeff = damping_field(new_coordinates.x, Lx); // Lambda^1/2
 			 new_coordinates.ex_field_coeff = external_field(new_coordinates.x, Lx); // u_ext
-			 new_coordinates.stat_weight = weights_for_central_cell(new_coordinates.x, Lx);
+			 new_coordinates.stat_weight = weights_for_central_cell (new_coordinates.x, Lx);
       }
     else
       {
