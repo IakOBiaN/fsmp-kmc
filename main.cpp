@@ -98,7 +98,7 @@ double density, gas_density, transition_zone_density;		// Actual density of the 
 double state_dens, state_Ly;
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
 double lambda0 = 0.625;
-double u_m = 0.0;													// Parameter of the external field
+double u_m = -25000.0;													// Parameter of the external field
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 
 // Minimal (hard core distance) and maximal distance between the molecules
@@ -210,13 +210,20 @@ int main()
  for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
+
+	// Generate the structure in the elongated cell
 	initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
-	for(int i=0; i < 100*nPart; i ++){Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);}
 //	initConfigHoneycombTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly(nPart, state_dens));
 //	initConfigSuperFlowerTMA(nPart, density, coordinates, Lx, Ly, density_to_Ly_SF(nPart, state_dens));
+
+	// Clear up the xyz file
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
+
+	// Relax the generated structure with 50 MCS
+	for(int i=0; i < 50*nPart; i ++){Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);}
+	// Write out the relaxed inital structure
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,11 +288,12 @@ int main()
 					percent = 0;
 				}
 			// Metropolis Monte Carlo run //
-			//Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+//			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+//			dt = 1.0;
 			// Kinetic Monte Carlo run //
 			Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta);
 
-
+/*
 				balanceEq++;
 				BALANCE_STEPS = 500;
 				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
@@ -302,12 +310,12 @@ int main()
 								Energy /= Pt;
 								press_X /= Pt;
 								press_Y /= Pt;
-/*								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
+								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
 								if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
 								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
 								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
-*/							pressure_balance(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+								pressure_balance(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
@@ -333,7 +341,7 @@ int main()
 								ACCEPTANCE_RATIO_m[1] = 0;
 							}
 					}
-
+*/
 			if(iter > nIterEq)
 				{
 					if (iter == nIterEq+1)

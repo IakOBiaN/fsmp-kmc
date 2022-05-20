@@ -5,25 +5,25 @@ void Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &co
 	vector <double> mobility_histogram(nPart);
 	vector <double> ln_mob(nPart);
 	double s = 0;
+	dt = 0;
 
+	// Calculating the log mobilities of all the molecules
 	for(int i = 0; i < nPart; i++)
 		{
 			ln_mob[i] = (2.0*coordinates[i].en_and_pr.energy - coordinates[i].ex_field_coeff.energy)*beta;
-			if (ln_mob[i] > 100){ln_mob[i] = 100;}
+//			if (ln_mob[i] > 100){ln_mob[i] = 100;}
 			s += ln_mob[i];
 		}
-	s = s/nPart;
+	s = s/nPart; // Average mobility of the particles
 
-	// Calculate the mobilities of the molecules and construct the mobility histogram
+	// Construct the mobility histogram
 	mobility_histogram[0] = exp(ln_mob[0]- s);
 	for(int i = 1; i < nPart; i++)
 		{
 			mobility_histogram[i] = mobility_histogram[i-1] + exp(ln_mob[i] - s);
 		}
 
-	// Calculate the duration of this configuration
-	dt = exp(-s)/mobility_histogram[nPart-1];
-
+	// Construct the normalized mobility histogram
 	for(int i = 0; i < nPart; i++)
 		{
 			mobility_histogram[i] = mobility_histogram[i]/mobility_histogram[nPart-1];
@@ -61,7 +61,7 @@ void Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &co
 		{
 			if (l == trialPart){continue;}
 			energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, true);
-			if (HC_radius == true) {break;} // If the molecules overlap, the duration of new stste is supposed to be zero
+			if (HC_radius == true) {dt = 0; break;} // If the molecules overlap, the duration of new stste is supposed to be zero
 		}
 
 	if (HC_radius == false)
@@ -78,6 +78,24 @@ void Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &co
 			}
 			new_coordinates.en_and_pr = new_coordinates.en_and_pr + (new_coordinates.ex_field_coeff - coordinates[trialPart].ex_field_coeff);
 			coordinates[trialPart] = new_coordinates;     // Update position of the trialPart
+
+			// Calculating the log mobilities of all the molecules in new configuration of the system
+			s = 0;
+			for(int i = 0; i < nPart; i++)
+				{
+					ln_mob[i] = (2.0*coordinates[i].en_and_pr.energy - coordinates[i].ex_field_coeff.energy)*beta;
+//					if (ln_mob[i] > 100){ln_mob[i] = 100;}
+					s += ln_mob[i];
+				}
+			s = s/nPart; // Average mobility of the particles in new configuration of the system
+			// Construct the mobility histogram in new configuration of the system
+			mobility_histogram[0] = exp(ln_mob[0]- s);
+			for(int i = 1; i < nPart; i++)
+				{
+					mobility_histogram[i] = mobility_histogram[i-1] + exp(ln_mob[i] - s);
+				}
+			// Calculate the duration of new configuration of the system
+			dt = exp(-s)/mobility_histogram[nPart-1];
 	}
 		HC_radius = false;
 }

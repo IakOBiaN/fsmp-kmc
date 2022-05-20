@@ -19,10 +19,10 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordin
 			}
 		coordinates[molA].ex_field_coeff = external_field(coordinates[molA].x, Lx);
 		coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + coordinates[molA].ex_field_coeff;
-		cout << "mol #" << molA << " ext: " << coordinates[molA].ex_field_coeff.energy << " u: " << coordinates[molA].en_and_pr.energy << endl;
+//		cout << "mol #" << molA << " ext: " << coordinates[molA].ex_field_coeff.energy << " u: " << coordinates[molA].en_and_pr.energy << endl;
 
 	}
 	coordinates[nPart-1].ex_field_coeff = external_field(coordinates[nPart-1].x, Lx);
 	coordinates[nPart-1].en_and_pr = coordinates[nPart-1].en_and_pr + coordinates[nPart-1].ex_field_coeff;
-	cout << "mol #" << nPart-1 << " ext: " << coordinates[nPart-1].ex_field_coeff.energy << " u: " << coordinates[nPart-1].en_and_pr.energy << endl;
+//	cout << "mol #" << nPart-1 << " ext: " << coordinates[nPart-1].ex_field_coeff.energy << " u: " << coordinates[nPart-1].en_and_pr.energy << endl;
 }

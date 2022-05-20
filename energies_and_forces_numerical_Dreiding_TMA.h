@@ -31,6 +31,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
 		double diff_delta = 0.01;
+//		min_dist = 1.2*min_dist;
 
 
 //		double r0 = 7.5877; // Hard core radius in A
@@ -49,7 +50,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 			{
 				 molB_clone.y = molB.y + jd*Ly;
 				 dist_y = molB_clone.y - molA.y;
-				 if (abs(dist_y) > max_dist) {continue;}
+				 if (abs(dist_y) > max_dist - 2.0*diff_delta) {continue;}
 						r2 = dist_x*dist_x + dist_y*dist_y;
 						r = sqrt(r2);
 						if (r <= min_dist +2.0*diff_delta)
