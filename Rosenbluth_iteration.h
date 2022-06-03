@@ -11,7 +11,7 @@ void Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &co
 	for(int i = 0; i < nPart; i++)
 		{
 			ln_mob[i] = (2.0*coordinates[i].en_and_pr.energy - coordinates[i].ex_field_coeff.energy)*beta;
-//			if (ln_mob[i] > 100){ln_mob[i] = 100;}
+			if (ln_mob[i] > 100){ln_mob[i] = 100;}
 			s += ln_mob[i];
 		}
 	s = s/nPart; // Average mobility of the particles
@@ -84,7 +84,7 @@ void Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &co
 			for(int i = 0; i < nPart; i++)
 				{
 					ln_mob[i] = (2.0*coordinates[i].en_and_pr.energy - coordinates[i].ex_field_coeff.energy)*beta;
-//					if (ln_mob[i] > 100){ln_mob[i] = 100;}
+					if (ln_mob[i] > 100){ln_mob[i] = 100;}
 					s += ln_mob[i];
 				}
 			s = s/nPart; // Average mobility of the particles in new configuration of the system

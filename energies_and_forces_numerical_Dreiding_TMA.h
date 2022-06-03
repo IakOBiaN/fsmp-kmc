@@ -21,7 +21,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	a2 = (int)((ang2/da)+0.5);
 	molA.damping_coeff = damping_field(molA.x, Lx);
 	molB.damping_coeff = damping_field(molB.x, Lx);
-	en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;
+	en = forcefield[dist][a1][a2]*sqrt(molA.damping_coeff*molB.damping_coeff);
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
@@ -31,7 +31,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
 		double diff_delta = 0.01;
-//		min_dist = 1.2*min_dist;
 
 
 //		double r0 = 7.5877; // Hard core radius in A
