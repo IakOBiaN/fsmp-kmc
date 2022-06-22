@@ -20,6 +20,7 @@ double external_field_jpcc_2020 (double x, double &Lx)
 			return 0;
 }
 
+//
 double damping_field (double x, double &Lx)
 {
 	// return 0 - for ideal gas

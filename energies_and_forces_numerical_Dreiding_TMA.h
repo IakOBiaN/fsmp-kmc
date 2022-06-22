@@ -21,7 +21,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	a2 = (int)((ang2/da)+0.5);
 	molA.damping_coeff = damping_field(molA.x, Lx);
 	molB.damping_coeff = damping_field(molB.x, Lx);
-	en = forcefield[dist][a1][a2]*sqrt(molA.damping_coeff*molB.damping_coeff);
+	en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
@@ -43,6 +43,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 	 dist_y = 0;
 	 r = 0;
    dist_x = molB.x - molA.x;
+	 // Here we no need to use PBC along x-axis because of the damping and external fields
    if (abs(dist_x) < max_dist)
 	  {
 			for (int jd = -1; jd < 2; jd++)
@@ -52,12 +53,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 				 if (abs(dist_y) > max_dist - 2.0*diff_delta) {continue;}
 						r2 = dist_x*dist_x + dist_y*dist_y;
 						r = sqrt(r2);
-						if (r <= min_dist +2.0*diff_delta)
+						if (r <= min_dist + 2.0*diff_delta)
 						{
 							HC_radius = true;
 							continue;
 						}
-						if (r > (min_dist+2.0*diff_delta) && r <= (max_dist-2.0*diff_delta))
+						if (r > (min_dist + 2.0*diff_delta) && r <= (max_dist-2.0*diff_delta))
 						{
 							 double t_U;
 							 energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y, t_U);

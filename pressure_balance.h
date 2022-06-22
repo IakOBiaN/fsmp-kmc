@@ -3,7 +3,7 @@ void pressure_balance(double Energy, double press_X, double press_Y, double &Lx,
     double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
     double S = Lx*Ly;
     dL = 0.001*min_dist;
-/*
+
 		//pressure_balance for central cell
 		if(press_X < press_Y)
 		{
@@ -25,17 +25,17 @@ void pressure_balance(double Energy, double press_X, double press_Y, double &Lx,
 			 }
 		Lx = Lx_new;
 		Ly = Ly_new;
-*/
 
+/*
 			if (press_X < press_Y)
 				{
 					u_m += 0.15/beta;
 				}
 			else
 				{
-					u_m -= 0.15/beta; 
+					u_m -= 0.15/beta;
 				}
-
+*/
        // Recalculate energies after compressing or expanding the box
        PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 
