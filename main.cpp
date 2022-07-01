@@ -97,7 +97,7 @@ const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;		// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
-double lambda0 = 0.625;
+double lambda0 = 0.3;
 double u_m = -25000.0;													// Parameter of the external field
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 double sigma = 1.1052; // sigma in nm
@@ -186,9 +186,9 @@ int main()
  int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 500000;            // Total amount of MCS
+ int nSteps = 400000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 300000;           // MCS for relaxation
+ int nStepsEq = 200000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -221,7 +221,7 @@ int main()
 	frame = 1;
 
 
- for(u_m = 0.0; u_m >= -50000.0; u_m += -2500.0)
+ for(u_m = -30000.0; u_m <= 0.0; u_m += 2500.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
@@ -443,7 +443,7 @@ int main()
 	ofstream fileOutput(name_stat.str().c_str(), ios_base::app);
 	fileOutput  << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error
 	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
-	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_ex << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_ex << endl;
+	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_ex << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_ex << endl;
 	fileOutput.close();
 
  }
