@@ -35,6 +35,9 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        new_coordinates.cos_phi = cos(new_coordinates.phi/180.0*PI);
        angle_change = true;
       }
+		// For analytic forcefield
+		charges_coordinates (new_coordinates);
+
 		for (int l = 0; l < nPart; l++)
       {
 				if (l == trialPart){continue;}

@@ -59,7 +59,7 @@ results::results(void) {
    p_X = 0;
    p_Y = 0;
 }
-
+/*
 // Class contains the function descrabing the state of the molecule:
 // 1) coordinates
 // 2) angles
@@ -76,6 +76,31 @@ results ex_field_coeff;
 double stat_weight;
 results en_and_pr;
 };
+*/
+class state {
+public:
+double x;
+double y;
+double phi;
+double sin_phi;
+double cos_phi;
+double damping_coeff;
+results ex_field_coeff;
+double stat_weight;
+results en_and_pr;
+double q1x_p;
+double q1y_p;
+double q2x_p;
+double q2y_p;
+double q3x_p;
+double q3y_p;
+double q1x_n;
+double q1y_n;
+double q2x_n;
+double q2y_n;
+double q3x_n;
+double q3y_n;
+};
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +114,7 @@ double nPart_in_transition_zone = 0;						// molecules in nPart_in_transition_zo
 double ACCEPTANCE_RATIO_r[2] = {0, 0};					// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;												// steps for balance statistics
-double delta = 2.5;															// MC parameter. Maximal shift of the molecule
+double delta = 5.0;															// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
 double R = 8.31446261815324;														// Gas constant in J per mol
 double N_a = 6.02214076e+23;												//	Avogadro constant
@@ -124,7 +149,8 @@ int frame = 0; // For visualization purpose
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "fields.h"
-#include "energies_and_forces_numerical_Dreiding_TMA.h"
+//#include "energies_and_forces_numerical_Dreiding_TMA.h"
+#include "energies_and_forces_approx.h"
 //#include "energies_and_forces_numerical_simple_model.h"
 #include "initConfigHoneycombTMA_elongated_cell.h"
 //#include "initConfigHoneycombTMA.h"
@@ -150,7 +176,7 @@ int main()
  //////////////////////////////////////////////////////////////////////////////////////
  //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
  /////////////////////////////////////////////////////////////////////////////////////
-
+/*
 	// Fill in the forcefield
 	// First dimension is distance
 	// Second dimension is angle of first molecule
@@ -169,7 +195,7 @@ int main()
    // Read the forcefield from "forcefield.dat"
    cout << "Now I'm reading the forcefield file." << endl;
    read_forcefield ("simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
-
+*/
  // Set configuration parameters
 
  double press_X = 0, press_Y = 0, Energy = 0, density = 0;
@@ -183,12 +209,12 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 720; // Honeycomb
+ int nPart = 80; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 400000;            // Total amount of MCS
+ int nSteps = 200000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 200000;           // MCS for relaxation
+ int nStepsEq = 100000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -208,6 +234,13 @@ int main()
  stringstream name_stat;
  name_stat << "statistics_" << "T" << temperature << "_lambda0_" << lambda0 << ".dat";
  ofstream fileOutput(name_stat.str().c_str(), ios_base::trunc);
+
+ fileOutput << "Number of particles: " << nPart << endl;
+ fileOutput << "Total number of MCS: " << nSteps << "  MCS for relaxation: " << nStepsEq << endl;
+ fileOutput << "Maximal displacement, A: " << delta << "  Maximal rotation angle, deg: " << delta_angle << endl;
+ fileOutput << "Lambda0: " << lambda0 << endl;
+ fileOutput << "////////////////////////////////////////////////////////////////////////////////////////////" << endl << endl;
+
  fileOutput << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t"
  << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << "\t"
  << "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << endl;
@@ -221,7 +254,7 @@ int main()
 	frame = 1;
 
 
- for(u_m = -30000.0; u_m <= 0.0; u_m += 2500.0)
+ for(u_m = 0.0; u_m >= -30000.0; u_m -= 1000.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
@@ -310,7 +343,7 @@ int main()
 
 
 				balanceEq++;
-				BALANCE_STEPS = 500;
+				BALANCE_STEPS = 200;
 				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
 					{
 						Pt += dt;
