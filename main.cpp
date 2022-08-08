@@ -209,7 +209,7 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 80; // Honeycomb
+ int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
  int nSteps = 200000;            // Total amount of MCS
@@ -400,8 +400,10 @@ int main()
 							delta_p_over_interface = 0;
 							N_test = 0; e_test = 0;
 						}
+
 					Pt += dt;
           sum_iterations += 1;
+
 					weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
 					density += nPart_in_central_cell*dt;
 					Energy += EN_AND_PR_counter.energy*dt;
@@ -409,17 +411,21 @@ int main()
 					press_Y += EN_AND_PR_counter.p_Y*dt;
 					energy_stat[sum_iterations] = EN_AND_PR_counter.energy*dt;
 					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)*dt/2.0;
+
 					weighted_averages_in_gas(coordinates, nPart, Lx, Ly);
 					gas_density += nPart_in_gas*dt;
 					Energy_gas += EN_AND_PR_counter.energy*dt;
 					press_X_gas += EN_AND_PR_counter.p_X*dt;
 					press_Y_gas += EN_AND_PR_counter.p_Y*dt;
+
 					weighted_averages_in_transition_zone(coordinates, nPart, Lx, Ly);
 					transition_zone_density += nPart_in_transition_zone*dt;
 					Energy_transition_zone += EN_AND_PR_counter.energy*dt;
 					press_X_transition_zone += EN_AND_PR_counter.p_X*dt;
+
 					pressure_change_over_interface(coordinates, nPart, Lx, Ly);
 					delta_p_over_interface += EN_AND_PR_counter.p_X*dt;
+
 					Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
 				}
 		}

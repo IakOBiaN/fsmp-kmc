@@ -188,7 +188,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
 		double diff_delta = 0.000001;
-		min_dist = 9.0;
+		min_dist = 7.55;
 		max_dist = 5.0*7.5877;
 
 

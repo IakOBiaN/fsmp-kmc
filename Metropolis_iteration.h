@@ -54,7 +54,7 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
         for (int l = 0; l < nPart; l++)
           {
             if (l == trialPart){continue;}
-            //Choose exact or numerical energy and pressure calculation
+            // Here we should calculate the pressure if the change is accepted
             old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, true);
             new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, true);
             delta_EP = (new_EP_Part - old_EP_Part)/2.0;
