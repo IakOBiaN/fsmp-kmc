@@ -208,7 +208,7 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 720; // Honeycomb
+ int nPart = 80; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
  int nSteps = 20000;            // Total amount of MCS
@@ -463,7 +463,8 @@ int main()
 	transition_zone_density *= (1.0e+26)/((3.0*Lx/8.0)*Ly)/N_a;
 	press_X_transition_zone *= (1.0/(3.0*Lx/16.0)/Ly*1e23)/N_a;
 	delta_p_over_interface *= 1e23/Ly/N_a/2.0;
-	double mu_ex = log(N_test/(e_test))/beta/1000.0;
+	double mu_ex_widom = log(N_test/(e_test))/beta/1000.0;
+	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////
 	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26);
@@ -486,7 +487,8 @@ int main()
 	cout << "Gas Phase Data" << endl;
 	cout << "Gas density: " << gas_density << " mikromol/m2" << " Gas energy per molecule: " << Energy_gas/1000.0/(gas_density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << endl;
 	cout << "Gas pressure along X: " << R*temperature*gas_density/1000.0 + press_X_gas << " mN/m" << " Gas pressure along Y: " << R*temperature*gas_density/1000.0 + press_Y_gas << " mN/m" << endl;
-	cout << "Excess chemical potential in gas phase: " << mu_ex << " kJ/mol / " << "Chemical potential in the gas phase: " << mu_ex + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << " kJ/mol" << endl;
+	cout << "Widom's excess chemical potential in gas phase: " << mu_ex_widom << " kJ/mol / " << "Widom's chemical potential in the gas phase: " << mu_ex_widom + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << " kJ/mol" << endl;
+	cout << "kMC's excess chemical potential in gas phase: " << mu_ex_kMC << " kJ/mol / " << "kMC's chemical potential in the gas phase: " << mu_ex_kMC + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << " kJ/mol" << endl;
 
 	cout << endl;
 	cout << "Pressure change over gas-solid interface (dP): " << delta_p_over_interface << " mN/m" << " Pressure in the crystal (Pg + dP): " << R*temperature*gas_density/1000.0 + delta_p_over_interface << endl;
@@ -494,7 +496,7 @@ int main()
 	ofstream fileOutput(name_stat.str().c_str(), ios_base::app);
 	fileOutput  << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error
 	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
-	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_ex << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_ex << endl;
+	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_ex_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_ex_widom << endl;
 	fileOutput.close();
 
  }
