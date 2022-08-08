@@ -159,3 +159,39 @@ void charges_coordinates (state &mol)
   mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
   mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
 }
+
+void check_HC(state molA, state molB, double &Lx, double &Ly)
+{
+	    results en_and_press;
+	  	double r;	// Distance between A and B molecules
+	  	double r2;	// Distance sqaured
+	  	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
+
+
+	//		double r0 = 7.5877; // Hard core radius in A
+			state molB_clone = molB;
+			state molA_clone = molA;
+
+	    for (int id = -1; id < 2; id++)
+	    {
+				 dist_x = 0;
+				 dist_y = 0;
+				 r = 0;
+				 molB_clone.x = molB.x + id*Lx;
+	       dist_x = molB_clone.x - molA.x;
+	       if (abs(dist_x) > max_dist) {continue;}
+	       for (int jd = -1; jd < 2; jd++)
+	       {
+					  molB_clone.y = molB.y + jd*Ly;
+	          dist_y = molB_clone.y - molA.y;
+	          if (abs(dist_y) > max_dist) {continue;}
+	             r2 = dist_x*dist_x + dist_y*dist_y;
+	             r = sqrt(r2);
+	             if (r <= min_dist)
+	             {
+	               HC_radius = true;
+	               break;
+	             }
+	       }
+	    }
+}

@@ -118,6 +118,7 @@ double delta = 5.0;															// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
 double R = 8.31446261815324;														// Gas constant in J per mol
 double N_a = 6.02214076e+23;												//	Avogadro constant
+const double E_INF = 75.0;
 const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;		// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
@@ -134,13 +135,11 @@ double sigma = 1.1052; // sigma in nm
 vector <vector <vector <double> > > forcefield;
 vector <vector <vector <double> > > energy;
 // Minimal (hard core distance) and maximal distance between the molecules
-double min_dist,max_dist;
+double min_dist = 7.5877, max_dist = 11.052*5.0;
 // Delta between neighbor distances in the forcefield in A
 double dr;
 // Delta between orientation angle of the single molecule
 double da;
-
-//double min_dist = 7.5877, max_dist = 11.052*5.0;
 
 int frame = 0; // For visualization purpose
 
@@ -212,9 +211,9 @@ int main()
  int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 200000;            // Total amount of MCS
+ int nSteps = 20000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 100000;           // MCS for relaxation
+ int nStepsEq = 10000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -254,7 +253,7 @@ int main()
 	frame = 1;
 
 
- for(u_m = 0.0; u_m >= -30000.0; u_m -= 1000.0)
+ for(u_m = -20000.0; u_m >= -30000.0; u_m -= 1000.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
@@ -335,11 +334,24 @@ int main()
 					cout << int(iter*100.0/nIter) << " %" << endl;
 					percent = 0;
 				}
+
 			// Metropolis Monte Carlo run //
-			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
-			dt = 1.0; // For Metropolis iteration
-			// Kinetic Monte Carlo run //
-//			Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta);
+      if(iter < nIter*0.05)
+       {
+         Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+         dt = 1.0;
+       }
+       else
+       {
+          dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter);
+       		if (iter%1000 == 0)
+       		{
+       			for (int mmc_iter = 0; mmc_iter < 1000; mmc_iter++)
+       			{
+       				Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+       			}
+       		}
+       }
 
 
 				balanceEq++;

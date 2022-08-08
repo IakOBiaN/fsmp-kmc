@@ -33,9 +33,9 @@ void charges_coordinates (state &mol)
   mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
 }
 
-void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double &en)
+void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double &U_LJ, double &U_QQ)
 {
-	double en_LJ = 0, en_QQ = 0;
+
 	//double derivative_LJ, derivative_QQ;
 	double r0 = 7.5877; // Hard core radius in A
 	double sigma_r0 = 11.052 - r0; // in A
@@ -58,245 +58,127 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	r_r0 = r - r0;
 	r_r0_6 = r_r0*r_r0*r_r0*r_r0*r_r0*r_r0;
 	lj_dist_6 = sigma_r0_6/r_r0_6;
-	en_LJ += 4.0*eps*(lj_dist_6 * (lj_dist_6 - 1.0));
-//	U_LJ *= molA.damping_coeff*molB.damping_coeff; // in J/mol
+	U_LJ += 4*eps*(lj_dist_6 * (lj_dist_6 - 1.0)); // in J/mol
+	U_LJ *= molA.damping_coeff*molB.damping_coeff;
 
 	/// Coulomb's interaction ///
 	//derivative_QQ = 0;
 	// Interaction energy between 6 charges of the A molecule and 6 charges of the B molecules
 	// Positive charges of A molecule and positive charges of B molecule
 	dist2 = ((molB.q1x_p - molA.q1x_p)*(molB.q1x_p - molA.q1x_p) + (molB.q1y_p - molA.q1y_p)*(molB.q1y_p - molA.q1y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q1x_p)*(molB.q2x_p - molA.q1x_p) + (molB.q2y_p - molA.q1y_p)*(molB.q2y_p - molA.q1y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q1x_p)*(molB.q3x_p - molA.q1x_p) + (molB.q3y_p - molA.q1y_p)*(molB.q3y_p - molA.q1y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q2x_p)*(molB.q1x_p - molA.q2x_p) + (molB.q1y_p - molA.q2y_p)*(molB.q1y_p - molA.q2y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q2x_p)*(molB.q2x_p - molA.q2x_p) + (molB.q2y_p - molA.q2y_p)*(molB.q2y_p - molA.q2y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q2x_p)*(molB.q3x_p - molA.q2x_p) + (molB.q3y_p - molA.q2y_p)*(molB.q3y_p - molA.q2y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q3x_p)*(molB.q1x_p - molA.q3x_p) + (molB.q1y_p - molA.q3y_p)*(molB.q1y_p - molA.q3y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q3x_p)*(molB.q2x_p - molA.q3x_p) + (molB.q2y_p - molA.q3y_p)*(molB.q2y_p - molA.q3y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q3x_p)*(molB.q3x_p - molA.q3x_p) + (molB.q3y_p - molA.q3y_p)*(molB.q3y_p - molA.q3y_p));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	// Negative charges of A molecule and negative charges of B molecule
 	dist2 = ((molB.q1x_n - molA.q1x_n)*(molB.q1x_n - molA.q1x_n) + (molB.q1y_n - molA.q1y_n)*(molB.q1y_n - molA.q1y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q1x_n)*(molB.q2x_n - molA.q1x_n) + (molB.q2y_n - molA.q1y_n)*(molB.q2y_n - molA.q1y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q1x_n)*(molB.q3x_n - molA.q1x_n) + (molB.q3y_n - molA.q1y_n)*(molB.q3y_n - molA.q1y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q2x_n)*(molB.q1x_n - molA.q2x_n) + (molB.q1y_n - molA.q2y_n)*(molB.q1y_n - molA.q2y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q2x_n)*(molB.q2x_n - molA.q2x_n) + (molB.q2y_n - molA.q2y_n)*(molB.q2y_n - molA.q2y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q2x_n)*(molB.q3x_n - molA.q2x_n) + (molB.q3y_n - molA.q2y_n)*(molB.q3y_n - molA.q2y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q3x_n)*(molB.q1x_n - molA.q3x_n) + (molB.q1y_n - molA.q3y_n)*(molB.q1y_n - molA.q3y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q3x_n)*(molB.q2x_n - molA.q3x_n) + (molB.q2y_n - molA.q3y_n)*(molB.q2y_n - molA.q3y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q3x_n)*(molB.q3x_n - molA.q3x_n) + (molB.q3y_n - molA.q3y_n)*(molB.q3y_n - molA.q3y_n));
-	en_QQ += QQ_const/sqrt(dist2);
+	U_QQ += QQ_const/sqrt(dist2);
 
 	// Negative charges of A molecule and positive charges of B molecule
 	dist2 = ((molB.q1x_p - molA.q1x_n)*(molB.q1x_p - molA.q1x_n) + (molB.q1y_p - molA.q1y_n)*(molB.q1y_p - molA.q1y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q1x_n)*(molB.q2x_p - molA.q1x_n) + (molB.q2y_p - molA.q1y_n)*(molB.q2y_p - molA.q1y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q1x_n)*(molB.q3x_p - molA.q1x_n) + (molB.q3y_p - molA.q1y_n)*(molB.q3y_p - molA.q1y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q2x_n)*(molB.q1x_p - molA.q2x_n) + (molB.q1y_p - molA.q2y_n)*(molB.q1y_p - molA.q2y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q2x_n)*(molB.q2x_p - molA.q2x_n) + (molB.q2y_p - molA.q2y_n)*(molB.q2y_p - molA.q2y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q2x_n)*(molB.q3x_p - molA.q2x_n) + (molB.q3y_p - molA.q2y_n)*(molB.q3y_p - molA.q2y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q3x_n)*(molB.q1x_p - molA.q3x_n) + (molB.q1y_p - molA.q3y_n)*(molB.q1y_p - molA.q3y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q3x_n)*(molB.q2x_p - molA.q3x_n) + (molB.q2y_p - molA.q3y_n)*(molB.q2y_p - molA.q3y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q3x_n)*(molB.q3x_p - molA.q3x_n) + (molB.q3y_p - molA.q3y_n)*(molB.q3y_p - molA.q3y_n));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	// Positive charges of A molecule and negative charges of B molecule
 	dist2 = ((molB.q1x_n - molA.q1x_p)*(molB.q1x_n - molA.q1x_p) + (molB.q1y_n - molA.q1y_p)*(molB.q1y_n - molA.q1y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q1x_p)*(molB.q2x_n - molA.q1x_p) + (molB.q2y_n - molA.q1y_p)*(molB.q2y_n - molA.q1y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q1x_p)*(molB.q3x_n - molA.q1x_p) + (molB.q3y_n - molA.q1y_p)*(molB.q3y_n - molA.q1y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q2x_p)*(molB.q1x_n - molA.q2x_p) + (molB.q1y_n - molA.q2y_p)*(molB.q1y_n - molA.q2y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q2x_p)*(molB.q2x_n - molA.q2x_p) + (molB.q2y_n - molA.q2y_p)*(molB.q2y_n - molA.q2y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q2x_p)*(molB.q3x_n - molA.q2x_p) + (molB.q3y_n - molA.q2y_p)*(molB.q3y_n - molA.q2y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q3x_p)*(molB.q1x_n - molA.q3x_p) + (molB.q1y_n - molA.q3y_p)*(molB.q1y_n - molA.q3y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q3x_p)*(molB.q2x_n - molA.q3x_p) + (molB.q2y_n - molA.q3y_p)*(molB.q2y_n - molA.q3y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
+	U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q3x_p)*(molB.q3x_n - molA.q3x_p) + (molB.q3y_n - molA.q3y_p)*(molB.q3y_n - molA.q3y_p));
-	en_QQ -= QQ_const/sqrt(dist2);
-//	U_QQ *= molA.damping_coeff*molB.damping_coeff;
-	molA.damping_coeff = damping_field(molA.x, Lx);
-	molB.damping_coeff = damping_field(molB.x, Lx);
-	en = (en_LJ + en_QQ)*molA.damping_coeff*molB.damping_coeff;
+	U_QQ -= QQ_const/sqrt(dist2);
+
+	U_QQ *= molA.damping_coeff*molB.damping_coeff;
 }
 
-results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
-{
-    results en_and_press;
-  	double r;	// Distance between A and B molecules
-  	double r2;	// Distance sqaured
-  	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
-		double diff_delta = 0.000001;
-		min_dist = 7.55;
-		max_dist = 5.0*7.5877;
-
-
-//		double r0 = 7.5877; // Hard core radius in A
-		state molB_clone = molB;
-		state molA_clone = molA;
-		double energy_cur = 0;
-		double pressure_X = 0, pressure_Y = 0;
-
-	 dist_x = 0;
-	 dist_y = 0;
-	 r = 0;
-   dist_x = molB.x - molA.x;
-	 // Here we no need to use PBC along x-axis because of the damping and external fields
-   if (abs(dist_x) < max_dist)
-	  {
-			for (int jd = -1; jd < 2; jd++)
-			{
-				 molB_clone.y = molB.y + jd*Ly;
-				 dist_y = molB_clone.y - molA.y;
-				 if (abs(dist_y) > max_dist) {continue;}
-						r2 = dist_x*dist_x + dist_y*dist_y;
-						r = sqrt(r2);
-						if (r <= min_dist)
-						{
-							HC_radius = true;
-							continue;
-						}
-						if (r > min_dist && r <= max_dist)
-						{
-							double t_U = 0;
-							charges_coordinates(molA_clone);
-							charges_coordinates(molB_clone);
-							energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U);
-							energy_cur += t_U;
-							 if (pressure_calc)
-							 {
-								 // Pressure calculation
-								 double dist_x_plus_delta, dist_y_plus_delta;
-								 double t_U_delta_1 = 0;
-								 double t_U_delta_2 = 0;
-
-								 // Calculation of the pressure along x-coordinate
-								 molA_clone.x = molA_clone.x + diff_delta;
-								 molB_clone.x = molB_clone.x - diff_delta;
-								 dist_x_plus_delta = molB_clone.x - molA_clone.x;
-								 r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
-								 r = sqrt(r2);
-								 charges_coordinates(molA_clone);
-								 charges_coordinates(molB_clone);
-								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, t_U_delta_1);
-
-								 molA_clone.x = molA_clone.x - 2.0*diff_delta;
-								 molB_clone.x = molB_clone.x + 2.0*diff_delta;
-								 dist_x_plus_delta = molB_clone.x - molA_clone.x;
-								 r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
-								 r = sqrt(r2);
-								 charges_coordinates(molA_clone);
-								 charges_coordinates(molB_clone);
-								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, t_U_delta_2);
-
-								 pressure_X += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_x;
-
-								// Restoring the initial x-coordinates of the clonned molecules and its charge distribution
-								 molA_clone.x = molA_clone.x + diff_delta;
-								 molB_clone.x = molB_clone.x - diff_delta;
-								 charges_coordinates(molA_clone);
-								 charges_coordinates(molB_clone);
-								 t_U_delta_1 = 0;
-								 t_U_delta_2 = 0;
-
-								 // Calculation of the pressure along y-coordinate
-
-								 molA_clone.y = molA_clone.y + diff_delta;
-								 molB_clone.y = molB_clone.y - diff_delta;
-								 dist_y_plus_delta = molB_clone.y - molA_clone.y;
-								 r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
-								 r = sqrt(r2);
-								 charges_coordinates(molA_clone);
-								 charges_coordinates(molB_clone);
-								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, t_U_delta_1);
-
-								 molA_clone.y = molA_clone.y - 2.0*diff_delta;
-								 molB_clone.y = molB_clone.y + 2.0*diff_delta;
-								 dist_y_plus_delta = molB_clone.y - molA_clone.y;
-								 r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
-								 r = sqrt(r2);
-								 charges_coordinates(molA_clone);
-								 charges_coordinates(molB_clone);
-								 energy_calculation(molA_clone, molB_clone, Lx, Ly, beta, r, t_U_delta_2);
-
-								 pressure_Y += -(t_U_delta_2-t_U_delta_1)/(4.0*diff_delta)*dist_y;
-
-								 molA_clone.y = molA_clone.y + diff_delta;
-								 molB_clone.y = molB_clone.y - diff_delta;
-								 charges_coordinates(molA_clone);
-								 charges_coordinates(molB_clone);
-							 }
-						}
-			}
-		}
-
-    en_and_press.energy = energy_cur; // Energy of interactions including damping effect
-    en_and_press.p_X = pressure_X; // Sum of virial and damping field pressure
-    en_and_press.p_Y = pressure_Y;
-    return en_and_press;
-}
-/*
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool abcd)
 {
     results en_and_press;
@@ -304,9 +186,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
 		double diff_delta = 0.000001;
-		double E_INF = 75.0;
-		min_dist = 10.0;
-		max_dist = 5.0*7.5877;
 
 
 		double U_LJ = 0, U_QQ = 0;
@@ -332,11 +211,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
           if (abs(dist_y) > max_dist) {continue;}
              r2 = dist_x*dist_x + dist_y*dist_y;
              r = sqrt(r2);
-						 if (r <= min_dist)
- 							{
- 								HC_radius = true;
- 								continue;
- 							}
+             if (r <= min_dist)
+             {
+               en_and_press.energy += 1e20;
+               HC_radius = true;
+               continue;
+             }
              if (r > min_dist && r <= max_dist)
              {
 								double t_U_LJ = 0, t_U_QQ = 0;
@@ -371,14 +251,20 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
              }
        }
     }
-    en_and_press.energy = (U_LJ + U_QQ);
+    en_and_press.energy = U_LJ + U_QQ;
     en_and_press.p_X = pressure_X;
     en_and_press.p_Y = pressure_Y;
+    if(en_and_press.energy > E_INF/beta)
+		{
+			en_and_press.energy = E_INF/beta;
+			en_and_press.p_X = E_INF/beta;
+			en_and_press.p_Y = E_INF/beta;
+		}
     return en_and_press;
 
 }
-*/
-/*
+
+
 void check_HC(state molA, state molB, double &Lx, double &Ly)
 {
 	    results en_and_press;
@@ -414,4 +300,3 @@ void check_HC(state molA, state molB, double &Lx, double &Ly)
 	       }
 	    }
 }
-*/
