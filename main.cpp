@@ -159,8 +159,8 @@ int frame = 0; // For visualization purpose
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
 #include "Rosenbluth_iteration.h"
+#include "pressure_change_over_interface.h"
 #include "pressure_balance.h"
-//#include "Widom_test.h"
 #include "block_error.h"
 #include "density_to_Ly.h"
 #include "Weighted_averages.h"
@@ -365,10 +365,14 @@ int main()
 						press_X += EN_AND_PR_counter.p_X*dt;
 						press_Y += EN_AND_PR_counter.p_Y*dt;
 
+            pressure_change_over_interface(coordinates, nPart, Lx, Ly);
+            delta_p_over_interface += EN_AND_PR_counter.p_X*dt;
+
 						if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
 							{
 								Energy /= Pt;
 								press_X /= Pt;
+                delta_p_over_interface /= Pt;
 								press_Y /= Pt;
 								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
 								if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
@@ -379,6 +383,8 @@ int main()
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
+                cout << "P_X_vir: " << (press_X/(3.0*Lx/16.0)/Ly*1e23/N_a) << "\t" << "P_Y_vir: " << (press_Y/(3.0*Lx/16.0)/Ly*1e23/N_a) <<  endl;
+                cout << "P_X_an: " << (delta_p_over_interface/(3.0*Lx/16.0)/Ly*1e23/N_a) << endl;
 								cout << "AR_m: " << AR_m << " delta: " << delta << " AR_r: " << AR_r << " delta_ang: " << delta_angle << endl;
 								if (AR_r < 0.25 && delta_angle > 5.0)
 								{delta_angle -= 1.0;}
@@ -393,6 +399,7 @@ int main()
 								sum_iterations = 0;
 								Energy = 0;
 								press_X = 0;
+                delta_p_over_interface = 0;
 								press_Y = 0;
 								balanceEq = 0;
 								ACCEPTANCE_RATIO_r[0] = 0;
