@@ -29,10 +29,33 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 		if(Rp < mob_histogram[0]) {trialPart = 0;}
 			else
 	        {
-						for(int i = 1; i < nPart; i++)
+						int range = nPart/2;
+						int point = nPart/2;
+						do {
+							range = range/2;
+							if (Rp > mob_histogram[point])
+							{
+								point = point + range;
+							}
+							else
+							{
+								point = point - range;
+							}
+						} while(range > 1);
+						if (Rp > mob_histogram[point])
+						{
+							for(int i = point; i < nPart; i++)
 							{
 								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
 							}
+						}
+						else
+						{
+							for(int i = point; i > 1; i--)
+							{
+								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
+							}
+						}
 					}
 	}
 	state new_coordinates = coordinates[trialPart]; // Make a clone of trail particle
@@ -96,10 +119,33 @@ for (int l = 0; l < nPart; l++)
 		if(Rp < mob_histogram[0]) {trialPart = 0;}
 			else
 	        {
-						for(int i = 1; i < nPart; i++)
+						int range = nPart/2;
+						int point = nPart/2;
+						do {
+							range = range/2;
+							if (Rp > mob_histogram[point])
+							{
+								point = point + range;
+							}
+							else
+							{
+								point = point - range;
+							}
+						} while(range > 1);
+						if (Rp > mob_histogram[point])
+						{
+							for(int i = point; i < nPart; i++)
 							{
 								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
 							}
+						}
+						else
+						{
+							for(int i = point; i > 1; i--)
+							{
+								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
+							}
+						}
 					}
 		dt = exp(-s)/sq;
   }

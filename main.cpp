@@ -210,12 +210,12 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 80; // Honeycomb
+ int nPart = 720; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 20000;            // Total amount of MCS
+ int nSteps = 5000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 10000;           // MCS for relaxation
+ int nStepsEq = 2000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -255,7 +255,7 @@ int main()
 	frame = 1;
 
 
- for(u_m = -20000.0; u_m >= -30000.0; u_m -= 1000.0)
+ for(u_m = -20000.0; u_m >= -30000.0; u_m -= 100000.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
