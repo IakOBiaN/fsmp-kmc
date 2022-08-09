@@ -242,7 +242,7 @@ int main()
 
  fileOutput << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t"
  << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << "\t"
- << "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << endl;
+ << "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "Chemical potential (kMC), kJ/mol" << "\t" << "kMC's chemical potential in the gas phase" << endl;
  fileOutput.close();
 
 
@@ -503,7 +503,8 @@ int main()
 	ofstream fileOutput(name_stat.str().c_str(), ios_base::app);
 	fileOutput  << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error
 	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
-	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_ex_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_ex_widom << endl;
+	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_ex_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_ex_widom
+  << "\t" << mu_ex_kMC << "\t" << mu_ex_kMC + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << endl;
 	fileOutput.close();
 
  }
