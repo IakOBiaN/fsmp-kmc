@@ -30,9 +30,9 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 			else
 	        {
 						int range = nPart/2;
-						int point = nPart/2;
+						int point = range;
 						do {
-							range = range/2;
+							if(range > 1) {range = range/2;}
 							if (Rp > mob_histogram[point])
 							{
 								point = point + range;
@@ -41,21 +41,8 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 							{
 								point = point - range;
 							}
-						} while(range > 1);
-						if (Rp > mob_histogram[point])
-						{
-							for(int i = point; i < nPart; i++)
-							{
-								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
-							}
-						}
-						else
-						{
-							for(int i = point; i > 1; i--)
-							{
-								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
-							}
-						}
+						} while(!(Rp >= mob_histogram[point-1] && Rp < mob_histogram[point]));
+						trialPart = point;
 					}
 	}
 	state new_coordinates = coordinates[trialPart]; // Make a clone of trail particle
@@ -120,9 +107,9 @@ for (int l = 0; l < nPart; l++)
 			else
 	        {
 						int range = nPart/2;
-						int point = nPart/2;
+						int point = range;
 						do {
-							range = range/2;
+							if(range > 1) {range = range/2;}
 							if (Rp > mob_histogram[point])
 							{
 								point = point + range;
@@ -131,21 +118,8 @@ for (int l = 0; l < nPart; l++)
 							{
 								point = point - range;
 							}
-						} while(range > 1);
-						if (Rp > mob_histogram[point])
-						{
-							for(int i = point; i < nPart; i++)
-							{
-								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
-							}
-						}
-						else
-						{
-							for(int i = point; i > 1; i--)
-							{
-								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
-							}
-						}
+						} while(!(Rp >= mob_histogram[point-1] && Rp < mob_histogram[point]));
+						trialPart = point;
 					}
 		dt = exp(-s)/sq;
   }
