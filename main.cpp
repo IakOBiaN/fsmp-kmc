@@ -165,7 +165,6 @@ int frame = 0; // For visualization purpose
 #include "density_to_Ly.h"
 #include "Weighted_averages.h"
 #include "Widom_test.h"
-#include "pressure_change_over_interface.h"
 
 int main()
 {
