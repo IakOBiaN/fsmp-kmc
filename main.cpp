@@ -123,7 +123,7 @@ const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;		// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
-double lambda0 = 0.3;
+double lambda0 = 0.15;
 double u_m = -25000.0;													// Parameter of the external field
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
@@ -244,7 +244,7 @@ int main()
 
  fileOutput << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t"
  << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << "\t"
- << "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "Chemical potential (kMC), kJ/mol" << "\t" << "kMC's chemical potential in the gas phase" << endl;
+ << "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
  fileOutput.close();
 
 
@@ -290,6 +290,7 @@ int main()
 	Energy_transition_zone = 0;
 	press_X_transition_zone = 0;
 	delta_p_over_interface = 0;
+	gas_density = 0;
 	ACCEPTANCE_RATIO_r[0] = 0;  // rejected rotations
 	ACCEPTANCE_RATIO_r[1] = 0;  // accepted rotations
 	ACCEPTANCE_RATIO_m[0] = 0;  // rejected translations
@@ -372,12 +373,17 @@ int main()
             pressure_change_over_interface(coordinates, nPart, Lx, Ly);
             delta_p_over_interface += EN_AND_PR_counter.p_X*dt;
 
+						weighted_averages_in_gas(coordinates, nPart, Lx, Ly);
+						gas_density += nPart_in_gas*dt;
+
 						if(((iter%(BALANCE_STEPS*nPart))==0 && iter != 0) || iter==nIterEq-1)
 							{
 								Energy /= Pt;
 								press_X /= Pt;
-                delta_p_over_interface /= Pt;
 								press_Y /= Pt;
+								delta_p_over_interface /= Pt;
+								gas_density /= Pt;
+
 								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
 								if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
 								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
@@ -388,7 +394,7 @@ int main()
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
                 cout << "P_X_vir: " << (press_X/(3.0*Lx/16.0)/Ly*1e23/N_a) << "\t" << "P_Y_vir: " << (press_Y/(3.0*Lx/16.0)/Ly*1e23/N_a) <<  endl;
-                cout << "P_X_an: " << (delta_p_over_interface/(3.0*Lx/16.0)/Ly*1e23/N_a) << endl;
+                cout << "P_X_an: " << (delta_p_over_interface*1e23/Ly/N_a/2.0) + R*temperature*gas_density/1000.0 << endl;
 								cout << "AR_m: " << AR_m << " delta: " << delta << " AR_r: " << AR_r << " delta_ang: " << delta_angle << endl;
 								if (AR_r < 0.25 && delta_angle > 5.0)
 								{delta_angle -= 1.0;}
@@ -403,8 +409,9 @@ int main()
 								sum_iterations = 0;
 								Energy = 0;
 								press_X = 0;
-                delta_p_over_interface = 0;
 								press_Y = 0;
+								delta_p_over_interface = 0;
+								gas_density = 0;
 								balanceEq = 0;
 								ACCEPTANCE_RATIO_r[0] = 0;
 								ACCEPTANCE_RATIO_r[1] = 0;
@@ -474,7 +481,7 @@ int main()
 	transition_zone_density *= (1.0e+26)/((3.0*Lx/8.0)*Ly)/N_a;
 	press_X_transition_zone *= (1.0/(3.0*Lx/16.0)/Ly*1e23)/N_a;
 	delta_p_over_interface *= 1e23/Ly/N_a/2.0;
-	double mu_ex_widom = log(N_test/(e_test))/beta/1000.0;
+	double mu_res_widom = log(N_test/(e_test))/beta/1000.0; // Residual chemical potential calculated by WTPI
 	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////
@@ -498,8 +505,8 @@ int main()
 	cout << "Gas Phase Data" << endl;
 	cout << "Gas density: " << gas_density << " mikromol/m2" << " Gas energy per molecule: " << Energy_gas/1000.0/(gas_density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << endl;
 	cout << "Gas pressure along X: " << R*temperature*gas_density/1000.0 + press_X_gas << " mN/m" << " Gas pressure along Y: " << R*temperature*gas_density/1000.0 + press_Y_gas << " mN/m" << endl;
-	cout << "Widom's excess chemical potential in gas phase: " << mu_ex_widom << " kJ/mol / " << "Widom's chemical potential in the gas phase: " << mu_ex_widom + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << " kJ/mol" << endl;
-	cout << "kMC's excess chemical potential in gas phase: " << mu_ex_kMC << " kJ/mol / " << "kMC's chemical potential in the gas phase: " << mu_ex_kMC + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << " kJ/mol" << endl;
+	cout << "Widom's residual chemical potential in gas phase: " << mu_res_widom << " kJ/mol / " << "Widom's excess chemical potential in the gas phase: " << mu_res_widom + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << " kJ/mol" << endl;
+	cout << "kMC's excess chemical potential in gas phase: " << mu_ex_kMC << " kJ/mol / " << endl;
 
 	cout << endl;
 	cout << "Pressure change over gas-solid interface (dP): " << delta_p_over_interface << " mN/m" << " Pressure in the crystal (Pg + dP): " << R*temperature*gas_density/1000.0 + delta_p_over_interface << endl;
@@ -507,8 +514,8 @@ int main()
 	ofstream fileOutput(name_stat.str().c_str(), ios_base::app);
 	fileOutput  << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error
 	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
-	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_ex_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_ex_widom
-  << "\t" << mu_ex_kMC << "\t" << mu_ex_kMC + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << endl;
+	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_res_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_res_widom
+  << "\t" << mu_ex_kMC << endl;
 	fileOutput.close();
 
  }

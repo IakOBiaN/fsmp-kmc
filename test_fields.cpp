@@ -34,14 +34,15 @@ int main()
 {
 	double Lx = 100;
 	double abs_x;
-	double dx = -0.1;
+	double dx = -0.0001;
 
-	double lambda = 1.0, sqrt_lambda = 1.0, d_log_lambda = 0.0, d_log_lambda_num = 0, d_lambda_num = 0;
+	double lambda = 1.0, sqrt_lambda = 1.0, d_log_lambda = 0.0, d_log_lambda_num = 0, d_lambda = 0, d_lambda_num = 0;
 	double u_ext = 0, d_u_ext = 0.0;
 	double lambda0 = 0.3;
 	double u_m = -20;
 
-	cout << "x" << " " << "sqrt(lambda)" << " " << "lambda" << " " << "u_ext" << " " << "d_u_ext" << " " << "d_log_lambda" << " " << "d_log_lambda_num" << endl;
+	cout << "x" << " " << "sqrt(lambda)" << " " << "lambda" << " " << "u_ext" << " " << "d_u_ext" << " " << "d_log_lambda" << " " << "d_log_lambda_num" << " " << "d_lambda" << " " << "d_lambda_num" << endl;
+
 	for (double x = 0; x <= Lx; x += 0.2)
 	{
 		if (x > Lx/2.0){abs_x = x - Lx/2.0;} else {abs_x = Lx/2.0 - x;}
@@ -63,13 +64,27 @@ int main()
 						else{u_ext = -u_m*ksi*(ksi*ksi + 6.0*ksi + 9.0)/4.0;}
 
 		// Testing the fields derivatives
-		// Damping field derivative
+
+		// Damping field derivative if the expressions in the damping field definition are in lambda0 and for lambda
 /*		if(ksi < -3.0){d_lambda = 0.0;}
 			else if(ksi < -1.0){d_lambda = (24.0/Lx)*(1.0 - lambda0)*(ksi*ksi + 4.0*ksi + 3.0);}
 				else if (ksi < 1.0){d_lambda = 0.0;}
 					else if (ksi < 3.0){d_lambda = (24.0/Lx)*lambda0*(ksi*ksi - 4.0*ksi + 3.0);}
 						else {d_lambda = 0.0;}
 */
+		// Damping field derivative if the expressions in the damping field definition are in sqrt(lambda0) and for sqrt(lambda)
+/*		if(ksi < -3.0){d_lambda = 0.0;}
+			else if(ksi < -1.0){d_lambda = (8.0/Lx)*(1.0 - lambda0)*(3*ksi*ksi + 6.0*ksi + 15.0)*((ksi*(1.0 - lambda0)/4.0)*(ksi*ksi + 6.0*ksi + 9.0)+1);}
+				else if (ksi < 1.0){d_lambda = 0.0;}
+					else if (ksi < 3.0){d_lambda = (12.0/Lx)*lambda0*lambda0*ksi*(ksi*ksi - 6.0*ksi + 9.0)*(ksi*ksi - 4.0*ksi + 3.0);}
+						else {d_lambda = 0.0;}*/
+
+			if(ksi < -3.0){d_lambda = 0.0;}
+						else if(ksi < -1.0){d_lambda = 6.0*((1.0 - lambda0)/4.0)*((1.0 - lambda0)/4.0)*(ksi*ksi + 4.0*ksi + 3.0)*((ksi*ksi*ksi + 6.0*ksi*ksi + 9.0*ksi) + 4.0/(1 - lambda0))*(32.0/Lx);}
+							else if (ksi < 1.0){d_lambda = 0.0;}
+								else if (ksi < 3.0){d_lambda = (12.0/Lx)*lambda0*lambda0*ksi*(ksi*ksi - 6.0*ksi + 9.0)*(ksi*ksi - 4.0*ksi + 3.0);}
+									else {d_lambda = 0.0;}
+
 		// Derivative of the sqrt(damping field)
 /*		if(ksi < -3.0){d_log_sqrt_lambda = 0.0;}
 			else if(ksi < -1.0){d_log_sqrt_lambda = (96.0/Lx)*((ksi*ksi + 4*ksi + 3)/(ksi*ksi*ksi + 6*ksi*ksi + 9*ksi + (4/(1-lambda0))));}
@@ -102,7 +117,7 @@ int main()
 			else if(ksi > -1.0){d_u_ext = 0.0;}
 						else{d_u_ext = -(24.0/Lx)*u_m*(ksi*ksi + 4.0*ksi + 3.0);}
 
-		cout << x - Lx/2.0 << " " << sqrt_lambda << " " << lambda << " " << u_ext << " " << d_u_ext << " " << d_log_lambda << " " << d_log_lambda_num << " " << d_lambda_num << endl;
+		cout << x - Lx/2.0 << " " << sqrt_lambda << " " << lambda << " " << u_ext << " " << d_u_ext << " " << d_log_lambda << " " << d_log_lambda_num << " " << d_lambda << " " << d_lambda_num << endl;
 	}
 
 	return 0;
