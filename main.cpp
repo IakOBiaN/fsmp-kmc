@@ -165,6 +165,7 @@ int frame = 0; // For visualization purpose
 #include "density_to_Ly.h"
 #include "Weighted_averages.h"
 #include "Widom_test.h"
+#include "pressure_change_over_interface.h"
 
 int main()
 {
@@ -379,7 +380,7 @@ int main()
 								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
 								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
-								pressure_balance(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+								pressure_balance_ratio(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
