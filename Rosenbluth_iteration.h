@@ -1,37 +1,40 @@
-double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &dt, double &beta, int &iter)
+double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &dt, double &beta, int &iter, int &trialPart, bool findTrialPart)
 {
 
-	int trialPart = 0;
+	//int trialPart = 0;
 	vector <double> mob_histogram(nPart);
-
-	double s = 0;
-	for(int mol = 0; mol < nPart; mol++)
+	double Rp;
+	if (findTrialPart)
 	{
-		s += 2.0*coordinates[mol].en_and_pr.energy*beta;
-	}
-	s = s/nPart;
+		double s = 0;
+		for(int mol = 0; mol < nPart; mol++)
+		{
+			s += 2.0*coordinates[mol].en_and_pr.energy*beta;
+		}
+		s = s/nPart;
 
-	double sq = 0;
-	for(int mol = 0; mol < nPart; mol++)
-	{
-		sq += exp(2.0*coordinates[mol].en_and_pr.energy*beta - s);
-		mob_histogram[mol] = sq;
-	}
+		double sq = 0;
+		for(int mol = 0; mol < nPart; mol++)
+		{
+			sq += exp(2.0*coordinates[mol].en_and_pr.energy*beta - s);
+			mob_histogram[mol] = sq;
+		}
 
-	for(int mol = 0; mol < nPart; mol++)
-	{
-		mob_histogram[mol] /= sq;
-	}
+		for(int mol = 0; mol < nPart; mol++)
+		{
+			mob_histogram[mol] /= sq;
+		}
 
-	double Rp = mob_histogram[nPart-1]*RanGen.Random();
-	if(Rp < mob_histogram[0]) {trialPart = 0;}
-		else
-        {
-					for(int i = 1; i < nPart; i++)
-						{
-							if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
-						}
-				}
+		Rp = mob_histogram[nPart-1]*RanGen.Random();
+		if(Rp < mob_histogram[0]) {trialPart = 0;}
+			else
+	        {
+						for(int i = 1; i < nPart; i++)
+							{
+								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
+							}
+					}
+	}
 	state new_coordinates = coordinates[trialPart]; // Make a clone of trail particle
 	results delta_EP;
 	results old_EP;
@@ -88,6 +91,16 @@ for (int l = 0; l < nPart; l++)
 		{
 			mob_histogram[mol] /= sq;
 		}
+
+		Rp = mob_histogram[nPart-1]*RanGen.Random();
+		if(Rp < mob_histogram[0]) {trialPart = 0;}
+			else
+	        {
+						for(int i = 1; i < nPart; i++)
+							{
+								if(Rp >= mob_histogram[i-1] && Rp < mob_histogram[i]) {trialPart = i; break;}
+							}
+					}
 		dt = exp(-s)/sq;
   }
   HC_radius = false;

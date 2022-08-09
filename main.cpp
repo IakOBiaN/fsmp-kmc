@@ -126,6 +126,8 @@ double damping_delta = 0;												// Small parameter that elongates the dampi
 double lambda0 = 0.3;
 double u_m = -25000.0;													// Parameter of the external field
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
+bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
+int trialPart;
 double sigma = 1.1052; // sigma in nm
 
 // Minimal (hard core distance) and maximal distance between the molecules
@@ -343,14 +345,16 @@ int main()
        }
        else
        {
-          dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter);
-       		if (iter%1000 == 0)
-       		{
-       			for (int mmc_iter = 0; mmc_iter < 1000; mmc_iter++)
-       			{
-       				Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
-       			}
-       		}
+           if (iter%1000 == 0)
+           {
+             for (int mmc_iter = 0; mmc_iter < 1000; mmc_iter++)
+             {
+               Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+             }
+             findTrialPart = true;
+           }
+           dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
+           findTrialPart = false;
        }
 
 
