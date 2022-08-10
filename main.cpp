@@ -305,18 +305,11 @@ int main()
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
   weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
-	weighted_averages_in_gas(coordinates, nPart, Lx, Ly);
-	weighted_averages_in_transition_zone(coordinates, nPart, Lx, Ly);
-
 	cout << endl << "_________INITIAL DATA_________" << endl;
 	cout << endl << "u_m: " << u_m << endl;
 	cout << endl << "Central cell" << endl;
 	cout << "Density: " << nPart_in_central_cell*(1.0e+26)/(Lx/4.0*Ly)/N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/4.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/4.0)/Ly*1e23/N_a)<< endl;
 	cout << "P_X: " << (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a) <<  endl;
-	cout << endl;
-	cout << endl << "Transition zone" << endl;
-	cout << "Density: " << nPart_in_transition_zone*(1.0e+26)/(3.0*Lx/8.0*Ly)/N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_transition_zone << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_transition_zone/(3.0*Lx/8.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(3.0*Lx/16.0)/Ly*1e23/N_a)<< endl;
-	cout << "P_X: " << (EN_AND_PR_counter.p_X/(3.0*Lx/16.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(3.0*Lx/16.0)/Ly*1e23/N_a) <<  endl;
 	cout << endl;
 
 	//////////////////////////////////////////////////

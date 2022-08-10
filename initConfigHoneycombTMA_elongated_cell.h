@@ -24,8 +24,8 @@ for(int i = 0; i < number_in_x; i++)
      for(int j = 0; j < number_in_y; j++)
         {
           //unit cell
-         coordinates[molecule].x = 3.0 + move_from_border + i*x_uc;
-          coordinates[molecule].y = 3.0 + j*y_uc;
+         coordinates[molecule].x = 0.0 + move_from_border + i*x_uc;
+          coordinates[molecule].y = 0.0 + j*y_uc;
           coordinates[molecule].phi = 30.0;
           coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
           coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
