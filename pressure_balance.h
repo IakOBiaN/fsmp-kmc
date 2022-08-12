@@ -68,10 +68,10 @@ void pressure_balance_ratio(double Energy, double press_X, double press_Y, doubl
 				 // the change of the box size
 				 coordinates[i].x = (Lx_new/Lx)*coordinates[i].x;
 				 coordinates[i].y = (Ly_new/Ly)*coordinates[i].y;
-         charges_coordinates(coordinates[i]);
-         coordinates[i].damping_coeff = damping_field(coordinates[i].x, Lx_new); // Lambda^1/2
-         coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx_new); // u_ext
-         coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx_new);
+				 coordinates[i].damping_coeff = damping_field(coordinates[i].x, Lx_new); // Lambda^1/2
+				 coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx_new); // u_ext
+				 coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx_new);
+				 charges_coordinates (coordinates[i]);
 			 }
 		Lx = Lx_new;
 		Ly = Ly_new;

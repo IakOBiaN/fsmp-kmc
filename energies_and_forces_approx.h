@@ -234,9 +234,16 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 								r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
 								r = sqrt(r2);
 								charges_coordinates(molB_clone);
+								molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
+								molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
+								molB_clone.stat_weight = weights_for_central_cell (molB_clone.x, Lx);
 								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
 								pressure_X += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_x;
 								molB_clone.x = molB_clone.x + diff_delta;
+								charges_coordinates(molB_clone);
+								molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
+								molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
+								molB_clone.stat_weight = weights_for_central_cell (molB_clone.x, Lx);
 
 								t_U_LJ_delta = 0;
 								t_U_QQ_delta = 0;
@@ -257,8 +264,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     if(en_and_press.energy > E_INF/beta)
 		{
 			en_and_press.energy = E_INF/beta;
-			en_and_press.p_X = E_INF/beta;
-			en_and_press.p_Y = E_INF/beta;
+			en_and_press.p_X = 0;
+			en_and_press.p_Y = 0;
 		}
     return en_and_press;
 
