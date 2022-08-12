@@ -82,6 +82,7 @@ for (int l = 0; l < nPart; l++)
         coordinates[l].en_and_pr = coordinates[l].en_and_pr + delta_EP;
         new_coordinates.en_and_pr = new_coordinates.en_and_pr + delta_EP;
       }
+			new_coordinates.en_and_pr = new_coordinates.en_and_pr + (new_coordinates.ex_field_coeff - coordinates[trialPart].ex_field_coeff);
   	coordinates[trialPart] = new_coordinates;
 
 		double s = 0;
