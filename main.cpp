@@ -334,9 +334,8 @@ int main()
 				}
 
 			// Metropolis Monte Carlo run //
-			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
 			dt = 1.0;
-/*      if(iter < nIter*0.05)
+      if(iter < nIter*0.05)
        {
          Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
          dt = 1.0;
@@ -345,6 +344,9 @@ int main()
        {
            if (iter%1000 == 0)
            {
+             do {
+               dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
+             } while(dt < 1.0);
              for (int mmc_iter = 0; mmc_iter < 1000; mmc_iter++)
              {
                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
@@ -354,7 +356,7 @@ int main()
            dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
            findTrialPart = false;
        }
-*/
+
 
 				balanceEq++;
 				BALANCE_STEPS = 200;
