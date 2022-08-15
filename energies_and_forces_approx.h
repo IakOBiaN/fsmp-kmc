@@ -59,6 +59,8 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	r_r0_6 = r_r0*r_r0*r_r0*r_r0*r_r0*r_r0;
 	lj_dist_6 = sigma_r0_6/r_r0_6;
 	U_LJ += 4*eps*(lj_dist_6 * (lj_dist_6 - 1.0)); // in J/mol
+
+	// Damping field effect
 	U_LJ *= molA.damping_coeff*molB.damping_coeff;
 
 	/// Coulomb's interaction ///
@@ -196,7 +198,8 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 
 		int numerator;
 
-    for (int id = -1; id < 2; id++)
+//    for (int id = -1; id < 2; id++)
+		for (int id = 0; id < 1; id++)
     {
 			 dist_x = 0;
 			 dist_y = 0;
@@ -236,14 +239,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 								charges_coordinates(molB_clone);
 								molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
 								molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
-								molB_clone.stat_weight = weights_for_central_cell (molB_clone.x, Lx);
 								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
 								pressure_X += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_x;
 								molB_clone.x = molB_clone.x + diff_delta;
 								charges_coordinates(molB_clone);
 								molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
 								molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
-								molB_clone.stat_weight = weights_for_central_cell (molB_clone.x, Lx);
 
 								t_U_LJ_delta = 0;
 								t_U_QQ_delta = 0;

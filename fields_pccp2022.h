@@ -67,15 +67,15 @@ void pressure_change_over_interface(vector <state> &coordinates, int &nPart, dou
 		// Damping field derivative if the expressions in the damping field definition are in sqrt(lambda0) and for sqrt(lambda)
 		// This derivative is correct for damping_field_pccp_2022
 		if(ksi < 5.0){d_lambda = 0.0;}
-					else if(ksi < 7.0){d_lambda = (7.0 - ksi)*(ksi - 5.0)*(24.0/Lx);}
+					else if(ksi < 7.0){d_lambda = (1.0 - lambda0)*(ksi - 7.0)*(ksi - 5.0)*(24.0/Lx);}
 						else if (ksi < 9.0){d_lambda = 0.0;}
-							else if (ksi < 11.0){d_lambda = (11.0 - ksi)*(ksi - 9.0)*(24.0/Lx);}
+							else if (ksi < 11.0){d_lambda = (lambda0 - lambdam)*(ksi - 11.0)*(ksi - 9.0)*(24.0/Lx);}
 								else {d_lambda = 0.0;}
 
 		// External field derivative for external_field_pccp_2022
 		if(ksi < 5.0){d_u_ext = 0.0;}
 			else if(ksi > 7.0){d_u_ext = 0.0;}
-				else{d_u_ext = (12.0/Lx)*u_m*(7.0 - ksi)*(ksi - 5.0);}
+				else{d_u_ext = (24.0/Lx)*u_m*(7.0 - ksi)*(ksi - 5.0);}
 
 				// Calculating the pressure change
 				if(coordinates[mol].damping_coeff == 0){EN_AND_PR_counter.p_X += d_u_ext;}
@@ -83,9 +83,7 @@ void pressure_change_over_interface(vector <state> &coordinates, int &nPart, dou
 					{
 						dp_lambda += - coordinates[mol].en_and_pr.energy*d_lambda/coordinates[mol].damping_coeff;
 						dp_ex += d_u_ext;
-						EN_AND_PR_counter.p_X = EN_AND_PR_counter.p_X - coordinates[mol].en_and_pr.energy*d_lambda/coordinates[mol].damping_coeff + d_u_ext;
 					}
 	}
-	//cout << "dP_lambda: " << dp_lambda*1e23/Ly/N_a << endl;
-	//cout << "dP_ex: " << dp_ex*1e23/Ly/N_a << endl;
+	EN_AND_PR_counter.p_X = dp_lambda + dp_ex/2.0;
 }
