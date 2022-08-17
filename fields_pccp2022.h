@@ -3,6 +3,7 @@ double damping_field (double x, double &Lx)
 	// return 0 - for ideal gas
 	// return 1 - for original interactions
 	// lambda0 is actually sqrt(lambda0), the same is true for lambdam
+
 	double abs_x;
 	if (x > Lx/2.0){abs_x = x - Lx/2.0;} else {abs_x = Lx/2.0 - x;}
 	double ksi = 32.0*abs_x/Lx;
@@ -78,10 +79,10 @@ void pressure_change_over_interface(vector <state> &coordinates, int &nPart, dou
 				else{d_u_ext = (24.0/Lx)*u_m*(7.0 - ksi)*(ksi - 5.0);}
 
 				// Calculating the pressure change
-				if(coordinates[mol].damping_coeff == 0){EN_AND_PR_counter.p_X += d_u_ext;}
+				if(coordinates[mol].damping_coeff == 0){dp_ex += d_u_ext;}
 				else
 					{
-						dp_lambda += - coordinates[mol].en_and_pr.energy*d_lambda/coordinates[mol].damping_coeff;
+						dp_lambda += - coordinates[mol].en_and_pr.energy*abs(d_lambda)/coordinates[mol].damping_coeff;
 						dp_ex += d_u_ext;
 					}
 	}
