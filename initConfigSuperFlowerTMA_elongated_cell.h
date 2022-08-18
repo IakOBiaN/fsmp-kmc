@@ -23,7 +23,7 @@ for(int i = 0; i < number_in_x; i++)
 			{
 				coordinates[molecule].x = h3_bond_dist*sin(60.0/180.0*PI)/2.0 + i*x_uc;
 				coordinates[molecule].y = h3_bond_dist/4.0 + j*y_uc;
-				coordinates[molecule].phi = 60.0;
+				coordinates[molecule].phi = 30.0;
 				coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
@@ -34,7 +34,7 @@ for(int i = 0; i < number_in_x; i++)
 
 				coordinates[molecule].x = coordinates[molecule-1].x + h3_bond_dist*cos(60.0/180.0*PI);
 				coordinates[molecule].y = coordinates[molecule-1].y + h3_bond_dist*sin(60.0/180.0*PI);
-				coordinates[molecule].phi = 60.0;
+				coordinates[molecule].phi = 30.0;
 				coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
