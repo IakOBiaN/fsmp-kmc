@@ -155,7 +155,8 @@ int frame = 0; // For visualization purpose
 //#include "energies_and_forces_numerical_Dreiding_TMA.h"
 #include "energies_and_forces_approx.h"
 //#include "energies_and_forces_numerical_simple_model.h"
-#include "initConfigHoneycombTMA_elongated_cell.h"
+//#include "initConfigHoneycombTMA_elongated_cell.h"
+#include "initConfigSuperFlowerTMA_elongated_cell.h"
 //#include "initConfigHoneycombTMA.h"
 //#include "initConfigFlowerTMA.h"
 //#include "initConfigSuperFlowerTMA.h"
@@ -230,7 +231,7 @@ int main()
  //Generete an initial distribution of molecules at fixed density
  double temperature = 300.0;
  double deltaT = 2000.0;
- state_dens = 1.05; // Density that you want in mkmol/m2
+ state_dens = 1.538; // Density that you want in mkmol/m2
 
  // Write the model parameters to data-file
  stringstream name_stat;
@@ -250,7 +251,7 @@ int main()
 
 
 	// Generating the initial structure for sequential MC simulation
- 	initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
+ 	initConfigSuperFlowerTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
 	// Clear up the xyz file
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
@@ -344,9 +345,9 @@ int main()
        {
            if (iter%1000 == 0)
            {
-             do {
+             /*do {
                dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
-             } while(dt < 1.0);
+             } while(dt < 1.0);*/
              for (int mmc_iter = 0; mmc_iter < 1000; mmc_iter++)
              {
                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
