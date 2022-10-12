@@ -23,7 +23,7 @@ for(int i = 0; i < number_in_x; i++)
 			{
 				coordinates[molecule].x = h3_bond_dist*sin(60.0/180.0*PI)/2.0 + i*x_uc;
 				coordinates[molecule].y = h3_bond_dist/4.0 + j*y_uc;
-				coordinates[molecule].phi = 60.0;
+				coordinates[molecule].phi = 30.0;
 				coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
@@ -34,7 +34,7 @@ for(int i = 0; i < number_in_x; i++)
 
 				coordinates[molecule].x = coordinates[molecule-1].x + h3_bond_dist*cos(60.0/180.0*PI);
 				coordinates[molecule].y = coordinates[molecule-1].y + h3_bond_dist*sin(60.0/180.0*PI);
-				coordinates[molecule].phi = 60.0;
+				coordinates[molecule].phi = 30.0;
 				coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
@@ -44,16 +44,28 @@ for(int i = 0; i < number_in_x; i++)
 				molecule++;
 			}
 		}
-
-		double lambda_threshold = 0.0001;
+/*
+		double lambda_threshold = 0.7;
 		for (int i = 0; i < molecule; i++)
 		{
-			if(coordinates[i].damping_coeff < lambda_threshold)
+			double abs_x;
+			if (coordinates[i].x > Lx/2.0){abs_x = coordinates[i].x - Lx/2.0;} else {abs_x = Lx/2.0 - coordinates[i].x;}
+			double ksi = 32.0*abs_x/Lx;
+//			if(coordinates[i].damping_coeff < lambda_threshold)
+			if (ksi > 8.0)
 			{
 				coordinates[i] = coordinates[molecule-1];
 				molecule--;
 				i--;
 			}
+		}
+*/
+		for (int i = 0; i < molecule; i++)
+		{
+			double abs_x;
+			if (coordinates[i].x > Lx/2.0){abs_x = coordinates[i].x - Lx/2.0;} else {abs_x = Lx/2.0 - coordinates[i].x;}
+			double ksi = 16.0*abs_x/Lx - 4.0;
+			if (ksi > 0){coordinates[i] = coordinates[molecule-1]; molecule--; i--;}
 		}
 		nPart = molecule;
 

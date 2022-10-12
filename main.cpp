@@ -123,9 +123,10 @@ const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;		// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
-double lambda0 = 0.15;
-double lambdam = 0.0;
-double u_m = -25000.0;													// Parameter of the external field
+double lambda0 = 0.612;
+double lambdam = 0.15;
+double u_m = -10000.0;													// Parameter of the external field
+double delta_damp = 0.5;
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
 int trialPart;
@@ -138,7 +139,8 @@ double sigma = 1.1052; // sigma in nm
 vector <vector <vector <double> > > forcefield;
 vector <vector <vector <double> > > energy;
 // Minimal (hard core distance) and maximal distance between the molecules
-double min_dist = 7.5877, max_dist = 11.052*5.0;
+double min_dist = 7.5877;
+double max_dist = 11.052*5.0;
 // Delta between neighbor distances in the forcefield in A
 double dr;
 // Delta between orientation angle of the single molecule
@@ -150,8 +152,9 @@ int frame = 0; // For visualization purpose
 
 #include "read_forcefield.h"
 #include "PBC2D.h"
-#include "fields_pccp2022.h"
+//#include "fields_pccp2022.h"
 //#include "fields_jpcc2021.h"
+#include "fields_jcp2020.h"
 //#include "energies_and_forces_numerical_Dreiding_TMA.h"
 #include "energies_and_forces_approx.h"
 //#include "energies_and_forces_numerical_simple_model.h"
@@ -169,6 +172,7 @@ int frame = 0; // For visualization purpose
 #include "density_to_Ly.h"
 #include "Weighted_averages.h"
 #include "Widom_test.h"
+#include "centering_the_crystal.h"
 
 int main()
 {
@@ -212,12 +216,12 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 320; // Honeycomb
+ int nPart = 400; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 20000;            // Total amount of MCS
+ int nSteps = 200000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 10000;           // MCS for relaxation
+ int nStepsEq = 100000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -233,22 +237,6 @@ int main()
  double deltaT = 2000.0;
  state_dens = 1.538; // Density that you want in mkmol/m2
 
- // Write the model parameters to data-file
- stringstream name_stat;
- name_stat << "statistics_" << "T" << temperature << "_lambda0_" << lambda0 << ".dat";
- ofstream fileOutput(name_stat.str().c_str(), ios_base::trunc);
-
- fileOutput << "Number of particles: " << nPart << endl;
- fileOutput << "Total number of MCS: " << nSteps << "  MCS for relaxation: " << nStepsEq << endl;
- fileOutput << "Maximal displacement, A: " << delta << "  Maximal rotation angle, deg: " << delta_angle << endl;
- fileOutput << "Lambda0: " << lambda0 << endl;
- fileOutput << "////////////////////////////////////////////////////////////////////////////////////////////" << endl << endl;
-
- fileOutput << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t"
- << "Pressure, mN/m" << "\t" << "Pressure SD" << "\t" << "P_ex" << "\t" << "P_x" << "\t" << "P_y" << "\t"
- << "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
- fileOutput.close();
-
 
 	// Generating the initial structure for sequential MC simulation
  	initConfigSuperFlowerTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
@@ -256,8 +244,26 @@ int main()
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
 
+	// Write the model parameters to data-file
+	stringstream name_stat;
+	name_stat << "statistics_" << "T" << temperature << "_lambda0_" << lambda0 << ".dat";
+	ofstream fileOutput(name_stat.str().c_str(), ios_base::trunc);
 
- for(u_m = -10000.0; u_m >= -70000.0; u_m -= 100000.0)
+	fileOutput << "Number of particles: " << nPart << endl;
+	fileOutput << "Total number of MCS: " << nSteps << "  MCS for relaxation: " << nStepsEq << endl;
+	fileOutput << "Maximal displacement, A: " << delta << "  Maximal rotation angle, deg: " << delta_angle << endl;
+	fileOutput << "Lambda0: " << lambda0 << " Lambdam: " << lambdam << endl;
+
+	fileOutput << "////////////////////////////////////////////////////////////////////////////////////////////" << endl << endl;
+
+	fileOutput << "delta_damp" << "\t" << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t"
+	<< "Total pressure, mN/m" << "\t" << "Total pressure SD" << "\t" << "Excess pressure, mN/m" << "\t" << "Excess pressure along x-direction" << "\t" << "Excess pressure along y-direction" << "\t"
+	<< "Pressure change over gas-solid interface" << "\t" << "Analytical pressure in the crystal (Pg + dP)" << "\t"
+	<< "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
+	fileOutput.close();
+
+//	for(delta_damp = 0.0; delta_damp <= 1.5; delta_damp += 0.25)
+ for(u_m = 0.0; u_m >= -50000.0; u_m -= 5000.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
@@ -335,7 +341,9 @@ int main()
 				}
 
 			// Metropolis Monte Carlo run //
-			dt = 1.0;
+//			dt = 1.0;
+//			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+
       if(iter < nIter*0.05)
        {
          Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
@@ -345,9 +353,9 @@ int main()
        {
            if (iter%1000 == 0)
            {
-             /*do {
-               dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
-             } while(dt < 1.0);*/
+//             do {
+//               dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
+//             } while(dt < 1.0);
              for (int mmc_iter = 0; mmc_iter < 1000; mmc_iter++)
              {
                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
@@ -360,7 +368,7 @@ int main()
 
 
 				balanceEq++;
-				BALANCE_STEPS = 200;
+				BALANCE_STEPS = 1000;
 				if((iter < nIterEq) && (balanceEq > nPart*0.1*BALANCE_STEPS))
 					{
 						Pt += dt;
@@ -384,11 +392,15 @@ int main()
 								delta_p_over_interface /= Pt;
 								gas_density /= Pt;
 
+								// Keep the crystal in the center of the simulation cell
+								centering_the_crystal(nPart, Lx, Ly, beta, coordinates);
+
 								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
 								if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
 								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
 								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
+
 								pressure_balance_ratio(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
@@ -509,11 +521,12 @@ int main()
 	cout << "kMC's excess chemical potential in gas phase: " << mu_ex_kMC << " kJ/mol / " << endl;
 
 	cout << endl;
-	cout << "Pressure change over gas-solid interface (dP): " << delta_p_over_interface << " mN/m" << " Pressure in the crystal (Pg + dP): " << R*temperature*gas_density/1000.0 + delta_p_over_interface << endl;
+	cout << "Pressure change over gas-solid interface (dP): " << delta_p_over_interface << " mN/m" << " Analytical pressure in the crystal (Pg + dP): " << R*temperature*gas_density/1000.0 + delta_p_over_interface << endl;
 
 	ofstream fileOutput(name_stat.str().c_str(), ios_base::app);
-	fileOutput  << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error
+	fileOutput  << delta_damp << "\t" << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error
 	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
+	<< "\t" << delta_p_over_interface << "\t" << R*temperature*gas_density/1000.0 + delta_p_over_interface
 	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_res_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_res_widom
   << "\t" << mu_ex_kMC << endl;
 	fileOutput.close();

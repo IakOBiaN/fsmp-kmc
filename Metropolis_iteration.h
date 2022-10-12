@@ -19,7 +19,9 @@ void Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vect
        new_coordinates.x = coordinates[trialPart].x + (2 * delta * RanGen.Random() - delta); // random(-delta; delta)
        new_coordinates.y = coordinates[trialPart].y + (2 * delta * RanGen.Random() - delta);
        // Apply periodic boundary conditions
-       new_coordinates.x = PBC2D(Lx, new_coordinates.x);
+			 if (new_coordinates.x > Lx){new_coordinates.x = Lx - (new_coordinates.x - Lx);}
+			 if (new_coordinates.x < 0){new_coordinates.x = new_coordinates.x - Lx;}
+//       new_coordinates.x = PBC2D(Lx, new_coordinates.x);
        new_coordinates.y = PBC2D(Ly, new_coordinates.y);
 			 new_coordinates.damping_coeff = damping_field(new_coordinates.x, Lx); // Lambda^1/2
 			 new_coordinates.ex_field_coeff = external_field(new_coordinates.x, Lx); // u_ext

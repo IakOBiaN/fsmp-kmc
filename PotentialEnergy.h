@@ -7,6 +7,7 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordin
 	for(int mol = 0; mol < nPart; mol++)
 	{
 		coordinates[mol].en_and_pr = en_and_press;
+		coordinates[mol].stat_weight = weights_for_central_cell (coordinates[mol].x, Lx);
 	}
 	for(int molA = 0; molA < (nPart - 1); molA++)
 	{
@@ -20,7 +21,6 @@ void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordin
 		coordinates[molA].ex_field_coeff = external_field(coordinates[molA].x, Lx);
 		coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + coordinates[molA].ex_field_coeff;
 //		cout << "mol #" << molA << " ext: " << coordinates[molA].ex_field_coeff.energy << " u: " << coordinates[molA].en_and_pr.energy << endl;
-
 	}
 	coordinates[nPart-1].ex_field_coeff = external_field(coordinates[nPart-1].x, Lx);
 	coordinates[nPart-1].en_and_pr = coordinates[nPart-1].en_and_pr + coordinates[nPart-1].ex_field_coeff;

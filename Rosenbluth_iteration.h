@@ -9,14 +9,14 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 		double s = 0;
 		for(int mol = 0; mol < nPart; mol++)
 		{
-			s += 2.0*coordinates[mol].en_and_pr.energy*beta;
+			s += (2.0*coordinates[mol].en_and_pr.energy - coordinates[mol].ex_field_coeff.energy)*beta;
 		}
 		s = s/nPart;
 
 		double sq = 0;
 		for(int mol = 0; mol < nPart; mol++)
 		{
-			sq += exp(2.0*coordinates[mol].en_and_pr.energy*beta - s);
+			sq += exp((2.0*coordinates[mol].en_and_pr.energy - coordinates[mol].ex_field_coeff.energy)*beta - s);
 			mob_histogram[mol] = sq;
 		}
 
@@ -75,7 +75,6 @@ for (int l = 0; l < nPart; l++)
     for (int l = 0; l < nPart; l++)
       {
         if (l == trialPart){continue;}
-        //Choose exact or numerical energy and pressure calculation
         old_EP = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly, beta, true);
         new_EP = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, true);
         delta_EP = (new_EP - old_EP)/2.0;
@@ -88,14 +87,15 @@ for (int l = 0; l < nPart; l++)
 		double s = 0;
 		for(int mol = 0; mol < nPart; mol++)
 		{
-			s += 2.0*coordinates[mol].en_and_pr.energy*beta;
+//			s += 2.0*coordinates[mol].en_and_pr.energy*beta;
+			s += (2.0*coordinates[mol].en_and_pr.energy - coordinates[mol].ex_field_coeff.energy)*beta;
 		}
 		s = s/nPart;
 
 		double sq = 0;
 		for(int mol = 0; mol < nPart; mol++)
 		{
-			sq += exp(2.0*coordinates[mol].en_and_pr.energy*beta - s);
+			sq += exp((2.0*coordinates[mol].en_and_pr.energy - coordinates[mol].ex_field_coeff.energy)*beta - s);
 			mob_histogram[mol] = sq;
 		}
 		for(int mol = 0; mol < nPart; mol++)

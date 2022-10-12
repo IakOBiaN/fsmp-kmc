@@ -2,7 +2,7 @@ void pressure_balance_area(double Energy, double press_X, double press_Y, double
 {
     double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
     double S = Lx*Ly;
-    dL = 0.001*min_dist;
+    dL = 0.0001*Ly;
 
 		//pressure_balance for central cell
 		if(press_X < press_Y)
@@ -48,7 +48,7 @@ void pressure_balance_ratio(double Energy, double press_X, double press_Y, doubl
 {
     double dL,Lx_new,Ly_new;    // Linear sizes of the box after correction
     double Ly_Lx_ratio = Ly/Lx;
-    dL = 0.001*min_dist;
+    dL = 0.0001*Ly;
 
 		//pressure_balance for central cell
 		if(press_X < press_Y)

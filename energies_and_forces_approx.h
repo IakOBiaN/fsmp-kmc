@@ -191,15 +191,11 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 
 
 		double U_LJ = 0, U_QQ = 0;
-		double derivative_LJ, derivative_QQ;
-		double r0 = 7.5877; // Hard core radius in A
 		double pressure_X = 0, pressure_Y = 0;
 		state molB_clone = molB;
 
-		int numerator;
-
-//    for (int id = -1; id < 2; id++)
-		for (int id = 0; id < 1; id++)
+    for (int id = -1; id < 2; id++)
+//		for (int id = 0; id < 1; id++)
     {
 			 dist_x = 0;
 			 dist_y = 0;
@@ -283,7 +279,6 @@ void check_HC(state molA, state molB, double &Lx, double &Ly)
 
 	//		double r0 = 7.5877; // Hard core radius in A
 			state molB_clone = molB;
-			state molA_clone = molA;
 
 	    for (int id = -1; id < 2; id++)
 	    {
