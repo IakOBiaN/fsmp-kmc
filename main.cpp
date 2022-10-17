@@ -125,8 +125,8 @@ double state_dens, state_Ly;
 double damping_delta = 0;												// Small parameter that elongates the damping field along the Lx dimension
 double lambda0 = 0.612;
 double lambdam = 0.15;
-double u_m = -10000.0;													// Parameter of the external field
-double delta_damp = 0.5;
+double u_m = -20000.0;													// Parameter of the external field
+double delta_damp = 0;
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
 int trialPart;
@@ -216,12 +216,12 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 400; // Honeycomb
+ int nPart = 800; // Honeycomb
 // int nPart = 864; // Flower-1
 // int nPart = 450; // Superflower
- int nSteps = 200000;            // Total amount of MCS
+ int nSteps = 400000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 100000;           // MCS for relaxation
+ int nStepsEq = 200000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -263,7 +263,7 @@ int main()
 	fileOutput.close();
 
 //	for(delta_damp = 0.0; delta_damp <= 1.5; delta_damp += 0.25)
- for(u_m = 0.0; u_m >= -50000.0; u_m -= 5000.0)
+ for(u_m = -50000.0; u_m <= 0.0; u_m += 10000.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
@@ -361,6 +361,8 @@ int main()
                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
              }
              findTrialPart = true;
+						 // Keep the crystal in the center of the simulation cell
+						 centering_the_crystal(nPart, Lx, Ly, beta, coordinates);
            }
            dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
            findTrialPart = false;
@@ -391,16 +393,13 @@ int main()
 								press_Y /= Pt;
 								delta_p_over_interface /= Pt;
 								gas_density /= Pt;
-
-								// Keep the crystal in the center of the simulation cell
-								centering_the_crystal(nPart, Lx, Ly, beta, coordinates);
-
+/*
 								if (iter < 0.09*nIterEq && iter >= 0.05*nIterEq) { BALANCE_STEPS = 200; }
 								if (iter < 0.15*nIterEq && iter >= 0.09*nIterEq) { BALANCE_STEPS = 300; }
 								if (iter < 0.25*nIterEq && iter >= 0.15*nIterEq) { BALANCE_STEPS = 500; }
 								if (iter < 0.46*nIterEq && iter >= 0.25*nIterEq) { BALANCE_STEPS = 1000; }
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
-
+*/
 								pressure_balance_ratio(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
@@ -494,11 +493,11 @@ int main()
 	press_X_transition_zone *= (1.0/(3.0*Lx/16.0)/Ly*1e23)/N_a;
 	delta_p_over_interface *= 1e23/Ly/N_a;
 	double mu_res_widom = log(N_test/(e_test))/beta/1000.0; // Residual chemical potential calculated by WTPI
-	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt))/beta/1000.0;
+	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(nPart))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////
-	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26);
-	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1.0e+23)/N_a;
+	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)/Pt;
+	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1.0e+23)/N_a/Pt;
 
 	cout << endl << "u_m: " << u_m << endl;
 	cout << "Crystal Data" << endl;

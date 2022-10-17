@@ -81,7 +81,7 @@ void pressure_change_over_interface(vector <state> &coordinates, int &nPart, dou
 				if(coordinates[mol].damping_coeff == 0){dp_ex += d_u_ext;}
 				else
 					{
-						dp_lambda += - coordinates[mol].en_and_pr.energy*abs(d_lambda)/coordinates[mol].damping_coeff;
+						dp_lambda += - (coordinates[mol].en_and_pr.energy - coordinates[mol].ex_field_coeff.energy)*abs(d_lambda)/coordinates[mol].damping_coeff;
 						dp_ex += d_u_ext;
 					}
 	}

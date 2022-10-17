@@ -2,10 +2,10 @@ void centering_the_crystal(int &nPart, double &Lx, double &Ly, double &beta, vec
 {
 	// Calculate x-coordinate of mass center of the system
 	double xc = 0;
-	vector <int> right_end (nPart*4);
-	vector <int> left_end (nPart*4);
 	int mol_in_right_gas = 0;
 	int mol_in_left_gas = 0;
+	vector <int> right_end (nPart*4);
+	vector <int> left_end (nPart*4);
 	for (int i = 0; i < nPart; i++)
 		{
 			xc += coordinates[i].x;
