@@ -187,6 +187,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
   	double r;	// Distance between A and B molecules
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
+		double dist_x_2, dist_y_2;
 		double diff_delta = 0.000001;
 
 
@@ -194,40 +195,42 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		double pressure_X = 0, pressure_Y = 0;
 		state molB_clone = molB;
 
+		double dist_x_plus_delta, dist_y_plus_delta;
+		double dist_x_plus_delta_2, dist_y_plus_delta_2;
+		double t_U_LJ_delta, t_U_QQ_delta;
+
     for (int id = -1; id < 2; id++)
 //		for (int id = 0; id < 1; id++)
     {
-			 dist_x = 0;
-			 dist_y = 0;
-			 r = 0;
+			 if (HC_radius == true){break;}
 			 molB_clone.x = molB.x + id*Lx;
        dist_x = molB_clone.x - molA.x;
-       if (abs(dist_x) > max_dist) {continue;}
+			 dist_x_2 = dist_x*dist_x;
+       if (dist_x_2 > max_dist_2) {continue;}
        for (int jd = -1; jd < 2; jd++)
        {
+				  if (HC_radius == true){break;}
 				  molB_clone.y = molB.y + jd*Ly;
           dist_y = molB_clone.y - molA.y;
-          if (abs(dist_y) > max_dist) {continue;}
-             r2 = dist_x*dist_x + dist_y*dist_y;
-             r = sqrt(r2);
-             if (r <= min_dist)
+					dist_y_2 = dist_y*dist_y;
+          if (dist_y_2 > max_dist_2) {continue;}
+             r2 = dist_x_2 + dist_y_2;
+             if (r2 <= min_dist_2)
              {
-               en_and_press.energy += 1e20;
+               en_and_press.energy += E_INF/beta;
                HC_radius = true;
-               continue;
+               break;
              }
-             if (r > min_dist && r <= max_dist)
+             if (r2 > min_dist_2 && r2 <= max_dist_2)
              {
+							 	r = sqrt(r2);
 								double t_U_LJ = 0, t_U_QQ = 0;
 								charges_coordinates(molB_clone);
 								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ, t_U_QQ);
-
 								U_LJ += t_U_LJ;
 								U_QQ += t_U_QQ;
 
-								double dist_x_plus_delta, dist_y_plus_delta;
-								double t_U_LJ_delta = 0, t_U_QQ_delta = 0;
-
+								t_U_LJ_delta = 0, t_U_QQ_delta = 0;
 								molB_clone.x = molB_clone.x - diff_delta;
 								dist_x_plus_delta = molB_clone.x - molA.x;
 								r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
@@ -247,7 +250,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 								molB_clone.y = molB_clone.y - diff_delta;
 								dist_y_plus_delta = molB_clone.y - molA.y;
 								r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
-							  r = sqrt(r2);
+								r = sqrt(r2);
 								charges_coordinates(molB_clone);
 								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
 								pressure_Y += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_y;
@@ -255,15 +258,19 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
              }
        }
     }
-    en_and_press.energy = U_LJ + U_QQ;
-    en_and_press.p_X = pressure_X;
-    en_and_press.p_Y = pressure_Y;
-    if(en_and_press.energy > E_INF/beta)
+		if (HC_radius == false)
 		{
-			en_and_press.energy = E_INF/beta;
-			en_and_press.p_X = 0;
-			en_and_press.p_Y = 0;
+			en_and_press.energy = U_LJ + U_QQ;
+			en_and_press.p_X = pressure_X;
+			en_and_press.p_Y = pressure_Y;
+	    if(en_and_press.energy >= E_INF/beta)
+				{
+					en_and_press.energy = E_INF/beta;
+					en_and_press.p_X = 0;
+					en_and_press.p_Y = 0;
+				}
 		}
+		else {en_and_press.energy = E_INF/beta; en_and_press.p_X = 0; en_and_press.p_Y = 0;}
     return en_and_press;
 
 }
@@ -275,6 +282,7 @@ void check_HC(state molA, state molB, double &Lx, double &Ly)
 	  	double r;	// Distance between A and B molecules
 	  	double r2;	// Distance sqaured
 	  	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
+			double dist_x_2, dist_y_2;
 
 
 	//		double r0 = 7.5877; // Hard core radius in A
@@ -287,15 +295,16 @@ void check_HC(state molA, state molB, double &Lx, double &Ly)
 				 r = 0;
 				 molB_clone.x = molB.x + id*Lx;
 	       dist_x = molB_clone.x - molA.x;
-	       if (abs(dist_x) > max_dist) {continue;}
+				 dist_x_2 = dist_x*dist_x;
+	       if (dist_x_2 > max_dist_2) {continue;}
 	       for (int jd = -1; jd < 2; jd++)
 	       {
 					  molB_clone.y = molB.y + jd*Ly;
 	          dist_y = molB_clone.y - molA.y;
-	          if (abs(dist_y) > max_dist) {continue;}
-	             r2 = dist_x*dist_x + dist_y*dist_y;
-	             r = sqrt(r2);
-	             if (r <= min_dist)
+						dist_y_2 = dist_y*dist_y;
+	          if (dist_y_2 > max_dist_2) {continue;}
+	             r2 = dist_x_2 + dist_y_2;
+	             if (r2 <= min_dist_2)
 	             {
 	               HC_radius = true;
 	               break;

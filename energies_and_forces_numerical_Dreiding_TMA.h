@@ -122,6 +122,12 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
     en_and_press.energy = energy_cur; // Energy of interactions including damping effect
     en_and_press.p_X = pressure_X; // Sum of virial and damping field pressure
     en_and_press.p_Y = pressure_Y;
+		if(en_and_press.energy > E_INF/beta)
+    {
+      en_and_press.energy = E_INF/beta;
+      en_and_press.p_X = 0;
+      en_and_press.p_Y = 0;
+    }
     return en_and_press;
 }
 

@@ -140,7 +140,9 @@ vector <vector <vector <double> > > forcefield;
 vector <vector <vector <double> > > energy;
 // Minimal (hard core distance) and maximal distance between the molecules
 double min_dist = 7.5877;
+double min_dist_2 = min_dist*min_dist;
 double max_dist = 11.052*5.0;
+double max_dist_2 = max_dist*max_dist;
 // Delta between neighbor distances in the forcefield in A
 double dr;
 // Delta between orientation angle of the single molecule
@@ -493,7 +495,7 @@ int main()
 	press_X_transition_zone *= (1.0/(3.0*Lx/16.0)/Ly*1e23)/N_a;
 	delta_p_over_interface *= 1e23/Ly/N_a;
 	double mu_res_widom = log(N_test/(e_test))/beta/1000.0; // Residual chemical potential calculated by WTPI
-	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(nPart))/beta/1000.0;
+	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////
 	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)/Pt;

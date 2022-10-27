@@ -65,7 +65,7 @@ for(int i = 0; i < number_in_x; i++)
 			double abs_x;
 			if (coordinates[i].x > Lx/2.0){abs_x = coordinates[i].x - Lx/2.0;} else {abs_x = Lx/2.0 - coordinates[i].x;}
 			double ksi = 16.0*abs_x/Lx - 4.0;
-			if (ksi > 0){coordinates[i] = coordinates[molecule-1]; molecule--; i--;}
+			if (ksi >= 0){coordinates[i] = coordinates[molecule-1]; molecule--; i--;}
 		}
 		nPart = molecule;
 

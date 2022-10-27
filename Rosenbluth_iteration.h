@@ -64,6 +64,7 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 
 for (int l = 0; l < nPart; l++)
   {
+		if (l == trialPart){continue;}
     check_HC(coordinates[l], new_coordinates, Lx, Ly);
   }
   if (HC_radius)
