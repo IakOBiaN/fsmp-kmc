@@ -199,7 +199,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		double dist_x_plus_delta_2, dist_y_plus_delta_2;
 		double t_U_LJ_delta, t_U_QQ_delta;
 
-    for (int id = -1; id < 2; id++)
+		for (int id = -1; id < 2; id++)
 //		for (int id = 0; id < 1; id++)
     {
 			 if (HC_radius == true){break;}
@@ -214,48 +214,48 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
           dist_y = molB_clone.y - molA.y;
 					dist_y_2 = dist_y*dist_y;
           if (dist_y_2 > max_dist_2) {continue;}
-             r2 = dist_x_2 + dist_y_2;
+          r2 = dist_x_2 + dist_y_2;
              if (r2 <= min_dist_2)
              {
                en_and_press.energy += E_INF/beta;
                HC_radius = true;
                break;
              }
-             if (r2 > min_dist_2 && r2 <= max_dist_2)
-             {
-							 	r = sqrt(r2);
-								double t_U_LJ = 0, t_U_QQ = 0;
-								charges_coordinates(molB_clone);
-								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ, t_U_QQ);
-								U_LJ += t_U_LJ;
-								U_QQ += t_U_QQ;
+					if (r2 > min_dist_2 && r2 <= max_dist_2)
+					{
+					 	r = sqrt(r2);
+						double t_U_LJ = 0, t_U_QQ = 0;
+						charges_coordinates(molB_clone);
+						energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ, t_U_QQ);
+						U_LJ += t_U_LJ;
+						U_QQ += t_U_QQ;
 
-								t_U_LJ_delta = 0, t_U_QQ_delta = 0;
-								molB_clone.x = molB_clone.x - diff_delta;
-								dist_x_plus_delta = molB_clone.x - molA.x;
-								r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
-								r = sqrt(r2);
-								charges_coordinates(molB_clone);
-								molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
-								molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
-								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
-								pressure_X += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_x;
-								molB_clone.x = molB_clone.x + diff_delta;
-								charges_coordinates(molB_clone);
-								molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
-								molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
+						t_U_LJ_delta = 0, t_U_QQ_delta = 0;
+						molB_clone.x = molB_clone.x - diff_delta;
+						dist_x_plus_delta = molB_clone.x - molA.x;
+						r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
+						r = sqrt(r2);
+						charges_coordinates(molB_clone);
+						molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
+						molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
+						energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
+						pressure_X += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_x;
+						molB_clone.x = molB_clone.x + diff_delta;
+						charges_coordinates(molB_clone);
+						molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
+						molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
 
-								t_U_LJ_delta = 0;
-								t_U_QQ_delta = 0;
-								molB_clone.y = molB_clone.y - diff_delta;
-								dist_y_plus_delta = molB_clone.y - molA.y;
-								r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
-								r = sqrt(r2);
-								charges_coordinates(molB_clone);
-								energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
-								pressure_Y += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_y;
-								molB_clone.y = molB_clone.y + diff_delta;
-             }
+						t_U_LJ_delta = 0;
+						t_U_QQ_delta = 0;
+						molB_clone.y = molB_clone.y - diff_delta;
+						dist_y_plus_delta = molB_clone.y - molA.y;
+						r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
+						r = sqrt(r2);
+						charges_coordinates(molB_clone);
+						energy_calculation(molA, molB_clone, Lx, Ly, beta, r, t_U_LJ_delta, t_U_QQ_delta);
+						pressure_Y += -((t_U_LJ+t_U_QQ)-(t_U_LJ_delta+t_U_QQ_delta))/diff_delta*dist_y;
+						molB_clone.y = molB_clone.y + diff_delta;
+					}
        }
     }
 		if (HC_radius == false)
@@ -303,7 +303,7 @@ void check_HC(state molA, state molB, double &Lx, double &Ly)
 	          dist_y = molB_clone.y - molA.y;
 						dist_y_2 = dist_y*dist_y;
 	          if (dist_y_2 > max_dist_2) {continue;}
-	             r2 = dist_x_2 + dist_y_2;
+	          r2 = dist_x_2 + dist_y_2;
 	             if (r2 <= min_dist_2)
 	             {
 	               HC_radius = true;

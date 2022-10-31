@@ -45,6 +45,7 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 						trialPart = point;
 					}
 	}
+
 	state new_coordinates = coordinates[trialPart]; // Make a clone of trail particle
 	results delta_EP;
 	results old_EP;
@@ -62,10 +63,12 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
   new_coordinates.stat_weight = weights_for_central_cell (new_coordinates.x, Lx);
 	charges_coordinates(new_coordinates);
 
+double eno = 0;
 for (int l = 0; l < nPart; l++)
   {
 		if (l == trialPart){continue;}
-    check_HC(coordinates[l], new_coordinates, Lx, Ly);
+		check_HC(coordinates[l], new_coordinates, Lx, Ly);
+		if (HC_radius == true ){break;}
   }
   if (HC_radius)
   {

@@ -44,14 +44,12 @@ for(int i = 0; i < number_in_x; i++)
 				molecule++;
 			}
 		}
-/*
-		double lambda_threshold = 0.7;
+
 		for (int i = 0; i < molecule; i++)
 		{
 			double abs_x;
 			if (coordinates[i].x > Lx/2.0){abs_x = coordinates[i].x - Lx/2.0;} else {abs_x = Lx/2.0 - coordinates[i].x;}
 			double ksi = 32.0*abs_x/Lx;
-//			if(coordinates[i].damping_coeff < lambda_threshold)
 			if (ksi > 8.0)
 			{
 				coordinates[i] = coordinates[molecule-1];
@@ -59,7 +57,9 @@ for(int i = 0; i < number_in_x; i++)
 				i--;
 			}
 		}
-*/
+		nPart = molecule;
+
+/*
 		for (int i = 0; i < molecule; i++)
 		{
 			double abs_x;
@@ -68,7 +68,7 @@ for(int i = 0; i < number_in_x; i++)
 			if (ksi >= 0){coordinates[i] = coordinates[molecule-1]; molecule--; i--;}
 		}
 		nPart = molecule;
-
+*/
 
 		cout << endl << "HCP TMA Structure in central cell: " << endl;
 	  cout << "N: " << molecule << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
