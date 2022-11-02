@@ -33,7 +33,7 @@ void charges_coordinates (state &mol)
   mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
 }
 
-void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double &U_LJ, double &U_QQ)
+void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double &t_U_LJ, double &t_U_QQ)
 {
 
 	//double derivative_LJ, derivative_QQ;
@@ -58,127 +58,127 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	r_r0 = r - r0;
 	r_r0_6 = r_r0*r_r0*r_r0*r_r0*r_r0*r_r0;
 	lj_dist_6 = sigma_r0_6/r_r0_6;
-	U_LJ += 4*eps*(lj_dist_6 * (lj_dist_6 - 1.0)); // in J/mol
+	t_U_LJ += 4*eps*(lj_dist_6 * (lj_dist_6 - 1.0)); // in J/mol
 
 	// Damping field effect
-	U_LJ *= molA.damping_coeff*molB.damping_coeff;
+	t_U_LJ *= molA.damping_coeff*molB.damping_coeff;
 
 	/// Coulomb's interaction ///
 	//derivative_QQ = 0;
 	// Interaction energy between 6 charges of the A molecule and 6 charges of the B molecules
 	// Positive charges of A molecule and positive charges of B molecule
 	dist2 = ((molB.q1x_p - molA.q1x_p)*(molB.q1x_p - molA.q1x_p) + (molB.q1y_p - molA.q1y_p)*(molB.q1y_p - molA.q1y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q1x_p)*(molB.q2x_p - molA.q1x_p) + (molB.q2y_p - molA.q1y_p)*(molB.q2y_p - molA.q1y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q1x_p)*(molB.q3x_p - molA.q1x_p) + (molB.q3y_p - molA.q1y_p)*(molB.q3y_p - molA.q1y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q2x_p)*(molB.q1x_p - molA.q2x_p) + (molB.q1y_p - molA.q2y_p)*(molB.q1y_p - molA.q2y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q2x_p)*(molB.q2x_p - molA.q2x_p) + (molB.q2y_p - molA.q2y_p)*(molB.q2y_p - molA.q2y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q2x_p)*(molB.q3x_p - molA.q2x_p) + (molB.q3y_p - molA.q2y_p)*(molB.q3y_p - molA.q2y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q3x_p)*(molB.q1x_p - molA.q3x_p) + (molB.q1y_p - molA.q3y_p)*(molB.q1y_p - molA.q3y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q3x_p)*(molB.q2x_p - molA.q3x_p) + (molB.q2y_p - molA.q3y_p)*(molB.q2y_p - molA.q3y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q3x_p)*(molB.q3x_p - molA.q3x_p) + (molB.q3y_p - molA.q3y_p)*(molB.q3y_p - molA.q3y_p));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	// Negative charges of A molecule and negative charges of B molecule
 	dist2 = ((molB.q1x_n - molA.q1x_n)*(molB.q1x_n - molA.q1x_n) + (molB.q1y_n - molA.q1y_n)*(molB.q1y_n - molA.q1y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q1x_n)*(molB.q2x_n - molA.q1x_n) + (molB.q2y_n - molA.q1y_n)*(molB.q2y_n - molA.q1y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q1x_n)*(molB.q3x_n - molA.q1x_n) + (molB.q3y_n - molA.q1y_n)*(molB.q3y_n - molA.q1y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q2x_n)*(molB.q1x_n - molA.q2x_n) + (molB.q1y_n - molA.q2y_n)*(molB.q1y_n - molA.q2y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q2x_n)*(molB.q2x_n - molA.q2x_n) + (molB.q2y_n - molA.q2y_n)*(molB.q2y_n - molA.q2y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q2x_n)*(molB.q3x_n - molA.q2x_n) + (molB.q3y_n - molA.q2y_n)*(molB.q3y_n - molA.q2y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q3x_n)*(molB.q1x_n - molA.q3x_n) + (molB.q1y_n - molA.q3y_n)*(molB.q1y_n - molA.q3y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q3x_n)*(molB.q2x_n - molA.q3x_n) + (molB.q2y_n - molA.q3y_n)*(molB.q2y_n - molA.q3y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q3x_n)*(molB.q3x_n - molA.q3x_n) + (molB.q3y_n - molA.q3y_n)*(molB.q3y_n - molA.q3y_n));
-	U_QQ += QQ_const/sqrt(dist2);
+	t_U_QQ += QQ_const/sqrt(dist2);
 
 	// Negative charges of A molecule and positive charges of B molecule
 	dist2 = ((molB.q1x_p - molA.q1x_n)*(molB.q1x_p - molA.q1x_n) + (molB.q1y_p - molA.q1y_n)*(molB.q1y_p - molA.q1y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q1x_n)*(molB.q2x_p - molA.q1x_n) + (molB.q2y_p - molA.q1y_n)*(molB.q2y_p - molA.q1y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q1x_n)*(molB.q3x_p - molA.q1x_n) + (molB.q3y_p - molA.q1y_n)*(molB.q3y_p - molA.q1y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q2x_n)*(molB.q1x_p - molA.q2x_n) + (molB.q1y_p - molA.q2y_n)*(molB.q1y_p - molA.q2y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q2x_n)*(molB.q2x_p - molA.q2x_n) + (molB.q2y_p - molA.q2y_n)*(molB.q2y_p - molA.q2y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q2x_n)*(molB.q3x_p - molA.q2x_n) + (molB.q3y_p - molA.q2y_n)*(molB.q3y_p - molA.q2y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_p - molA.q3x_n)*(molB.q1x_p - molA.q3x_n) + (molB.q1y_p - molA.q3y_n)*(molB.q1y_p - molA.q3y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_p - molA.q3x_n)*(molB.q2x_p - molA.q3x_n) + (molB.q2y_p - molA.q3y_n)*(molB.q2y_p - molA.q3y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_p - molA.q3x_n)*(molB.q3x_p - molA.q3x_n) + (molB.q3y_p - molA.q3y_n)*(molB.q3y_p - molA.q3y_n));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	// Positive charges of A molecule and negative charges of B molecule
 	dist2 = ((molB.q1x_n - molA.q1x_p)*(molB.q1x_n - molA.q1x_p) + (molB.q1y_n - molA.q1y_p)*(molB.q1y_n - molA.q1y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q1x_p)*(molB.q2x_n - molA.q1x_p) + (molB.q2y_n - molA.q1y_p)*(molB.q2y_n - molA.q1y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q1x_p)*(molB.q3x_n - molA.q1x_p) + (molB.q3y_n - molA.q1y_p)*(molB.q3y_n - molA.q1y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q2x_p)*(molB.q1x_n - molA.q2x_p) + (molB.q1y_n - molA.q2y_p)*(molB.q1y_n - molA.q2y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q2x_p)*(molB.q2x_n - molA.q2x_p) + (molB.q2y_n - molA.q2y_p)*(molB.q2y_n - molA.q2y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q2x_p)*(molB.q3x_n - molA.q2x_p) + (molB.q3y_n - molA.q2y_p)*(molB.q3y_n - molA.q2y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q1x_n - molA.q3x_p)*(molB.q1x_n - molA.q3x_p) + (molB.q1y_n - molA.q3y_p)*(molB.q1y_n - molA.q3y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q2x_n - molA.q3x_p)*(molB.q2x_n - molA.q3x_p) + (molB.q2y_n - molA.q3y_p)*(molB.q2y_n - molA.q3y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
 	dist2 = ((molB.q3x_n - molA.q3x_p)*(molB.q3x_n - molA.q3x_p) + (molB.q3y_n - molA.q3y_p)*(molB.q3y_n - molA.q3y_p));
-	U_QQ -= QQ_const/sqrt(dist2);
+	t_U_QQ -= QQ_const/sqrt(dist2);
 
-	U_QQ *= molA.damping_coeff*molB.damping_coeff;
+	t_U_QQ *= molA.damping_coeff*molB.damping_coeff;
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool abcd)

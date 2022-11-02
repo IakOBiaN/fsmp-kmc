@@ -263,8 +263,8 @@ int main()
 	<< "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
 	fileOutput.close();
 
-	for(lambda0 = 1.0; lambda0 >= 0.0; lambda0 -= 0.05)
-// for(u_m = 0.0; u_m >= -50000.0; u_m -= 2500.0)
+//	for(lambda0 = 1.0; lambda0 >= 0.0; lambda0 -= 0.05)
+ for(u_m = 0.0; u_m >= -50000.0; u_m -= 2500.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
