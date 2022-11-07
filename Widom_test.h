@@ -18,4 +18,5 @@ void Widom_test(int &nPart, vector <state> &coordinates, double &Lx, double &Ly,
 	test_particle_energy = test_particle_energy + test_particle.ex_field_coeff.energy;
 	e_test += exp(-test_particle_energy*beta);
   N_test++;
+  HC_radius = false;
 }
