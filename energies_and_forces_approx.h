@@ -184,6 +184,10 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool abcd)
 {
     results en_and_press;
+    if ((molA.damping_coeff == 0) || (molB.damping_coeff == 0))
+    {
+      return en_and_press;
+    }
   	double r;	// Distance between A and B molecules
   	double r2;	// Distance sqaured
   	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
@@ -202,7 +206,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		for (int id = -1; id < 2; id++)
 //		for (int id = 0; id < 1; id++)
     {
-			 if (HC_radius == true){break;}
+			 if (HC_radius == true) {break;}
 			 molB_clone.x = molB.x + id*Lx;
        dist_x = molB_clone.x - molA.x;
 			 dist_x_2 = dist_x*dist_x;
@@ -276,14 +280,16 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 }
 
 
-void check_HC(state molA, state molB, double &Lx, double &Ly)
+int check_HC(state molA, state molB, double &Lx, double &Ly)
 {
-	    results en_and_press;
+      if ((molA.damping_coeff == 0) || (molB.damping_coeff == 0))
+      {
+        return 0;
+      }
 	  	double r;	// Distance between A and B molecules
 	  	double r2;	// Distance sqaured
 	  	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
 			double dist_x_2, dist_y_2;
-
 
 	//		double r0 = 7.5877; // Hard core radius in A
 			state molB_clone = molB;
@@ -311,4 +317,6 @@ void check_HC(state molA, state molB, double &Lx, double &Ly)
 	             }
 	       }
 	    }
+
+      return 0;
 }
