@@ -123,7 +123,7 @@ const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;		// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
 double lambda0 = 0.612;
-double lambdam = 0.15;
+double lambdam = 0.0;
 double u_m = -20000.0;													// Parameter of the external field
 //double delta_damp = 0.5;
 bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
