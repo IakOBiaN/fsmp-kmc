@@ -317,7 +317,7 @@ int main()
 	for(int iter = 1; iter <= nIter; iter++)
 		{
 			percent += 1;
-			if(percent > nIter/100.0)
+			if(percent > nIter / 100.0)
 				{
 					frame++;
 					write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
@@ -326,34 +326,55 @@ int main()
 					percent = 0;
 				}
 
-			// Metropolis Monte Carlo run //
-//			dt = 1.0;
-//			Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
+        bool kMC = false;
 
-      if(iter < nIter*0.02)
-       {
-         Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
-         dt = 1.0;
-       }
-       else
-       {
-           if (iter%1000 == 0)
-           {
-//             do {
-//               dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
-//             } while(dt < 1.0);
-             for (int mmc_iter = 0; mmc_iter < 250; mmc_iter++)
-             {
-               Metropolis_iteration(nPart, Lx, Ly, beta, coordinates);
-             }
-             findTrialPart = true;
-						 // Keep the crystal in the center of the simulation cell
-						 centering_the_crystal(nPart, Lx, Ly, beta, coordinates);
-           }
-           dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
-           findTrialPart = false;
-       }
+        //if it is begining (we need it for MMC too)
+        if (iter < nIter * 0.02)
+        {
+          Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true);
+          dt = 1.0;
+        }
+        else
+        {
+          if (kMC)
+          {
+            //sometimes we need some MMC
+            if (iter % 1000 == 0)
+            {
+              //some MMC with small steps
+              for (int mmc_iter = 0; mmc_iter < 250; mmc_iter++)
+              {
+                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true);
+              }
+              //we don't have dt for kMC now
+              findTrialPart = true;
+            }
+            //usual kMC iteration
+            dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
+            //after kMC iteration we have dt
+            findTrialPart = false;
+          }
+          else
+          {
+              //two types of MMC steps (but we will average everything)
+              if (iter % 6 == 0)
+              {
+                //usual MMC step
+                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true);
+              }
+              else
+              {
+                //MMC step like in kMC
+                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, false);
+              }
+          }
+        }
 
+        //sometimes we need move crystal to center
+        if (iter % 1000 == 0)
+        {
+          centering_the_crystal(nPart, Lx, Ly, beta, coordinates);
+        }
 
 				balanceEq++;
 				BALANCE_STEPS = 1000;
