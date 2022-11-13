@@ -326,7 +326,7 @@ int main()
 					percent = 0;
 				}
 
-        bool kMC = false;
+        bool kMC = true;
 
         //if it is begining (we need it for MMC too)
         if (iter < nIter * 0.02)
