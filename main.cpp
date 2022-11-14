@@ -150,14 +150,14 @@ double da;
 int frame = 0; // For visualization purpose
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+bool numeric = true;
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "fields_pccp2022.h"
 //#include "fields_jpcc2021.h"
 //#include "fields_jcp2020.h"
-//#include "energies_and_forces_numerical_Dreiding_TMA.h"
-#include "energies_and_forces_approx.h"
+#include "energies_and_forces_numerical_Dreiding_TMA.h"
+//#include "energies_and_forces_approx.h"
 //#include "energies_and_forces_numerical_simple_model.h"
 //#include "initConfigHoneycombTMA_elongated_cell.h"
 #include "initConfigSuperFlowerTMA_elongated_cell.h"
@@ -184,7 +184,7 @@ int main()
  //////////////////////////////////////////////////////////////////////////////////////
  //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
  /////////////////////////////////////////////////////////////////////////////////////
-/*
+
 	// Fill in the forcefield
 	// First dimension is distance
 	// Second dimension is angle of first molecule
@@ -202,8 +202,12 @@ int main()
 	}
    // Read the forcefield from "forcefield.dat"
    cout << "Now I'm reading the forcefield file." << endl;
-   read_forcefield ("simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
-*/
+//   read_forcefield ("../simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
+	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+	min_dist_2 = min_dist*min_dist;
+	max_dist_2 = max_dist*max_dist;
+	sigma = min_dist_2*PI/4.0/100.0;
+
  // Set configuration parameters
 
  double press_X = 0, press_Y = 0, Energy = 0, density = 0;
@@ -236,8 +240,8 @@ int main()
  //Generete an initial distribution of molecules at fixed density
  double temperature = 300.0;
  double deltaT = 2000.0;
- state_dens = 1.538; // Density that you want in mkmol/m2
-
+// state_dens = 1.538; // in mkmol/m2 for HON in simplified model
+ state_dens = 1.885; // in mkmol/m2 for SF
 
 	// Generating the initial structure for sequential MC simulation
  	initConfigSuperFlowerTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
@@ -357,7 +361,7 @@ int main()
           else
           {
               //two types of MMC steps (but we will average everything)
-              if (iter % 6 == 0)
+              if (iter % 10 == 0)
               {
                 //usual MMC step
                 Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true);

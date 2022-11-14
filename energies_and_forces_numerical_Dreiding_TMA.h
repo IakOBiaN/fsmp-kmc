@@ -1,5 +1,6 @@
-void charges_coordinates (state &mol)
+int charges_coordinates (state &mol)
 {
+	if (numeric){return 0;}
   double d_charges = 4.2; // A
   // for positive charges
   double mol_sin_add_half_carbox_p = mol.sin_phi*0.9659258262890682867497431997289 + mol.cos_phi*0.25881904510252076234889883762405;
@@ -31,6 +32,8 @@ void charges_coordinates (state &mol)
   mol.q1y_n = mol.y + d_charges*mol_sin_add_half_carbox_n;
   mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
   mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
+
+	return 0;
 }
 
 void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
@@ -56,7 +59,9 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	a2 = (int)((ang2/da)+0.5);
 	molA.damping_coeff = damping_field(molA.x, Lx);
 	molB.damping_coeff = damping_field(molB.x, Lx);
-	en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;
+//	cout << "r: " << r << "\t" << "dist_n: " << dist_n << "\t" << "dist: " << dist << "\t" << "a1: " << a1 << "\t" << "a2: " << a2 << endl;
+	if(r <= min_dist){en = (E_INF/beta)*molA.damping_coeff*molB.damping_coeff;}
+	else {en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;}
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
