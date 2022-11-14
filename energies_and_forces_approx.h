@@ -206,14 +206,14 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		for (int id = -1; id < 2; id++)
 //		for (int id = 0; id < 1; id++)
     {
-			 if (HC_radius == true) {break;}
+			 if (HC_radius) {break;}
 			 molB_clone.x = molB.x + id*Lx;
        dist_x = molB_clone.x - molA.x;
 			 dist_x_2 = dist_x*dist_x;
        if (dist_x_2 > max_dist_2) {continue;}
        for (int jd = -1; jd < 2; jd++)
        {
-				  if (HC_radius == true){break;}
+				  if (HC_radius) {break;}
 				  molB_clone.y = molB.y + jd*Ly;
           dist_y = molB_clone.y - molA.y;
 					dist_y_2 = dist_y*dist_y;
