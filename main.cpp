@@ -126,7 +126,7 @@ double lambda0 = 0.612;
 double lambdam = 0.0;
 double u_m = -20000.0;													// Parameter of the external field
 //double delta_damp = 0.5;
-bool HC_radius = false;                         // Is we inside hard core radius (min_dist)?
+bool HC_radius = false;                         // Are we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
 int trialPart;
 double sigma = 1.1052; // sigma in nm
