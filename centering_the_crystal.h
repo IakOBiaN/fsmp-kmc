@@ -25,7 +25,7 @@ void centering_the_crystal(int &nPart, double &Lx, double &Ly, double &beta, vec
 
 	if (mol_in_left_gas > 0 && mol_in_right_gas > 0)
 	{
-		if (xc > Lx/2.0 && (xc - Lx/2.0) > Lx/32.0)
+		if (xc > Lx/2.0)
 			{
 				int trialPart = RanGen.IRandom(0,(mol_in_right_gas-1));
 				trialPart = right_end[trialPart];
@@ -34,7 +34,7 @@ void centering_the_crystal(int &nPart, double &Lx, double &Ly, double &beta, vec
 				new_coordinates.y = Ly * RanGen.Random();
 				charges_coordinates (new_coordinates);
 			}
-		else if (xc < Lx/2.0 && (Lx/2.0 - xc) > Lx/32.0)
+		else
 			{
 				int trialPart = RanGen.IRandom(0,(mol_in_left_gas-1));
 				trialPart = left_end[trialPart];

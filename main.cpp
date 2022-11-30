@@ -169,7 +169,7 @@ bool numeric = true;
 #include "Metropolis_iteration.h"
 #include "Rosenbluth_iteration.h"
 #include "pressure_balance.h"
-#include "block_error.h"
+//#include "block_error.h"
 #include "density_to_Ly.h"
 #include "Weighted_averages.h"
 #include "Widom_test.h"
@@ -230,8 +230,8 @@ int main()
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
- vector <double> pressure_stat(nIter - nIterEq);
- vector <double> energy_stat(nIter - nIterEq);
+ //vector <double> pressure_stat(nIter - nIterEq);
+ //vector <double> energy_stat(nIter - nIterEq);
 
  ////////////////////////////////////////////////////////////
  //         MC simulation of systems with different N      //
@@ -261,8 +261,8 @@ int main()
 
 	fileOutput << "////////////////////////////////////////////////////////////////////////////////////////////" << endl << endl;
 
-	fileOutput << "lambda_m" << "\t"<< "lambda0" << "\t" << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t" << "Energy SD" << "\t"
-	<< "Total pressure, mN/m" << "\t" << "Total pressure SD" << "\t" << "Excess pressure, mN/m" << "\t" << "Excess pressure along x-direction" << "\t" << "Excess pressure along y-direction" << "\t"
+	fileOutput << "lambda_m" << "\t"<< "lambda0" << "\t" << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t"// << "Energy SD" << "\t"
+	<< "Total pressure, mN/m" << "\t" << "Excess pressure, mN/m" << "\t" << "Excess pressure along x-direction" << "\t" << "Excess pressure along y-direction" << "\t"
 	<< "Pressure change over gas-solid interface" << "\t" << "Analytical pressure in the crystal (Pg + dP)" << "\t"
 	<< "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
 	fileOutput.close();
@@ -461,8 +461,8 @@ int main()
 					Energy += EN_AND_PR_counter.energy*dt;
 					press_X += EN_AND_PR_counter.p_X*dt;
 					press_Y += EN_AND_PR_counter.p_Y*dt;
-					energy_stat[sum_iterations] = EN_AND_PR_counter.energy*dt;
-					pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)*dt/2.0;
+					//energy_stat[sum_iterations] = EN_AND_PR_counter.energy*dt;
+					//pressure_stat[sum_iterations] = (EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)*dt/2.0;
 
 					weighted_averages_in_gas(coordinates, nPart, Lx, Ly);
 					gas_density += nPart_in_gas*dt;
@@ -507,14 +507,14 @@ int main()
 	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(sigma*sigma*100))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////
-	double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)/Pt;
-	double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1.0e+23)/N_a/Pt;
+	//double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)/Pt;
+	//double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1.0e+23)/N_a/Pt;
 
 	cout << endl << "u_m: " << u_m << endl;
 	cout << "Crystal Data" << endl;
 	cout << "Density: " << density << " mkmol/m2 " << "Lx of central cell: " << Lx/4.0 << " Ly: " << Ly << endl;
-	cout << "T: " << temperature << "K" << " Energy per molecule: " << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << " energy_error: " << energy_error << " kJ/mol" << endl;
-	cout << "Total pressure: " << R*temperature*density/1000.0 + (press_X + press_Y)/2.0 << " mN/m" << " pressure_error: " << pressure_error << " mN/m" << endl;
+	cout << "T: " << temperature << "K" << " Energy per molecule: " << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << endl;// << " energy_error: " << energy_error << " kJ/mol" << endl;
+	cout << "Total pressure: " << R*temperature*density/1000.0 + (press_X + press_Y)/2.0 << " mN/m" << endl;// << " pressure_error: " << pressure_error << " mN/m" << endl;
 	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " mN/m" << " P_ex_MC_X: " << press_X << " mN/m" << " P_ex_MC_Y: " << press_Y << " mN/m" << endl;
 //	cout << "Chemical potential in the simulation cell: " << mu_ex + log(density*Lx*Ly*N_a/4.0/1.0e+26)/beta/1000.0 << " kJ/mol" << endl;
 
@@ -534,8 +534,8 @@ int main()
 	cout << "Pressure change over gas-solid interface (dP): " << delta_p_over_interface << " mN/m" << " Analytical pressure in the crystal (Pg + dP): " << R*temperature*gas_density/1000.0 + delta_p_over_interface << endl;
 
 	ofstream fileOutput(name_stat.str().c_str(), ios_base::app);
-	fileOutput  << lambdam << "\t" << lambda0 << "\t" << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << "\t" << energy_error
-	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
+	fileOutput  << lambdam << "\t" << lambda0 << "\t" << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)// << "\t" << energy_error
+	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y// << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
 	<< "\t" << delta_p_over_interface << "\t" << R*temperature*gas_density/1000.0 + delta_p_over_interface
 	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_res_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_res_widom
   << "\t" << mu_ex_kMC << endl;
