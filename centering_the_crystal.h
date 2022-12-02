@@ -9,8 +9,8 @@ void centering_the_crystal(int &nPart, double &Lx, double &Ly, double &beta, vec
 	for (int i = 0; i < nPart; i++)
 		{
 			xc += coordinates[i].x;
-			if (coordinates[trialPart].x > 7.0*Lx/8.0){right_end[mol_in_right_gas] = i; mol_in_right_gas += 1;}
-			if (coordinates[trialPart].x < Lx/8.0){left_end[mol_in_left_gas] = i; mol_in_left_gas += 1;}
+			if (coordinates[i].x > 7.0*Lx/8.0){right_end[mol_in_right_gas] = i; mol_in_right_gas += 1;}
+			if (coordinates[i].x < Lx/8.0){left_end[mol_in_left_gas] = i; mol_in_left_gas += 1;}
 		}
 	xc = xc/nPart;
 
@@ -23,22 +23,23 @@ void centering_the_crystal(int &nPart, double &Lx, double &Ly, double &beta, vec
 	bool find = false;
 	state new_coordinates;
 
+	int tPart;
 	if (mol_in_left_gas > 0 && mol_in_right_gas > 0)
 	{
 		if (xc > Lx/2.0)
 			{
-				int trialPart = RanGen.IRandom(0,(mol_in_right_gas-1));
-				trialPart = right_end[trialPart];
-				new_coordinates = coordinates[trialPart];
+				tPart = RanGen.IRandom(0,(mol_in_right_gas-1));
+				tPart = right_end[tPart];
+				new_coordinates = coordinates[tPart];
 				new_coordinates.x = RanGen.Random()*Lx/8.0;
 				new_coordinates.y = Ly * RanGen.Random();
 				charges_coordinates (new_coordinates);
 			}
 		else
 			{
-				int trialPart = RanGen.IRandom(0,(mol_in_left_gas-1));
-				trialPart = left_end[trialPart];
-				new_coordinates = coordinates[trialPart];
+				tPart = RanGen.IRandom(0,(mol_in_left_gas-1));
+				tPart = left_end[tPart];
+				new_coordinates = coordinates[tPart];
 				new_coordinates.x = (7.0 + RanGen.Random())*Lx/8.0;
 				new_coordinates.y = Ly * RanGen.Random();
 				charges_coordinates (new_coordinates);
@@ -46,12 +47,12 @@ void centering_the_crystal(int &nPart, double &Lx, double &Ly, double &beta, vec
 
 		for (int l = 0; l < nPart; l++)
 			{
-				if (l == trialPart){continue;}
-				old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, false);
+				if (l == tPart){continue;}
+				old_EP = old_EP +  energies_and_forces(coordinates[tPart], coordinates[l], Lx, Ly,beta, false);
 				new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, false);
 			}
 
-		old_EP.energy += coordinates[trialPart].ex_field_coeff.energy;
+		old_EP.energy += coordinates[tPart].ex_field_coeff.energy;
 		new_EP.energy += new_coordinates.ex_field_coeff.energy;
 		delta_EP.energy = new_EP.energy - old_EP.energy;
 
@@ -59,16 +60,16 @@ void centering_the_crystal(int &nPart, double &Lx, double &Ly, double &beta, vec
 			{
 				for (int l = 0; l < nPart; l++)
 					{
-						if (l == trialPart){continue;}
+						if (l == tPart){continue;}
 						// Here we should calculate the pressure if the change is accepted
-						old_EP_Part = energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, true);
+						old_EP_Part = energies_and_forces(coordinates[tPart], coordinates[l], Lx, Ly,beta, true);
 						new_EP_Part = energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, true);
 						delta_EP = (new_EP_Part - old_EP_Part)/2.0;
 						coordinates[l].en_and_pr = coordinates[l].en_and_pr + delta_EP;
 						new_coordinates.en_and_pr = new_coordinates.en_and_pr + delta_EP;
 					}
-					new_coordinates.en_and_pr = new_coordinates.en_and_pr + (new_coordinates.ex_field_coeff - coordinates[trialPart].ex_field_coeff);
-					coordinates[trialPart] = new_coordinates;     // Update position
+					new_coordinates.en_and_pr = new_coordinates.en_and_pr + (new_coordinates.ex_field_coeff - coordinates[tPart].ex_field_coeff);
+					coordinates[tPart] = new_coordinates;     // Update position
 			}
 
 	}
