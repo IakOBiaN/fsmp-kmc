@@ -173,7 +173,7 @@ bool numeric = true;
 #include "density_to_Ly.h"
 #include "Weighted_averages.h"
 #include "Widom_test.h"
-#include "centering_the_crystal.h"
+#include "center_of_mass.h"
 
 int main()
 {
@@ -295,6 +295,7 @@ int main()
 	ACCEPTANCE_RATIO_m[1] = 0; // accepted translations
 	int balanceEq = 0;
 	persent = 0;
+  double center_of_mass_x = 0;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Write the item for average image
@@ -302,6 +303,7 @@ int main()
 	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+  center_of_mass_x = center_of_mass(nPart, coordinates);
   weighted_averages_in_central_cell(coordinates, nPart, Lx, Ly);
 	cout << endl << "_________INITIAL DATA_________" << endl;
 	cout << endl << "u_m: " << u_m << endl;
@@ -335,7 +337,7 @@ int main()
         //if it is begining (we need it for MMC too)
         if (iter < nIter * 0.02)
         {
-          Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true);
+          Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true, center_of_mass_x);
           dt = 1.0;
         }
         else
@@ -348,13 +350,13 @@ int main()
               //some MMC with small steps
               for (int mmc_iter = 0; mmc_iter < 250; mmc_iter++)
               {
-                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true);
+                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true, center_of_mass_x);
               }
               //we don't have dt for kMC now
               findTrialPart = true;
             }
             //usual kMC iteration
-            dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart);
+            dt = Rosenbluth_iteration(Lx, Ly, nPart, coordinates, dt, beta, iter, trialPart, findTrialPart, center_of_mass_x);
             //after kMC iteration we have dt
             findTrialPart = false;
           }
@@ -364,20 +366,14 @@ int main()
               if (iter % 10 == 0)
               {
                 //usual MMC step
-                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true);
+                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, true, center_of_mass_x);
               }
               else
               {
                 //MMC step like in kMC
-                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, false);
+                Metropolis_iteration(nPart, Lx, Ly, beta, coordinates, false, center_of_mass_x);
               }
           }
-        }
-
-        //sometimes we need move crystal to center
-        if (iter % 1000 == 0)
-        {
-          centering_the_crystal(nPart, Lx, Ly, beta, coordinates);
         }
 
 				balanceEq++;

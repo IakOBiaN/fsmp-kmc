@@ -1,6 +1,6 @@
 int charges_coordinates (state &mol)
 {
-	if (numeric){return 0;}
+	if (numeric) {return 0;}
   double d_charges = 4.2; // A
   // for positive charges
   double mol_sin_add_half_carbox_p = mol.sin_phi*0.9659258262890682867497431997289 + mol.cos_phi*0.25881904510252076234889883762405;
@@ -60,7 +60,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	molA.damping_coeff = damping_field(molA.x, Lx);
 	molB.damping_coeff = damping_field(molB.x, Lx);
 //	cout << "r: " << r << "\t" << "dist_n: " << dist_n << "\t" << "dist: " << dist << "\t" << "a1: " << a1 << "\t" << "a2: " << a2 << endl;
-	if(r <= min_dist){en = (E_INF/beta)*molA.damping_coeff*molB.damping_coeff;}
+	if(r <= min_dist) {en = (E_INF/beta)*molA.damping_coeff*molB.damping_coeff;}
 	else {en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;}
 }
 
@@ -96,13 +96,13 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 		 if (dist_x_2 > max_dist_2) {continue;}
 		 for (int jd = -1; jd < 2; jd++)
 		 {
-				if (HC_radius == true){break;}
+				if (HC_radius) {break;}
 				molB_clone.y = molB.y + jd*Ly;
 				dist_y = molB_clone.y - molA.y;
 				dist_y_2 = dist_y*dist_y;
 				if (dist_y_2 > max_dist_2) {continue;}
 				r2 = dist_x_2 + dist_y_2;
-				if (r2 <= min_dist_2)
+				if (r2 < min_dist_2)
 				{
 					en_and_press.energy += E_INF/beta;
 					HC_radius = true;

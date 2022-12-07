@@ -1,4 +1,4 @@
-int Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates, bool usualStep)
+int Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vector <state> &coordinates, bool usualStep, double &center_of_mass_x)
 {
 //    double CC_max_coord = (Lx/16.0)*9.0, CC_min_coord = (Lx/16.0)*7.0;
 
@@ -40,7 +40,14 @@ int Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vecto
     }
     else
     {
-      new_coordinates.x = Lx * RanGen.Random();
+      if (center_of_mass_x > Lx / 2.0)
+      {
+        new_coordinates.x = RanGen.Random() * Lx / 2.0;
+      }
+      else
+      {
+        new_coordinates.x = (1.0 + RanGen.Random()) * Lx / 2.0;
+      }
     	new_coordinates.y = Ly * RanGen.Random();
     	new_coordinates.phi = 360.0*RanGen.Random();
     	new_coordinates.sin_phi = sin(new_coordinates.phi/180.0*PI);
@@ -78,6 +85,7 @@ int Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vecto
     				new_coordinates.en_and_pr = new_coordinates.en_and_pr + delta_EP;
           }
 					new_coordinates.en_and_pr = new_coordinates.en_and_pr + (new_coordinates.ex_field_coeff - coordinates[trialPart].ex_field_coeff);
+          center_of_mass_x += (new_coordinates.x - coordinates[trialPart].x) / nPart;
           coordinates[trialPart] = new_coordinates;     // Update position
           if (angle_change) {ACCEPTANCE_RATIO_r[1] += 1.0;} else {ACCEPTANCE_RATIO_m[1] += 1.0;}
       }

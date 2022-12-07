@@ -1,4 +1,4 @@
-double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &dt, double &beta, int &iter, int &trialPart, bool findTrialPart)
+double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &dt, double &beta, int &iter, int &trialPart, bool findTrialPart, double &center_of_mass_x)
 {
 
 	//int trialPart = 0;
@@ -53,7 +53,14 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 	results old_EP_Part;
 	results new_EP_Part;
 	// Move or Rotate a molecule
-	new_coordinates.x = Lx * RanGen.Random();
+	if (center_of_mass_x > Lx / 2.0)
+	{
+		new_coordinates.x = RanGen.Random() * Lx / 2.0;
+	}
+	else
+	{
+		new_coordinates.x = (1.0 + RanGen.Random()) * Lx / 2.0;
+	}
 	new_coordinates.y = Ly * RanGen.Random();
 	new_coordinates.phi = 360.0*RanGen.Random();
 	new_coordinates.sin_phi = sin(new_coordinates.phi/180.0*PI);
@@ -86,7 +93,8 @@ for (int l = 0; l < nPart; l++)
         new_coordinates.en_and_pr = new_coordinates.en_and_pr + delta_EP;
       }
 		new_coordinates.en_and_pr = new_coordinates.en_and_pr + (new_coordinates.ex_field_coeff - coordinates[trialPart].ex_field_coeff);
-  	coordinates[trialPart] = new_coordinates;
+		center_of_mass_x += (new_coordinates.x - coordinates[trialPart].x) / nPart;
+		coordinates[trialPart] = new_coordinates;
 
 		double s = 0;
 		for(int mol = 0; mol < nPart; mol++)
