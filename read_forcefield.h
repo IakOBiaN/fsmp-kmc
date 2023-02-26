@@ -96,11 +96,11 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 					}
 				}
 			}
-
+/*
 		// Testing for lunges in the potential
 		for (int i = 0; i <= dist; i++)
 		{
-			for (int j = 0; j <= ang1; j++) 
+			for (int j = 0; j <= ang1; j++)
 			{
 				for(int k = 0; k <= ang2; k++)
 				{
@@ -122,6 +122,6 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 					}
 				}
 			}
-		}
+		}*/
 
 }

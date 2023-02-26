@@ -203,7 +203,7 @@ int main()
    // Read the forcefield from "forcefield.dat"
    cout << "Now I'm reading the forcefield file." << endl;
 //   read_forcefield ("../simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
-	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+	read_forcefield ("Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
 	sigma = min_dist_2*PI/4.0/100.0;
