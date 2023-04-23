@@ -49,19 +49,18 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	ang1 = ang_molA - dang;
 	ang2 = ang_molB - dang;
 	// Molecule should always has the angle in the range of 0-360 degrees
-	if (ang1<0) {ang1 += 360.0;}
-	if (ang2<0) {ang2 += 360.0;}
-	if (ang1>359.5) {ang1 -= 360.0;}
-	if (ang2>359.5) {ang2 -= 360.0;}
-	dist_n = (r-min_dist)/dr;
-	dist = (int)(dist_n+0.5);
-	a1 = (int)((ang1/da)+0.5);
-	a2 = (int)((ang2/da)+0.5);
+	if (ang1 < 0) {ang1 += 360.0;}
+	if (ang2 < 0) {ang2 += 360.0;}
+	if (ang1 > 359.95) {ang1 -= 360.0;}
+	if (ang2 > 359.95) {ang2 -= 360.0;}
+	dist_n = (r - min_dist) / dr;
+	dist = (int)(dist_n + 0.5);
+	a1 = (int)((ang1 / da) + 0.5);
+	a2 = (int)((ang2 / da) + 0.5);
 	molA.damping_coeff = damping_field(molA.x, Lx);
 	molB.damping_coeff = damping_field(molB.x, Lx);
-//	cout << "r: " << r << "\t" << "dist_n: " << dist_n << "\t" << "dist: " << dist << "\t" << "a1: " << a1 << "\t" << "a2: " << a2 << endl;
-	if(r <= min_dist) {en = (E_INF/beta)*molA.damping_coeff*molB.damping_coeff;}
-	else {en = forcefield[dist][a1][a2]*molA.damping_coeff*molB.damping_coeff;}
+	if(r <= min_dist) {en = (E_INF / beta) * molA.damping_coeff * molB.damping_coeff;}
+	else {en = forcefield[dist][a1][a2] * molA.damping_coeff * molB.damping_coeff;}
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
