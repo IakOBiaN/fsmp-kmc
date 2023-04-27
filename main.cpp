@@ -142,6 +142,7 @@ double min_dist = 7.5877;
 double min_dist_2 = min_dist*min_dist;
 double max_dist = 11.052*5.0;
 double max_dist_2 = max_dist*max_dist;
+int cut_index;
 // Delta between neighbor distances in the forcefield in A
 double dr;
 // Delta between orientation angle of the single molecule
@@ -189,7 +190,7 @@ int main()
 	// First dimension is distance
 	// Second dimension is angle of first molecule
 	// Third dimension is angle of second molecule
-	for (int i = 0; i < 2385; i++) {
+	for (int i = 0; i < 1302; i++) {
 		vector< vector<double> > mat; // Create an empty matrix
 			for (int j = 0; j < 361; j++) {
 				vector<double> row; // Create an empty row
@@ -203,10 +204,11 @@ int main()
    // Read the forcefield from "forcefield.dat"
    cout << "Now I'm reading the forcefield file." << endl;
 //   read_forcefield ("../simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
-	read_forcefield ("Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
 	sigma = min_dist_2*PI/4.0/100.0;
+	cut_index = (int)(((max_dist - min_dist) / dr) + 0.5);
 
  // Set configuration parameters
 
@@ -221,9 +223,9 @@ int main()
  /////////////////////////////
  // Set the Monte Carlo run //
  /////////////////////////////
- int nPart = 350; // Honeycomb
+// int nPart = 350; // Honeycomb
 // int nPart = 864; // Flower-1
-// int nPart = 450; // Superflower
+ int nPart = 450; // Superflower
  int nSteps = 300000;            // Total amount of MCS
  int nIter = nSteps * nPart;
  int nStepsEq = 150000;           // MCS for relaxation
@@ -240,11 +242,15 @@ int main()
  //Generete an initial distribution of molecules at fixed density
  double temperature = 300.0;
  double deltaT = 2000.0;
-// state_dens = 1.538; // in mkmol/m2 for HON in simplified model
- state_dens = 1.885; // in mkmol/m2 for SF
+ //state_dens = 1.538; // in mkmol/m2 for HON in simplified model
+ //state_dens = 1.885; // in mkmol/m2 for SF
+ //state_dens = 1.258; // in mkmol/m2 for HON in Dreiding54 model
+ state_dens = 2.0; // in mkmol/m2 for SF
+
 
 	// Generating the initial structure for sequential MC simulation
  	initConfigSuperFlowerTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
+	//initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
 	// Clear up the xyz file
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;

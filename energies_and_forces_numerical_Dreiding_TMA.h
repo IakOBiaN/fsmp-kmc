@@ -38,12 +38,16 @@ int charges_coordinates (state &mol)
 
 void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
 {
+	bool tail_correction = true; // Use or not the tail correction
 	double ang_molA = molA.phi;
 	double ang_molB = molB.phi;
 	double dist_n; // Float index in the numerical potential
 	int dist,a1,a2; // indexes in the numerical potential array
 	double ang1,ang2;
 	double dang = dist_x/r;	// Calculate the cosine of the angle between OX and distance vector
+
+	double u_cut = 0;
+	double u_before_cut = 0;
 
 	if (dist_y<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
 	ang1 = ang_molA - dang;
@@ -60,7 +64,24 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	molA.damping_coeff = damping_field(molA.x, Lx);
 	molB.damping_coeff = damping_field(molB.x, Lx);
 	if(r <= min_dist) {en = (E_INF / beta) * molA.damping_coeff * molB.damping_coeff;}
-	else {en = forcefield[dist][a1][a2] * molA.damping_coeff * molB.damping_coeff;}
+	else
+			{
+				if (r > max_dist){en = 0;}
+					else
+							{
+								if (tail_correction)
+									{
+										u_cut = forcefield[cut_index][a1][a2];
+										u_before_cut = forcefield[cut_index-1][a1][a2];
+										en = forcefield[dist][a1][a2] - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
+									}
+									else
+											{
+												en = forcefield[dist][a1][a2];
+											}
+								en = en * molA.damping_coeff * molB.damping_coeff;
+							}
+			}
 }
 
 results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
