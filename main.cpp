@@ -155,6 +155,7 @@ bool numeric = true;
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "fields_pccp2022.h"
+#include "interpolation.h"
 //#include "fields_jpcc2021.h"
 //#include "fields_jcp2020.h"
 #include "energies_and_forces_numerical_Dreiding_TMA.h"

@@ -39,6 +39,7 @@ int charges_coordinates (state &mol)
 void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
 {
 	bool tail_correction = true; // Use or not the tail correction
+	bool interpol = true; // Use or not the interpolation procedure
 	double ang_molA = molA.phi;
 	double ang_molB = molB.phi;
 	double dist_n; // Float index in the numerical potential
@@ -66,19 +67,33 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	if(r <= min_dist) {en = (E_INF / beta) * molA.damping_coeff * molB.damping_coeff;}
 	else
 			{
-				if (r > max_dist){en = 0;}
+				if (r > max_dist) {en = 0;}
 					else
 							{
 								if (tail_correction)
 									{
 										u_cut = forcefield[cut_index][a1][a2];
 										u_before_cut = forcefield[cut_index-1][a1][a2];
-										en = forcefield[dist][a1][a2] - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
+										if (interpol)
+										{
+											en = interpolation(dist_n, ang1, ang2) - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
+										}
+										else
+										{
+											en = forcefield[dist][a1][a2] - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
+										}
 									}
-									else
-											{
-												en = forcefield[dist][a1][a2];
-											}
+								else
+									{
+										if (interpol)
+										{
+											en = interpolation(dist_n, ang1, ang2);
+										}
+										else
+										{
+											en = forcefield[dist][a1][a2];
+										}
+									}
 								en = en * molA.damping_coeff * molB.damping_coeff;
 							}
 			}
