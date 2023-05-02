@@ -73,17 +73,17 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 			{
 				for (int j = 0; j <= ang1; j++)
 				{
-					a1 = j + 180;
-					if (a1 >= 360) {a1 -= 360;}
+					a1 = j + int(180 / da + 0.5);
+					if (a1 >= int(360 / da + 0.5)) {a1 -= int(360 / da + 0.5);}
 					for(int k = 0; k <= ang2; k++)
 					{
-						a2 = k + 180;
-						if (a2 >= 360) {a2 -= 360;}
+						a2 = k + int(180 / angle_step_2 + 0.5);
+						if (a2 >= int(360 / angle_step_2 + 0.5)) {a2 -= int(360 / angle_step_2 + 0.5);}
 						// Test of the potential for symmetry
 						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 0.15*abs(forcefield[i][a2][a1]))
 								{
-								 cout << "distance: " << min_dist + i * dr << " angle1: " << j << " angle2: " << k << endl;
-								 cout << "Potential error. Energy=" << forcefield[i][j][k] << " must be close energy=" << forcefield[i][a2][a1] << endl;
+									cout << "distance: " << min_dist + i * dr << " angle1: " << j << " angle2: " << k << endl;
+									cout << "Potential error. Energy=" << forcefield[i][j][k] << " must be close energy=" << forcefield[i][a2][a1] << endl;
 								}
 						if (forcefield[i][j][k] < forcefield[i][a2][a1])
 						{
@@ -97,7 +97,7 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 				}
 			}
 /*
-		// Testing for lunges in the potential
+		// Testing for anges in the simple potential
 		for (int i = 0; i <= dist; i++)
 		{
 			for (int j = 0; j <= ang1; j++)
