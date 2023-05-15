@@ -76,7 +76,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 										u_before_cut = forcefield[cut_index-1][a1][a2];
 										if (interpol)
 										{
-											en = interpolation(dist_n, ang1, ang2) - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
+											en = interpolation(dist_n, ang1, ang2, beta) - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
 										}
 										else
 										{
@@ -87,7 +87,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 									{
 										if (interpol)
 										{
-											en = interpolation(dist_n, ang1, ang2);
+											en = interpolation(dist_n, ang1, ang2, beta);
 										}
 										else
 										{

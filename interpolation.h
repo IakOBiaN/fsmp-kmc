@@ -9,7 +9,7 @@ public:
     double value;
     coord place;
 };
-double interpolation(double dist_n, double ang1, double ang2) {
+double interpolation(double dist_n, double ang1, double ang2, double beta) {
                 double d_x, d_y, d_z, energy_interpol;
                 ver v_000, v_010, v_100, v_110, v_001, v_011, v_101, v_111;
                 int temp_dist,temp_ang1,temp_ang2;
@@ -56,5 +56,9 @@ double interpolation(double dist_n, double ang1, double ang2) {
                 d_y = (v_find.y - v_000.place.y) / (v_010.place.y - v_000.place.y);
                 d_z = (v_find.z - v_000.place.z) / (v_001.place.z - v_000.place.z);
                 energy_interpol = ((v_000.value * (1 - d_x) + v_100.value * d_x) * (1 - d_y) + (v_010.value * (1 - d_x) + v_110.value * d_x) * d_y) * (1-d_z) + ((v_001.value * (1 - d_x) + v_101.value * d_x) * (1 - d_y) + (v_011.value * (1 - d_x) + v_111.value * d_x) * d_y) * d_z;
+                if (energy_interpol > (E_INF / beta))
+                {
+                  energy_interpol = E_INF / beta;
+                }
                 return energy_interpol;
                 }

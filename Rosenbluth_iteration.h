@@ -4,8 +4,10 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 	//int trialPart = 0;
 	vector <double> mob_histogram(nPart);
 	double Rp;
+
 	if (findTrialPart)
 	{
+		new_try:
 		double s = 0;
 		for(int mol = 0; mol < nPart; mol++)
 		{
@@ -40,6 +42,11 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 							else
 							{
 								point = point - range;
+							}
+							if ((point < 0) || (point >= nPart))
+							{
+								PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+								goto new_try;
 							}
 						} while(!(Rp >= mob_histogram[point-1] && Rp < mob_histogram[point]));
 						trialPart = point;
@@ -96,6 +103,7 @@ for (int l = 0; l < nPart; l++)
 		center_of_mass_x += (new_coordinates.x - coordinates[trialPart].x) / nPart;
 		coordinates[trialPart] = new_coordinates;
 
+		new_try2:
 		double s = 0;
 		for(int mol = 0; mol < nPart; mol++)
 		{
@@ -130,6 +138,11 @@ for (int l = 0; l < nPart; l++)
 							else
 							{
 								point = point - range;
+							}
+							if ((point < 0) || (point >= nPart))
+							{
+								PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
+								goto new_try2;
 							}
 						} while(!(Rp >= mob_histogram[point-1] && Rp < mob_histogram[point]));
 						trialPart = point;
