@@ -107,6 +107,8 @@ double q3y_n;
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+double temperature = 400.0;
+
 results EN_AND_PR_counter;											// energy and pressures in the system.
 double nPart_in_central_cell = 0;               // molecules in central cell
 double nPart_in_gas = 0;												// molecules in gas phase
@@ -114,7 +116,7 @@ double nPart_in_transition_zone = 0;						// molecules in nPart_in_transition_zo
 double ACCEPTANCE_RATIO_r[2] = {0, 0};					// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS = 100;												// steps for balance statistics
-double delta = 5.0;															// MC parameter. Maximal shift of the molecule
+double delta = 2.0;															// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
 double R = 8.31446261815324;														// Gas constant in J per mol
 double N_a = 6.02214076e+23;												//	Avogadro constant
@@ -122,7 +124,7 @@ const double E_INF = 75.0;											// in kT units
 const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;		// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
-double lambda0 = 0.612;
+double lambda0 = sqrt(temperature/800.0);
 double lambdam = 0.0;
 double u_m = -20000.0;													// Parameter of the external field
 //double delta_damp = 0.5;
@@ -152,6 +154,8 @@ int frame = 0; // For visualization purpose
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool numeric = true;
+bool widom_test_index = false;
+
 #include "read_forcefield.h"
 #include "PBC2D.h"
 #include "fields_pccp2022.h"
@@ -163,6 +167,7 @@ bool numeric = true;
 //#include "energies_and_forces_numerical_simple_model.h"
 //#include "initConfigHoneycombTMA_elongated_cell.h"
 #include "initConfigSuperFlowerTMA_elongated_cell.h"
+//#include "initConfigFillHonTMA_elongated_cell.h"
 //#include "initConfigHoneycombTMA.h"
 //#include "initConfigFlowerTMA.h"
 //#include "initConfigSuperFlowerTMA.h"
@@ -191,11 +196,11 @@ int main()
 	// First dimension is distance
 	// Second dimension is angle of first molecule
 	// Third dimension is angle of second molecule
-	for (int i = 0; i < 1302; i++) {
+	for (int i = 0; i < 1303; i++) {
 		vector< vector<double> > mat; // Create an empty matrix
-			for (int j = 0; j < 361; j++) {
+			for (int j = 0; j < 721; j++) {
 				vector<double> row; // Create an empty row
-					for (int k =0; k <361; k++) {
+					for (int k =0; k <721; k++) {
 						row.push_back(0);
 					}
 					mat.push_back(row); // Add an element (column) to the row
@@ -205,7 +210,8 @@ int main()
    // Read the forcefield from "forcefield.dat"
    cout << "Now I'm reading the forcefield file." << endl;
 //   read_forcefield ("../simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
-	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+//	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.01A_dr0.005_da0.5.dat", forcefield, min_dist, max_dist, dr, da);
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
 	sigma = min_dist_2*PI/4.0/100.0;
@@ -226,10 +232,10 @@ int main()
  /////////////////////////////
 // int nPart = 350; // Honeycomb
 // int nPart = 864; // Flower-1
- int nPart = 450; // Superflower
- int nSteps = 300000;            // Total amount of MCS
+ int nPart = 600; // Superflower
+ int nSteps = 1000000;            // Total amount of MCS
  int nIter = nSteps * nPart;
- int nStepsEq = 150000;           // MCS for relaxation
+ int nStepsEq = 500000;           // MCS for relaxation
  int nIterEq = nStepsEq * nPart;
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
@@ -240,8 +246,6 @@ int main()
  //         MC simulation of systems with different N      //
  ////////////////////////////////////////////////////////////
 
- //Generete an initial distribution of molecules at fixed density
- double temperature = 300.0;
  double deltaT = 2000.0;
  //state_dens = 1.538; // in mkmol/m2 for HON in simplified model
  //state_dens = 1.885; // in mkmol/m2 for SF
@@ -250,8 +254,9 @@ int main()
 
 
 	// Generating the initial structure for sequential MC simulation
- 	initConfigSuperFlowerTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
+	initConfigSuperFlowerTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
 	//initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
+//	initConfigFillHonTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
 	// Clear up the xyz file
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
@@ -268,14 +273,14 @@ int main()
 
 	fileOutput << "////////////////////////////////////////////////////////////////////////////////////////////" << endl << endl;
 
-	fileOutput << "lambda_m" << "\t"<< "lambda0" << "\t" << "u_m, kJ/mol" << "\t"<< "Temperature, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t"// << "Energy SD" << "\t"
+	fileOutput << "lambda_m" << "\t"<< "lambda0" << "\t" << "u_m, kJ/mol" << "\t"<< "T, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t"// << "Energy SD" << "\t"
 	<< "Total pressure, mN/m" << "\t" << "Excess pressure, mN/m" << "\t" << "Excess pressure along x-direction" << "\t" << "Excess pressure along y-direction" << "\t"
 	<< "Pressure change over gas-solid interface" << "\t" << "Analytical pressure in the crystal (Pg + dP)" << "\t"
 	<< "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
 	fileOutput.close();
 
 //	for(lambda0 = 1.0; lambda0 >= 0.0; lambda0 -= 0.05)
- for(u_m = 0.0; u_m >= -50000.0; u_m -= 2500.0)
+ for(u_m = -25000.0; u_m >= -75000.0; u_m += -2500.0)
 // for(temperature = 300; temperature <= 2000; temperature += deltaT)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
@@ -415,10 +420,11 @@ int main()
 								if (iter >= 0.46*nIterEq) { BALANCE_STEPS = 2500; }
 */
 								pressure_balance_ratio(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
+//								pressure_balance_ratio_analytical(Energy, press_X, delta_p_over_interface, gas_density, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
-                cout << "P_X_vir: " << (press_X/(3.0*Lx/16.0)/Ly*1e23/N_a) << "\t" << "P_Y_vir: " << (press_Y/(3.0*Lx/16.0)/Ly*1e23/N_a) <<  endl;
+                cout << "P_X_vir: " << press_X*(1.0/(Lx/4.0)/Ly*1e23)/N_a << "\t" << "P_Y_vir: " << press_Y*(1.0/(Lx/4.0)/Ly*1e23)/N_a <<  endl;
                 cout << "P_X_an: " << (delta_p_over_interface*1e23/Ly/N_a) + R*temperature*gas_density/1000.0 << " Gas phase pressure: " << R*temperature*gas_density/1000.0 << endl;
 								cout << "AR_m: " << AR_m << " delta: " << delta << " AR_r: " << AR_r << " delta_ang: " << delta_angle << endl;
 								if (AR_r < 0.25 && delta_angle > 5.0)
@@ -481,7 +487,7 @@ int main()
 					pressure_change_over_interface(coordinates, nPart, Lx, Ly);
 					delta_p_over_interface += EN_AND_PR_counter.p_X*dt;
 
-					Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);
+					if (widom_test_index){Widom_test(nPart, coordinates, Lx, Ly, beta, N_test, e_test);}
 				}
 		}
 
@@ -506,7 +512,9 @@ int main()
 	transition_zone_density *= (1.0e+26)/((3.0*Lx/8.0)*Ly)/N_a;
 	press_X_transition_zone *= (1.0/(3.0*Lx/16.0)/Ly*1e23)/N_a;
 	delta_p_over_interface *= 1e23/Ly/N_a;
-	double mu_res_widom = log(N_test/(e_test))/beta/1000.0; // Residual chemical potential calculated by WTPI
+//	double mu_res_widom = log(N_test/(e_test))/beta/1000.0; // Residual chemical potential calculated by WTPI
+	double mu_res_widom = 0;
+	if (widom_test_index){mu_res_widom = log(N_test/(e_test))/beta/1000.0;} // Residual chemical potential calculated by WTPI
 	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(sigma*sigma*100))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////

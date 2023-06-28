@@ -15,6 +15,7 @@ number_in_x *= 8;
 
 Lx = number_in_x*x_uc;  //initial x-size of the crystal
 Ly = number_in_y*y_uc;  //y-size of the cell
+cout << "Lx: " << Lx << "\t" << "Ly: " << Ly << endl;
 
 int molecule = 0; // Molecules counter
 for(int i = 0; i < number_in_x; i++)
@@ -34,7 +35,7 @@ for(int i = 0; i < number_in_x; i++)
 
 				coordinates[molecule].x = coordinates[molecule-1].x + h3_bond_dist*cos(60.0/180.0*PI);
 				coordinates[molecule].y = coordinates[molecule-1].y + h3_bond_dist*sin(60.0/180.0*PI);
-				coordinates[molecule].phi = 46.0;
+				coordinates[molecule].phi = 30.0; // 46.0;
 				coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
 				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
@@ -58,7 +59,7 @@ for(int i = 0; i < number_in_x; i++)
 			}
 		}
 		nPart = molecule;
-
+		cout << "nPart after cutting: " << nPart << endl;
 /*
 		for (int i = 0; i < molecule; i++)
 		{

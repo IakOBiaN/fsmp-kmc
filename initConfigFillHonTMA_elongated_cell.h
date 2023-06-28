@@ -128,6 +128,6 @@ while(molecule > nPart)
   }
 */
 
- cout << endl << "Honeycomb TMA Structure in central cell: " << endl;
+ cout << endl << "Filled Honeycomb TMA Structure in central cell: " << endl;
  cout << "N: " << molecule << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
 }

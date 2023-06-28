@@ -66,6 +66,7 @@ int Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vecto
         if (HC_radius) {HC_radius = false; return 0;}
 				old_EP = old_EP +  energies_and_forces(coordinates[trialPart], coordinates[l], Lx, Ly,beta, false);
 				new_EP = new_EP + energies_and_forces(coordinates[l], new_coordinates, Lx, Ly, beta, false);
+				if (new_EP.energy >= (E_INF / beta)) {return 0;}
       }
 
     old_EP.energy += coordinates[trialPart].ex_field_coeff.energy;
