@@ -107,7 +107,8 @@ double q3y_n;
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double temperature = 400.0;
+double temperature = 500.0;
+double init_temp = temperature;
 
 results EN_AND_PR_counter;											// energy and pressures in the system.
 double nPart_in_central_cell = 0;               // molecules in central cell
@@ -126,7 +127,7 @@ double density, gas_density, transition_zone_density;		// Actual density of the 
 double state_dens, state_Ly;
 double lambda0 = sqrt(temperature/800.0);
 double lambdam = 0.0;
-double u_m = -20000.0;													// Parameter of the external field
+double u_m = -74000.0;													// Parameter of the external field
 //double delta_damp = 0.5;
 bool HC_radius = false;                         // Are we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
@@ -263,7 +264,8 @@ int main()
 
 	// Write the model parameters to data-file
 	stringstream name_stat;
-	name_stat << "statistics_" << "T" << temperature << "_lambda0_" << lambda0 << ".dat";
+	name_stat << "statistics_p0_SF.dat";
+//	name_stat << "statistics_" << "T" << temperature << "_lambda0_" << lambda0 << ".dat";
 	ofstream fileOutput(name_stat.str().c_str(), ios_base::trunc);
 
 	fileOutput << "Number of particles: " << nPart << endl;
@@ -280,10 +282,11 @@ int main()
 	fileOutput.close();
 
 //	for(lambda0 = 1.0; lambda0 >= 0.0; lambda0 -= 0.05)
- for(u_m = -25000.0; u_m >= -75000.0; u_m += -2500.0)
-// for(temperature = 300; temperature <= 2000; temperature += deltaT)
+// for(u_m = -25000.0; u_m >= -75000.0; u_m += -2500.0)
+ for(temperature = init_temp; temperature <= 500; temperature += 20)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
+	lambda0 = sqrt(temperature/800.0);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////
@@ -421,6 +424,7 @@ int main()
 */
 								pressure_balance_ratio(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 //								pressure_balance_ratio_analytical(Energy, press_X, delta_p_over_interface, gas_density, Lx, Ly, nPart, coordinates, beta);
+								um_tunning_to_zero_pressure(Energy, u_m, delta_p_over_interface, Lx, Ly, nPart, coordinates, beta);
 
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);

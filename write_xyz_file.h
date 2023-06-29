@@ -2,7 +2,8 @@ void write_xyz_file_TMA (int &nPart, double &density, double &Lx, double &Ly, do
 {
 	stringstream name;
 // name << "rho_" << density << ".xyz";
-	name << "lambda0_" << lambda0 << "_T" << temperature << ".xyz";
+//	name << "lambda0_" << lambda0 << "_T" << temperature << ".xyz";
+ name << "statistics_p0_SF.xyz";
 	if (init) {ofstream fileOutput(name.str().c_str(), ios_base::trunc);fileOutput.close();}
 	ofstream fileOutput(name.str().c_str(), ios_base::app);
 	fileOutput << nPart*4 << endl;
