@@ -132,7 +132,7 @@ double u_m = -74000.0;													// Parameter of the external field
 bool HC_radius = false;                         // Are we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
 int trialPart;
-double sigma = 1.1052; // sigma in nm
+double sigma_2; // sigma in nm^2
 
 // Minimal (hard core distance) and maximal distance between the molecules
 // Hard core radius = 7.5877 A
@@ -215,7 +215,7 @@ int main()
 	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.01A_dr0.005_da0.5.dat", forcefield, min_dist, max_dist, dr, da);
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
-	sigma = min_dist_2*PI/4.0/100.0;
+	sigma_2 = min_dist_2 * PI / 4.0 / 100.0;
 	cut_index = (int)(((max_dist - min_dist) / dr) + 0.5);
 
  // Set configuration parameters
@@ -519,7 +519,7 @@ int main()
 //	double mu_res_widom = log(N_test/(e_test))/beta/1000.0; // Residual chemical potential calculated by WTPI
 	double mu_res_widom = 0;
 	if (widom_test_index){mu_res_widom = log(N_test/(e_test))/beta/1000.0;} // Residual chemical potential calculated by WTPI
-	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(sigma*sigma*100))/beta/1000.0;
+	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(sigma_2 * 100))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////
 	//double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)/Pt;
@@ -552,7 +552,7 @@ int main()
 	fileOutput  << lambdam << "\t" << lambda0 << "\t" << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)// << "\t" << energy_error
 	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y// << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
 	<< "\t" << delta_p_over_interface << "\t" << R*temperature*gas_density/1000.0 + delta_p_over_interface
-	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << "\t" << mu_res_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 + mu_res_widom
+	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0 << "\t" << mu_res_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0 + mu_res_widom
   << "\t" << mu_ex_kMC << endl;
 	fileOutput.close();
 
