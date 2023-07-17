@@ -542,7 +542,7 @@ int main()
 	cout << "Gas Phase Data" << endl;
 	cout << "Gas density: " << gas_density << " mikromol/m2" << " Gas energy per molecule: " << Energy_gas/1000.0/(gas_density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << endl;
 	cout << "Gas pressure along X: " << R*temperature*gas_density/1000.0 + press_X_gas << " mN/m" << " Gas pressure along Y: " << R*temperature*gas_density/1000.0 + press_Y_gas << " mN/m" << endl;
-	cout << "Widom's residual chemical potential in gas phase: " << mu_res_widom << " kJ/mol / " << "Widom's excess chemical potential in the gas phase: " << mu_res_widom + log(gas_density*N_a*1.0e-24*sigma*sigma)/beta/1000.0 << " kJ/mol" << endl;
+	cout << "Widom's residual chemical potential in gas phase: " << mu_res_widom << " kJ/mol / " << "Widom's excess chemical potential in the gas phase: " << mu_res_widom + log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0 << " kJ/mol" << endl;
 	cout << "kMC's excess chemical potential in gas phase: " << mu_ex_kMC << " kJ/mol / " << endl;
 
 	cout << endl;
