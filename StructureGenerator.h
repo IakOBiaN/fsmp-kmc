@@ -253,13 +253,13 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   results empty_field;
   results en_and_press;
   int params_amount = params.size() - 1;
-  double delta_uc = 0.5;
+  double delta_uc = 1.0;
   double temp_energy = 1e10;
   double convergency = 1e10;
   bool first = true;
+  int counter = 0;
 
-  //while (convergency > 5000)
-  for (int aaa = 0; aaa < 1000; aaa++)
+  while (counter < 10000)
   {
     int param_number;
     double temp_delta;
@@ -323,8 +323,9 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       cout << "AHTUNG!!! HC_radius!!!" << endl;
     }
 
-    if ((temp_energy >= EN_AND_PR_counter.energy) && !HC_radius)
+    if ((temp_energy > EN_AND_PR_counter.energy) && !HC_radius)
     {
+      counter = 0;
       temp_energy = EN_AND_PR_counter.energy;
       write_xyz_file_TMA (N, density, Lx, Ly, temperature, coordinates, 0, 1, false);
       cout << "YES! Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
@@ -332,9 +333,10 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
     else
     {
       params[param_number] -= temp_delta;
+      counter++;
     }
 
-    cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+    //cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
     first = false;
     HC_radius = false;
   }
