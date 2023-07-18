@@ -102,10 +102,38 @@ double lambdam = 0.0;
 bool numeric = true;
 bool widom_test_index = false;
 
-string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14.01A_dr0.005_da0.5.dat";
+string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat";
 const char * potential_name = temp_name.c_str();
-string structure_name = "SF";
+string structure_name = "calculate";
+//you can use your own structures if set "structure_name" to "calculate"
+vector<double> unit_cell_params;
 
+void calculate_unit_cell_params()
+{
+  //molecules count
+  unit_cell_params.push_back(4);
+  //size along x axis for unit cell
+  unit_cell_params.push_back(17.4596);
+  //size along y axis for unit cell
+  unit_cell_params.push_back(30.2409);
+
+  //unit cell graph (graph distance, graph angle, molecule angle)
+  unit_cell_params.push_back(0.0);
+  unit_cell_params.push_back(0.0);
+  unit_cell_params.push_back(30.0);
+
+  unit_cell_params.push_back(10.0);
+  unit_cell_params.push_back(30);
+  unit_cell_params.push_back(90);
+
+  unit_cell_params.push_back(10.0);
+  unit_cell_params.push_back(90);
+  unit_cell_params.push_back(30);
+
+  unit_cell_params.push_back(10.0);
+  unit_cell_params.push_back(150);
+  unit_cell_params.push_back(90);
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +183,6 @@ int frame = 0; // For visualization purpose
 #include "energies_and_forces_numerical_Dreiding_TMA.h"
 //#include "energies_and_forces_approx.h"
 //#include "energies_and_forces_numerical_simple_model.h"
-#include "StructureGenerator.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
@@ -166,6 +193,7 @@ int frame = 0; // For visualization purpose
 #include "Weighted_averages.h"
 #include "Widom_test.h"
 #include "center_of_mass.h"
+#include "StructureGenerator.h"
 
 int main()
 {
@@ -181,7 +209,7 @@ int main()
 	// First dimension is distance
 	// Second dimension is angle of first molecule
 	// Third dimension is angle of second molecule
-/*	for (int i = 0; i < 1303; i++) {
+	for (int i = 0; i < 1303; i++) {
 		vector< vector<double> > mat; // Create an empty matrix
 			for (int j = 0; j < 721; j++) {
 				vector<double> row; // Create an empty row
@@ -201,7 +229,7 @@ int main()
 	max_dist_2 = max_dist*max_dist;
 	sigma_2 = min_dist_2 * PI / 4.0 / 100.0;
 	cut_index = (int)(((max_dist - min_dist) / dr) + 0.5);
-*/
+
  // Set configuration parameters
 
  double press_X = 0, press_Y = 0, Energy = 0, density = 0;
@@ -235,13 +263,25 @@ int main()
  //state_dens = 1.538; // in mkmol/m2 for HON in simplified model
  //state_dens = 1.885; // in mkmol/m2 for SF
  //state_dens = 1.258; // in mkmol/m2 for HON in Dreiding54 model
- state_dens = 2.0; // in mkmol/m2 for SF
+ state_dens = 1.258; // in mkmol/m2 for SF
 
 
 	// Generating the initial structure for sequential MC simulation
-	generate_structure(structure_name, nPart, density, coordinates, Lx, Ly, state_dens);
-	//initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
-//	initConfigFillHonTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
+  if (structure_name != "calculate")
+  {
+	   generate_structure(structure_name, nPart, density, coordinates, Lx, Ly, state_dens);
+  }
+  else
+  {
+    calculate_unit_cell_params();
+    generate_structure(unit_cell_params, coordinates, Lx, Ly);
+  }
+  for(int i = 0; i < 4; i++)
+  {
+    cout << "mol_x:" << coordinates[i].x << " mol_y:" << coordinates[i].y << " mol_phi:" << coordinates[i].phi << endl;
+  }
+  cout << Lx << " " << Ly << endl;
+
 	// Clear up the xyz file
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
