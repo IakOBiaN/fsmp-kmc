@@ -57,9 +57,6 @@ int Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vecto
       new_coordinates.stat_weight = weights_for_central_cell (new_coordinates.x, Lx);
     }
 
-		// For analytic forcefield
-		charges_coordinates (new_coordinates);
-
 		for (int l = 0; l < nPart; l++)
       {
 				if (l == trialPart) {continue;}

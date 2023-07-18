@@ -1,41 +1,3 @@
-int charges_coordinates (state &mol)
-{
-	if (numeric) {return 0;}
-  double d_charges = 4.2; // A
-  // for positive charges
-  double mol_sin_add_half_carbox_p = mol.sin_phi*0.9659258262890682867497431997289 + mol.cos_phi*0.25881904510252076234889883762405;
-  double mol_cos_add_half_carbox_p = mol.cos_phi*0.9659258262890682867497431997289 - mol.sin_phi*0.25881904510252076234889883762405;
-  double mol_sin_add_half_carbox_p_120 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*0.86602540378443864676372317075294;
-  double mol_cos_add_half_carbox_p_120 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*0.86602540378443864676372317075294;
-  double mol_sin_add_half_carbox_p_240 = mol_sin_add_half_carbox_p*(-0.5) + mol_cos_add_half_carbox_p*(-0.86602540378443864676372317075294);
-  double mol_cos_add_half_carbox_p_240 = mol_cos_add_half_carbox_p*(-0.5) - mol_sin_add_half_carbox_p*(-0.86602540378443864676372317075294);
-
-  // for negative charges
-  double mol_sin_add_half_carbox_n = mol.sin_phi*0.9659258262890682867497431997289 - mol.cos_phi*0.25881904510252076234889883762405;
-  double mol_cos_add_half_carbox_n = mol.cos_phi*0.9659258262890682867497431997289 + mol.sin_phi*0.25881904510252076234889883762405;
-  double mol_sin_add_half_carbox_n_120 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*0.86602540378443864676372317075294;
-  double mol_cos_add_half_carbox_n_120 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*0.86602540378443864676372317075294;
-  double mol_sin_add_half_carbox_n_240 = mol_sin_add_half_carbox_n*(-0.5) + mol_cos_add_half_carbox_n*(-0.86602540378443864676372317075294);
-  double mol_cos_add_half_carbox_n_240 = mol_cos_add_half_carbox_n*(-0.5) - mol_sin_add_half_carbox_n*(-0.86602540378443864676372317075294);
-
-  // x,y - coordinates of six charges (3 positive and 3 negative) in the A molecule
-	mol.q1x_p = mol.x + d_charges*mol_cos_add_half_carbox_p;
-	mol.q2x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_120;
-	mol.q3x_p = mol.x + d_charges*mol_cos_add_half_carbox_p_240;
-	mol.q1x_n = mol.x + d_charges*mol_cos_add_half_carbox_n;
-	mol.q2x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_120;
-	mol.q3x_n = mol.x + d_charges*mol_cos_add_half_carbox_n_240;
-
-	mol.q1y_p = mol.y + d_charges*mol_sin_add_half_carbox_p;
-  mol.q2y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_120;
-  mol.q3y_p = mol.y + d_charges*mol_sin_add_half_carbox_p_240;
-  mol.q1y_n = mol.y + d_charges*mol_sin_add_half_carbox_n;
-  mol.q2y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_120;
-  mol.q3y_n = mol.y + d_charges*mol_sin_add_half_carbox_n_240;
-
-	return 0;
-}
-
 void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
 {
 	bool tail_correction = true; // Use or not the tail correction
@@ -147,7 +109,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 				{
 					r = sqrt(r2);
 					double t_U;
-					charges_coordinates(molB_clone);
 					energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y, t_U);
 					U += t_U;
 
@@ -156,13 +117,11 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 					dist_x_plus_delta = molB_clone.x - molA.x;
 					r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
 					r = sqrt(r2);
-					charges_coordinates(molB_clone);
 					molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
 					molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
 					energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta);
 					pressure_X += -(t_U-t_U_delta)/diff_delta*dist_x;
 					molB_clone.x = molB_clone.x + diff_delta;
-					charges_coordinates(molB_clone);
 					molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
 					molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
 
@@ -171,7 +130,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 					dist_y_plus_delta = molB_clone.y - molA.y;
 					r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
 					r = sqrt(r2);
-					charges_coordinates(molB_clone);
 					energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta);
 					pressure_Y += -(t_U-t_U_delta)/diff_delta*dist_y;
 					molB_clone.y = molB_clone.y + diff_delta;

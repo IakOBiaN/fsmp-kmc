@@ -10,7 +10,6 @@ void Widom_test(int &nPart, vector <state> &coordinates, double &Lx, double &Ly,
   test_particle.phi = 360.0 * RanGen.Random();
   test_particle.sin_phi = sin(test_particle.phi/180.0*PI);
   test_particle.cos_phi = cos(test_particle.phi/180.0*PI);
-	charges_coordinates (test_particle);
 	test_particle.damping_coeff = damping_field(test_particle.x, Lx); // Lambda^1/2
 	test_particle.ex_field_coeff = external_field(test_particle.x, Lx); // u_ext
 	test_particle.stat_weight = weights_for_central_cell(test_particle.x, Lx);

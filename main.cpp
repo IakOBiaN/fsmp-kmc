@@ -13,7 +13,6 @@
 #include <float.h>
 using namespace std;
 
-
 // Random number generator
 int seed = (int)time(0);
 CRandomSFMT0 RanGen(seed);
@@ -88,74 +87,60 @@ double damping_coeff;
 results ex_field_coeff;
 double stat_weight;
 results en_and_pr;
-double q1x_p;
-double q1y_p;
-double q2x_p;
-double q2y_p;
-double q3x_p;
-double q3y_p;
-double q1x_n;
-double q1y_n;
-double q2x_n;
-double q2y_n;
-double q3x_n;
-double q3y_n;
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////// CONFIGURATION ///////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double temperature = 500.0;
+double u_m = -74000.0;												// Parameter of the external field
+double delta = 2.0;													// MC parameter. Maximal shift of the molecule
+double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
+double temperature_in_transition_zone = 800;						// K
+double lambdam = 0.0;
+bool numeric = true;
+bool widom_test_index = false;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double temperature = 500.0;
 double init_temp = temperature;
-
 results EN_AND_PR_counter;											// energy and pressures in the system.
-double nPart_in_central_cell = 0;               // molecules in central cell
-double nPart_in_gas = 0;												// molecules in gas phase
-double nPart_in_transition_zone = 0;						// molecules in nPart_in_transition_zone
-double ACCEPTANCE_RATIO_r[2] = {0, 0};					// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
-double ACCEPTANCE_RATIO_m[2] = {0, 0};					// 0 - not accepted steps of move, 1 - accepted steps of move
-int BALANCE_STEPS = 100;												// steps for balance statistics
-double delta = 2.0;															// MC parameter. Maximal shift of the molecule
-double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
-double R = 8.31446261815324;														// Gas constant in J per mol
-double N_a = 6.02214076e+23;												//	Avogadro constant
+double nPart_in_central_cell = 0;               					// molecules in central cell
+double nPart_in_gas = 0;											// molecules in gas phase
+double nPart_in_transition_zone = 0;								// molecules in nPart_in_transition_zone
+double ACCEPTANCE_RATIO_r[2] = {0, 0};								// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
+double ACCEPTANCE_RATIO_m[2] = {0, 0};								// 0 - not accepted steps of move, 1 - accepted steps of move
+int BALANCE_STEPS;													// steps for balance statistics
+double R = 8.31446261815324;										// Gas constant in J per mol
+double N_a = 6.02214076e+23;										//	Avogadro constant
 const double E_INF = 75.0;											// in kT units
 const double PI = 3.14159265358979323846;
-double density, gas_density, transition_zone_density;		// Actual density of the layer in mkMol per m^2
+double density, gas_density, transition_zone_density;				// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
-double lambda0 = sqrt(temperature/800.0);
-double lambdam = 0.0;
-double u_m = -74000.0;													// Parameter of the external field
-//double delta_damp = 0.5;
-bool HC_radius = false;                         // Are we inside hard core radius (min_dist)?
-bool findTrialPart = true;                      // Condition for additional calculation of trialPart in kMC
+double lambda0 = sqrt(temperature/temperature_in_transition_zone);
+
+bool HC_radius = false;                         					// Are we inside hard core radius (min_dist)?
+bool findTrialPart = true;                      					// Condition for additional calculation of trialPart in kMC
 int trialPart;
 double sigma_2; // sigma in nm^2
 
-// Minimal (hard core distance) and maximal distance between the molecules
-// Hard core radius = 7.5877 A
-
-// Forcefield for N2-N2 pair
+// Forcefield
 vector <vector <vector <double> > > forcefield;
 vector <vector <vector <double> > > energy;
 // Minimal (hard core distance) and maximal distance between the molecules
-double min_dist = 7.5877;
-double min_dist_2 = min_dist*min_dist;
-double max_dist = 11.052*5.0;
-double max_dist_2 = max_dist*max_dist;
+double min_dist;
+double min_dist_2;
+double max_dist;
+double max_dist_2;
 int cut_index;
-// Delta between neighbor distances in the forcefield in A
-double dr;
-// Delta between orientation angle of the single molecule
-double da;
-
+double dr;															// Delta between neighbor distances in the forcefield in A
+double da;															// Delta between orientation angle of the single molecule
 int frame = 0; // For visualization purpose
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool numeric = true;
-bool widom_test_index = false;
 
 #include "read_forcefield.h"
 #include "PBC2D.h"

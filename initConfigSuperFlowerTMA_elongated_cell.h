@@ -30,7 +30,6 @@ for(int i = 0; i < number_in_x; i++)
 				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
 				coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
 				coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				charges_coordinates (coordinates[molecule]);
 				molecule++;
 
 				coordinates[molecule].x = coordinates[molecule-1].x + h3_bond_dist*cos(60.0/180.0*PI);
@@ -41,7 +40,6 @@ for(int i = 0; i < number_in_x; i++)
 				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
 				coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
 				coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				charges_coordinates (coordinates[molecule]);
 				molecule++;
 			}
 		}
