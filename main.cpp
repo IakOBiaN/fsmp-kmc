@@ -102,6 +102,10 @@ double lambdam = 0.0;
 bool numeric = true;
 bool widom_test_index = false;
 
+string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14.01A_dr0.005_da0.5.dat";
+const char * potential_name = temp_name.c_str();
+string structure_name = "SF";
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,12 +155,7 @@ int frame = 0; // For visualization purpose
 #include "energies_and_forces_numerical_Dreiding_TMA.h"
 //#include "energies_and_forces_approx.h"
 //#include "energies_and_forces_numerical_simple_model.h"
-//#include "initConfigHoneycombTMA_elongated_cell.h"
-#include "initConfigSuperFlowerTMA_elongated_cell.h"
-//#include "initConfigFillHonTMA_elongated_cell.h"
-//#include "initConfigHoneycombTMA.h"
-//#include "initConfigFlowerTMA.h"
-//#include "initConfigSuperFlowerTMA.h"
+#include "StructureGenerator.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
@@ -182,7 +181,7 @@ int main()
 	// First dimension is distance
 	// Second dimension is angle of first molecule
 	// Third dimension is angle of second molecule
-	for (int i = 0; i < 1303; i++) {
+/*	for (int i = 0; i < 1303; i++) {
 		vector< vector<double> > mat; // Create an empty matrix
 			for (int j = 0; j < 721; j++) {
 				vector<double> row; // Create an empty row
@@ -197,12 +196,12 @@ int main()
    cout << "Now I'm reading the forcefield file." << endl;
 //   read_forcefield ("../simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
 //	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
-	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.01A_dr0.005_da0.5.dat", forcefield, min_dist, max_dist, dr, da);
+	read_forcefield (potential_name, forcefield, min_dist, max_dist, dr, da);
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
 	sigma_2 = min_dist_2 * PI / 4.0 / 100.0;
 	cut_index = (int)(((max_dist - min_dist) / dr) + 0.5);
-
+*/
  // Set configuration parameters
 
  double press_X = 0, press_Y = 0, Energy = 0, density = 0;
@@ -240,7 +239,7 @@ int main()
 
 
 	// Generating the initial structure for sequential MC simulation
-	initConfigSuperFlowerTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
+	generate_structure(structure_name, nPart, density, coordinates, Lx, Ly, state_dens);
 	//initConfigHoneycombTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
 //	initConfigFillHonTMA_elongated_cell(nPart, density, coordinates, Lx, Ly, state_dens);
 	// Clear up the xyz file
