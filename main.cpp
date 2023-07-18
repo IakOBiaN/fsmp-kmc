@@ -281,7 +281,7 @@ int main()
     cout << "mol_x:" << coordinates[i].x << " mol_y:" << coordinates[i].y << " mol_phi:" << coordinates[i].phi << endl;
   }
   cout << Lx << " " << Ly << endl;
-
+return 0;
 	// Clear up the xyz file
 	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;

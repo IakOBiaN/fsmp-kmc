@@ -24,8 +24,6 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 	dist = (int)(dist_n + 0.5);
 	a1 = (int)((ang1 / da) + 0.5);
 	a2 = (int)((ang2 / da) + 0.5);
-	molA.damping_coeff = damping_field(molA.x, Lx);
-	molB.damping_coeff = damping_field(molB.x, Lx);
 	if(r <= min_dist) {en = (E_INF / beta) * molA.damping_coeff * molB.damping_coeff;}
 	else
 			{
@@ -84,7 +82,6 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 	double t_U_delta;
 
 	for (int id = -1; id < 2; id++)
-//		for (int id = 0; id < 1; id++)
 	{
 		 if (HC_radius) {break;}
 		 molB_clone.x = molB.x + id*Lx;

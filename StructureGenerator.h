@@ -272,7 +272,7 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
     {
       temp_delta = 0;
     }
-    first = false;
+
     params[param_number] += temp_delta;
 
     Lx = params[1];
@@ -303,37 +303,39 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       coordinates[mol].stat_weight = 1.0;
       coordinates[mol].en_and_pr = empty_field;
     }
-    double beta = 1.0 / (R * temperature);
+    double beta = 1.0 / (R * 300);
     int N = params[0];
-
 
     for(int molA = 0; molA < (N - 1); molA++)
   	{
   		for(int molB = (molA + 1); molB < N; molB++)
   			{
   				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, false);
-  				en_and_press = en_and_press/2.0;  //for molecules pair to value per molecule
+  				en_and_press = en_and_press / 2.0;  //for molecules pair to value per molecule
   				coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + en_and_press;
   				coordinates[molB].en_and_pr = coordinates[molB].en_and_pr + en_and_press;
   			}
     }
-    double eee = 0;
-    for (int i = 0; i < 4; i++)
-    {
-      eee += coordinates[i].en_and_pr.energy;
-    }
-    cout << "eee: " << eee/4.0 << endl;
 
     weighted_averages_in_central_cell(coordinates, N, Lx, Ly);
-    if (temp_energy >= EN_AND_PR_counter.energy)
+    if (first && HC_radius)
+    {
+      cout << "AHTUNG!!! HC_radius!!!" << endl;
+    }
+
+    if ((temp_energy >= EN_AND_PR_counter.energy) && !HC_radius)
     {
       temp_energy = EN_AND_PR_counter.energy;
       write_xyz_file_TMA (N, density, Lx, Ly, temperature, coordinates, 0, 1, false);
+      cout << "YES! Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
     }
     else
     {
       params[param_number] -= temp_delta;
     }
+
     cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+    first = false;
+    HC_radius = false;
   }
 }
