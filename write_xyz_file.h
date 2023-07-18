@@ -1,11 +1,7 @@
-void write_xyz_file_TMA (int &nPart, double &density, double &Lx, double &Ly, double &temperature, vector <state> &coordinates, int frame, double distance, bool init)
+void write_xyz_file_TMA (string name, int &nPart, double &density, double &Lx, double &Ly, double &temperature, vector <state> &coordinates, int frame, double distance, bool init)
 {
-	stringstream name;
-// name << "rho_" << density << ".xyz";
-//	name << "lambda0_" << lambda0 << "_T" << temperature << ".xyz";
- name << "statistics_p0_SF.xyz";
-	if (init) {ofstream fileOutput(name.str().c_str(), ios_base::trunc);fileOutput.close();}
-	ofstream fileOutput(name.str().c_str(), ios_base::app);
+	if (init) {ofstream fileOutput(name.c_str(), ios_base::trunc);fileOutput.close();}
+	ofstream fileOutput(name.c_str(), ios_base::app);
 	fileOutput << nPart*4 << endl;
 	fileOutput << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\"" << endl;
 	double dn2 = 3.536/2.0;

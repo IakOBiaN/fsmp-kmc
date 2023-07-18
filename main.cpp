@@ -104,12 +104,14 @@ bool widom_test_index = false;
 
 string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat";
 const char * potential_name = temp_name.c_str();
-string structure_name = "calculate";
+string structure_name = "CW";
+string xyz_name = "temp_name.xyz";
 //you can use your own structures if set "structure_name" to "calculate"
 vector<double> unit_cell_params;
 
 void calculate_unit_cell_params()
 {
+
   //molecules count
   unit_cell_params.push_back(4);
   //size along x axis for unit cell
@@ -269,12 +271,13 @@ int main()
 	// Generating the initial structure for sequential MC simulation
   if (structure_name != "calculate")
   {
-	   generate_structure(structure_name, nPart, density, coordinates, Lx, Ly, state_dens);
+	   generate_structure(unit_cell_params, structure_name, nPart, density, coordinates, Lx, Ly, state_dens);
   }
   else
   {
     calculate_unit_cell_params();
     generate_structure(unit_cell_params, coordinates, Lx, Ly);
+
   }
   for(int i = 0; i < 4; i++)
   {
@@ -283,7 +286,7 @@ int main()
   cout << Lx << " " << Ly << endl;
 return 0;
 	// Clear up the xyz file
-	write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
+	write_xyz_file_TMA (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
 
 	// Write the model parameters to data-file
@@ -365,7 +368,7 @@ return 0;
 			if(percent > nIter / 100.0)
 				{
 					frame++;
-					write_xyz_file_TMA (nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
+					write_xyz_file_TMA (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
 					PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 					cout << int(iter*100.0/nIter) << " %" << endl;
 					percent = 0;
