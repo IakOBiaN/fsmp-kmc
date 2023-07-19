@@ -51,7 +51,7 @@ for line in xyz_file:
     #remember coordinates of first atom for angle calculation
     if counter == 1:
         xy1 = list(map(float, line.split()[1:]))
-    #remember coordinates of fourth atom for cener coordinates
+    #remember coordinates of fourth atom for center coordinates
     if counter == 4:
         counter = 0
         xy2 = list(map(float, line.split()[1:]))

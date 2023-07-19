@@ -93,7 +93,7 @@ results en_and_pr;
 //////////////// CONFIGURATION ///////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double temperature = 500.0;
+double temperature = 300.0;
 double u_m = -74000.0;												// Parameter of the external field
 double delta = 2.0;													// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
@@ -109,12 +109,12 @@ string xyz_name = "1_xyz_for_calculations.xyz";
 int uc_in_x = 10;
 int uc_in_y = 4;
 double free_space = 0.25;
+
 //you can use your own structures if set "structure_name" to "calculate"
 vector<double> unit_cell_params;
 
 void calculate_unit_cell_params()
 {
-
   //molecules count
   unit_cell_params.push_back(4);
   //size along x axis for unit cell
@@ -139,6 +139,13 @@ void calculate_unit_cell_params()
   unit_cell_params.push_back(150);
   unit_cell_params.push_back(90);
 }
+
+//molecules visualization block (2 or 3 directions)
+int total_molecule_directions = 3;
+//for trimesic acid
+double angle_1 = 120;
+double angle_2 = 240;                           //it can be any angle as long as total_molecule_directions is 2
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,6 +165,8 @@ const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;				// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
 double lambda0 = sqrt(temperature / temperature_in_transition_zone);
+double dop_sin_angles[2] = {sin(angle_1 / 180.0 * PI), sin(angle_2 / 180.0 * PI)};
+double dop_cos_angles[2] = {cos(angle_1 / 180.0 * PI), cos(angle_2 / 180.0 * PI)};
 
 bool HC_radius = false;                         					// Are we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      					// Condition for additional calculation of trialPart in kMC

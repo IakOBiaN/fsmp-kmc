@@ -23,21 +23,21 @@ void write_xyz_file_TMA (string name, int &nPart, double &density, double &Lx, d
 			double yyy = dop;
 			fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
 
-			dop = coordinates[i].x + dn2 * (-0.5*coordinates[i].cos_phi - 0.86602540378443864676372317075294*coordinates[i].sin_phi);
+			dop = coordinates[i].x + dn2 * (dop_cos_angles[0] * coordinates[i].cos_phi + dop_sin_angles[0] * coordinates[i].sin_phi);
 			if (dop > Lx) {dop -= Lx;}
 			if (dop < 0)  {dop += Lx;}
 			xxx = dop;
-			dop = coordinates[i].y + dn2 * (-0.5*coordinates[i].sin_phi + 0.86602540378443864676372317075294*coordinates[i].cos_phi);
+			dop = coordinates[i].y + dn2 * (dop_cos_angles[0] * coordinates[i].sin_phi - dop_sin_angles[0] * coordinates[i].cos_phi);
 			if (dop > Ly) {dop -= Ly;}
 			if (dop < 0)  {dop += Ly;}
 			yyy = dop;
 			fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
 
-			dop = coordinates[i].x + dn2 * (-0.5*coordinates[i].cos_phi + 0.86602540378443864676372317075294*coordinates[i].sin_phi);
+			dop = coordinates[i].x + dn2 * (dop_cos_angles[total_molecule_directions - 2] * coordinates[i].cos_phi + dop_sin_angles[total_molecule_directions - 2] * coordinates[i].sin_phi);
 			if (dop > Lx) {dop -= Lx;}
 			if (dop < 0)  {dop += Lx;}
 			xxx = dop;
-			dop = coordinates[i].y + dn2 * (-0.5*coordinates[i].sin_phi - 0.86602540378443864676372317075294*coordinates[i].cos_phi);
+			dop = coordinates[i].y + dn2 * (dop_cos_angles[total_molecule_directions - 2] * coordinates[i].sin_phi - dop_sin_angles[total_molecule_directions - 2] * coordinates[i].cos_phi);
 			if (dop > Ly) {dop -= Ly;}
 			if (dop < 0)  {dop += Ly;}
 			yyy = dop;
