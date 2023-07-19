@@ -105,7 +105,7 @@ bool widom_test_index = false;
 string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat";
 const char * potential_name = temp_name.c_str();
 string structure_name = "SF";
-string xyz_name = "temp_name.xyz";
+string xyz_name = "1_xyz_for_calculations.xyz";
 int uc_in_x = 10;
 int uc_in_y = 4;
 double free_space = 0.25;
@@ -274,15 +274,14 @@ int main()
 	// Generating the initial structure for sequential MC simulation
   if (structure_name != "calculate")
   {
-	   generate_structure(unit_cell_params, structure_name, nPart, density, coordinates, Lx, Ly, state_dens);
+	   generate_structure(unit_cell_params, structure_name, coordinates, Lx, Ly);
   }
   else
   {
     calculate_unit_cell_params();
     generate_structure(unit_cell_params, coordinates, Lx, Ly);
-
   }
-
+  nPart = unit_cell_params[0] * uc_in_x * uc_in_y;
 	// Clear up the xyz file
 	write_xyz_file_TMA (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;

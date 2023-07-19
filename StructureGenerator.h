@@ -3,7 +3,7 @@ using namespace std;
 void generate_elongated_cell(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
 {
   results empty_field;
-  string cell_name = "test_name.xyz";
+  string cell_name = "1_generated_elongated_cell.xyz";
   double x_uc = params[1];
   double y_uc = params[2];
 
@@ -52,9 +52,12 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
   }
 
   write_xyz_file_TMA(cell_name, molecules, density, Lx, Ly, temperature, coordinates, 0, 1, true);
+
+  cout << endl << "Elongated cell was generated: " << endl;
+  cout << "N: " << molecules << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
 }
 
-void generate_structure(vector <double> &params, string structure_name, int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double state_dens)
+void generate_structure(vector <double> &params, string structure_name, vector <state> &coordinates, double &Lx, double &Ly)
 {
 	if (structure_name == "fCW")
 	{
@@ -116,7 +119,7 @@ void generate_structure(vector <double> &params, string structure_name, int &nPa
 
 void generate_structure(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
 {
-  string unit_cell_name = "calculate_structure.xyz";
+  string unit_cell_name = "0_calculate_animation.xyz";
   results empty_field;
   results en_and_press;
   int params_amount = params.size() - 1;
