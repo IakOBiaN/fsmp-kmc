@@ -1,116 +1,92 @@
 using namespace std;
 
+void generate_elongated_cell(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
+{
+  results empty_field;
+  string cell_name = "test_name.xyz";
+  double x_uc = params[1];
+  double y_uc = params[2];
+
+  double full_Lx = x_uc * uc_in_x;
+  Lx = full_Lx / (1 - 2.0 * free_space);
+  double shift_of_structure = (Lx - full_Lx) / 2.0;
+  Ly = y_uc * uc_in_y;
+  int molecules = 0;
+
+  for(int i = 0; i < uc_in_x; i++)
+  {
+    for(int j = 0; j < uc_in_y; j++)
+    {
+      coordinates[molecules].x = shift_of_structure + i * x_uc + params[3] * cos(params[4] / 180.0 * PI);
+      coordinates[molecules].y = j * y_uc + params[3] * sin(params[4] / 180.0 * PI);
+      coordinates[molecules].x = PBC2D(Lx, coordinates[molecules].x);
+      coordinates[molecules].y = PBC2D(Ly, coordinates[molecules].y);
+      coordinates[molecules].phi = params[5];
+      coordinates[molecules].sin_phi = sin(coordinates[molecules].phi / 180.0 * PI);
+      coordinates[molecules].cos_phi = cos(coordinates[molecules].phi / 180.0 * PI);
+      molecules++;
+      for (int mol = 1; mol < params[0]; mol++)
+      {
+        int number = 3 + mol * 3;
+        coordinates[molecules].x = coordinates[molecules - 1].x + params[number] * cos(params[number + 1] / 180.0 * PI);
+        coordinates[molecules].y = coordinates[molecules - 1].y + params[number] * sin(params[number + 1] / 180.0 * PI);
+        coordinates[molecules].x = PBC2D(Lx, coordinates[molecules].x);
+        coordinates[molecules].y = PBC2D(Ly, coordinates[molecules].y);
+        coordinates[molecules].phi = params[number + 2];
+        coordinates[molecules].sin_phi = sin(coordinates[molecules].phi / 180.0 * PI);
+        coordinates[molecules].cos_phi = cos(coordinates[molecules].phi / 180.0 * PI);
+        molecules++;
+      }
+    }
+  }
+
+  double mass_center = center_of_mass(molecules, coordinates);
+  shift_of_structure = Lx / 2.0 - mass_center;
+
+  for (int i = 0; i < molecules; i++)
+  {
+    coordinates[i].x += shift_of_structure;
+    coordinates[i].damping_coeff = damping_field(coordinates[i].x, Lx); // Lambda^1/2
+    coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx); // u_ext
+    coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx);
+  }
+
+  write_xyz_file_TMA(cell_name, molecules, density, Lx, Ly, temperature, coordinates, 0, 1, true);
+}
+
 void generate_structure(vector <double> &params, string structure_name, int &nPart, double &density, vector <state> &coordinates, double &Lx, double &Ly, double state_dens)
 {
-  string unit_cell_name = "generate_" + structure_name + "_structure.xyz";
 	if (structure_name == "fCW")
 	{
-		int cells = nPart/6.0/8.0;  //4 molecules in unit cell (amount)
-		int number_in_x = sqrt(cells) + 1;  //unit cells along x directions
-		int number_in_y = number_in_x;  //unit cells along y directions
-		nPart = number_in_x*number_in_y*48.0;
-		double state_Ly = sqrt((1.0e+26)*nPart/8.0/(state_dens*N_a/sqrt(3.0)));  //y-size of the cell from density
-		double y_uc = state_Ly/number_in_y;  //y-size of the unit cell
-		double x_uc = y_uc/sqrt(3.0);  //x-size of the unit cell
-		double h_bond_dist = y_uc/3.0;  //hydrogen bond distance related
-		number_in_x *= 8;
-
-		Lx = number_in_x*x_uc; //add vacuum slab at both sides
-		Ly = number_in_y*y_uc;  //y-size of the cell
-
-		int molecule = 0; // Molecules counter
-		for(int i = 0; i < number_in_x; i++)
-			{
-			 for(int j = 0; j < number_in_y; j++)
-				{
-				  //unit cell
-				 coordinates[molecule].x = i*x_uc;
-				  coordinates[molecule].y = j*y_uc;
-				  coordinates[molecule].phi = 30.0;
-				  coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-				  coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-							coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-							coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				  molecule++;
-
-				  coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
-				  coordinates[molecule].y = coordinates[molecule-1].y + h_bond_dist*sin(30.0/180.0*PI);
-				  coordinates[molecule].phi = 90.0;
-				  coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-				  coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-							coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-							coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				  molecule++;
-
-				  coordinates[molecule].x = coordinates[molecule-1].x;
-				  coordinates[molecule].y = coordinates[molecule-1].y + h_bond_dist;
-				  coordinates[molecule].phi = 30.0;
-				  coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-				  coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-							coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-							coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				  molecule++;
-
-				  coordinates[molecule].x = coordinates[molecule-1].x - h_bond_dist*cos(30.0/180.0*PI);
-				  coordinates[molecule].y = coordinates[molecule-1].y + h_bond_dist*sin(30.0/180.0*PI);
-				  coordinates[molecule].phi = 90.0;
-				  coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-				  coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-							coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-							coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				  molecule++;
-
-				  coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
-				  coordinates[molecule].y = coordinates[molecule-1].y + h_bond_dist / 2.0;
-				  coordinates[molecule].phi = 90.0;
-				  coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-				  coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-							coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-							coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				  molecule++;
-
-				  coordinates[molecule].x = coordinates[molecule-1].x + h_bond_dist*cos(30.0/180.0*PI);
-				  coordinates[molecule].y = coordinates[molecule-1].y - h_bond_dist*sin(30.0/180.0*PI) - h_bond_dist;
-				  coordinates[molecule].phi = 90.0;
-				  coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-				  coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-							coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-							coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-							coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-				  molecule++;
-			  }
-			}
-
-			for (int i = 0; i < molecule; i++)
-				{
-					double abs_x;
-					if (coordinates[i].x > Lx/2.0){abs_x = coordinates[i].x - Lx/2.0;} else {abs_x = Lx/2.0 - coordinates[i].x;}
-					double ksi = 32.0*abs_x/Lx;
-					if (ksi > 8.0)
-					{
-						coordinates[i] = coordinates[molecule-1];
-						molecule--;
-						i--;
-					}
-				}
-				nPart = molecule;
-
-		 cout << endl << "Filled Chichen-Wire TMA Structure in central cell: " << endl;
-		 cout << "N: " << molecule << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
+    unit_cell_params.push_back(6);
+    unit_cell_params.push_back(17.2785);
+    unit_cell_params.push_back(29.858);
+    unit_cell_params.push_back(-1.43758);
+    unit_cell_params.push_back(0.294197);
+    unit_cell_params.push_back(33.1213);
+    unit_cell_params.push_back(9.95879);
+    unit_cell_params.push_back(29.927);
+    unit_cell_params.push_back(93.1209);
+    unit_cell_params.push_back(9.92876);
+    unit_cell_params.push_back(149.515);
+    unit_cell_params.push_back(97.0724);
+    unit_cell_params.push_back(9.9157);
+    unit_cell_params.push_back(29.5732);
+    unit_cell_params.push_back(33.6068);
+    unit_cell_params.push_back(9.91344);
+    unit_cell_params.push_back(149.785);
+    unit_cell_params.push_back(93.7853);
+    unit_cell_params.push_back(9.42189);
+    unit_cell_params.push_back(20.2558);
+    unit_cell_params.push_back(90.3681);
 	}
-//////////////////////////////////////////////////////////////////////////////////
   if (structure_name == "CW")
   {
      unit_cell_params.push_back(4);
      unit_cell_params.push_back(17.2634);
      unit_cell_params.push_back(29.9728);
-     unit_cell_params.push_back(-0.54422);
-     unit_cell_params.push_back(-6.44421);
+     unit_cell_params.push_back(0.01);
+     unit_cell_params.push_back(0.01);
      unit_cell_params.push_back(27.0113);
      unit_cell_params.push_back(9.96432);
      unit_cell_params.push_back(30.0115);
@@ -124,98 +100,18 @@ void generate_structure(vector <double> &params, string structure_name, int &nPa
   }
   if (structure_name == "SF")
   {
-    int cells = (nPart/2.0/8.0);  //2 molecules in unit cell (amount)
-    int number_in_x = sqrt(cells) + 1;  //unit cells along x-directions
-    int number_in_y = number_in_x;  //unit cells along y-directions
-    nPart = number_in_x*number_in_y*16.0;
-    double state_Ly = sqrt((1.0e+26)*nPart/8.0/(state_dens*N_a/sqrt(3)));
-    double y_uc = state_Ly/number_in_y;  //y-size of the unit cell
-    double x_uc = y_uc/sqrt(3.0);  //x-size of the unit cell
-    double h3_bond_dist = x_uc;  //hydrogen 3-bond distance related
-    number_in_x *= 8;
-
-    Lx = number_in_x*x_uc;  //initial x-size of the crystal
-    Ly = number_in_y*y_uc;  //y-size of the cell
-    cout << "Lx: " << Lx << "\t" << "Ly: " << Ly << endl;
-
-    int molecule = 0; // Molecules counter
-    for(int i = 0; i < number_in_x; i++)
-    		{
-         for(int j = 0; j < number_in_y; j++)
-    			{
-    				coordinates[molecule].x = h3_bond_dist*sin(60.0/180.0*PI)/2.0 + i*x_uc;
-    				coordinates[molecule].y = h3_bond_dist/4.0 + j*y_uc;
-    				coordinates[molecule].phi = 30.0;
-    				coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-    				coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-    				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-    				coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-    				coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-    				molecule++;
-
-    				coordinates[molecule].x = coordinates[molecule-1].x + h3_bond_dist*cos(60.0/180.0*PI);
-    				coordinates[molecule].y = coordinates[molecule-1].y + h3_bond_dist*sin(60.0/180.0*PI);
-    				coordinates[molecule].phi = 46.0;
-    				coordinates[molecule].sin_phi = sin(coordinates[molecule].phi/180.0*PI);
-    				coordinates[molecule].cos_phi = cos(coordinates[molecule].phi/180.0*PI);
-    				coordinates[molecule].damping_coeff = damping_field(coordinates[molecule].x, Lx); // Lambda^1/2
-    				coordinates[molecule].ex_field_coeff = external_field(coordinates[molecule].x, Lx); // u_ext
-    				coordinates[molecule].stat_weight = weights_for_central_cell (coordinates[molecule].x, Lx);
-    				molecule++;
-    			}
-    		}
-
-    		for (int i = 0; i < molecule; i++)
-    		{
-    			double abs_x;
-    			if (coordinates[i].x > Lx/2.0){abs_x = coordinates[i].x - Lx/2.0;} else {abs_x = Lx/2.0 - coordinates[i].x;}
-    			double ksi = 32.0*abs_x/Lx;
-    			if (ksi > 8.0)
-    			{
-    				coordinates[i] = coordinates[molecule-1];
-    				molecule--;
-    				i--;
-    			}
-    		}
-    		nPart = molecule;
-    		cout << "nPart after cutting: " << nPart << endl;
-
-    		cout << endl << "SuperFlower TMA Structure in central cell: " << endl;
-    	  cout << "N: " << molecule << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
+     unit_cell_params.push_back(2);
+     unit_cell_params.push_back(10.0073);
+     unit_cell_params.push_back(16.8927);
+     unit_cell_params.push_back(-0.752751);
+     unit_cell_params.push_back(0.0391085);
+     unit_cell_params.push_back(36.9365);
+     unit_cell_params.push_back(9.87541);
+     unit_cell_params.push_back(59.5439);
+     unit_cell_params.push_back(41.3511);
   }
 
-  results empty_field;
-
-  Lx = params[1];
-  Ly = params[2];
-  coordinates[0].x = params[3] * cos(params[4] / 180.0 * PI);
-  coordinates[0].y = params[3] * sin(params[4] / 180.0 * PI);
-  coordinates[0].x = PBC2D(Lx, coordinates[0].x);
-  coordinates[0].y = PBC2D(Ly, coordinates[0].y);
-  coordinates[0].phi = params[5];
-  coordinates[0].sin_phi = sin(coordinates[0].phi / 180.0 * PI);
-  coordinates[0].cos_phi = cos(coordinates[0].phi / 180.0 * PI);
-  coordinates[0].damping_coeff = 1.0;
-  coordinates[0].ex_field_coeff = empty_field;
-  coordinates[0].stat_weight = 1.0;
-  coordinates[0].en_and_pr = empty_field;
-  for (int mol = 1; mol < params[0]; mol++)
-  {
-    int number = 3 + mol * 3;
-    coordinates[mol].x = coordinates[mol - 1].x + params[number] * cos(params[number + 1] / 180.0 * PI);
-    coordinates[mol].y = coordinates[mol - 1].y + params[number] * sin(params[number + 1] / 180.0 * PI);
-    coordinates[mol].x = PBC2D(Lx, coordinates[mol].x);
-    coordinates[mol].y = PBC2D(Ly, coordinates[mol].y);
-    coordinates[mol].phi = params[number + 2];
-    coordinates[mol].sin_phi = sin(coordinates[mol].phi / 180.0 * PI);
-    coordinates[mol].cos_phi = cos(coordinates[mol].phi / 180.0 * PI);
-    coordinates[mol].damping_coeff = 1.0;
-    coordinates[mol].ex_field_coeff = empty_field;
-    coordinates[mol].stat_weight = 1.0;
-    coordinates[mol].en_and_pr = empty_field;
-  }
-
-  write_xyz_file_TMA (unit_cell_name, nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
+  generate_elongated_cell(params, coordinates, Lx, Ly);
 }
 
 void generate_structure(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
@@ -316,4 +212,6 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   {
     cout << "Number " << i << ": " << params[i] << endl;
   }
+
+  generate_elongated_cell(params, coordinates, Lx, Ly);
 }

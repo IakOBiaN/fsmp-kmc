@@ -104,8 +104,11 @@ bool widom_test_index = false;
 
 string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat";
 const char * potential_name = temp_name.c_str();
-string structure_name = "CW";
+string structure_name = "SF";
 string xyz_name = "temp_name.xyz";
+int uc_in_x = 10;
+int uc_in_y = 4;
+double free_space = 0.25;
 //you can use your own structures if set "structure_name" to "calculate"
 vector<double> unit_cell_params;
 
@@ -154,7 +157,7 @@ const double E_INF = 75.0;											// in kT units
 const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;				// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
-double lambda0 = sqrt(temperature/temperature_in_transition_zone);
+double lambda0 = sqrt(temperature / temperature_in_transition_zone);
 
 bool HC_radius = false;                         					// Are we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      					// Condition for additional calculation of trialPart in kMC
@@ -279,12 +282,7 @@ int main()
     generate_structure(unit_cell_params, coordinates, Lx, Ly);
 
   }
-  for(int i = 0; i < 4; i++)
-  {
-    cout << "mol_x:" << coordinates[i].x << " mol_y:" << coordinates[i].y << " mol_phi:" << coordinates[i].phi << endl;
-  }
-  cout << Lx << " " << Ly << endl;
-return 0;
+
 	// Clear up the xyz file
 	write_xyz_file_TMA (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
