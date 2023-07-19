@@ -51,7 +51,7 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
     coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx);
   }
 
-  write_xyz_file_TMA(cell_name, molecules, density, Lx, Ly, temperature, coordinates, 0, 1, true);
+  write_xyz_file(cell_name, molecules, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 
   cout << endl << "Elongated cell was generated: " << endl;
   cout << "N: " << molecules << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
@@ -221,7 +221,7 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
     {
       counter = 0;
       temp_energy = EN_AND_PR_counter.energy;
-      write_xyz_file_TMA (unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, first);
+      write_xyz_file (unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, first);
       cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
     }
     else

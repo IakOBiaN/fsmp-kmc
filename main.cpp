@@ -254,21 +254,6 @@ int main()
  int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
  double e_test;																	// Counter for energy change due to the insertion of the test particle
 
- /////////////////////////////
- // Set the Monte Carlo run //
- /////////////////////////////
-// int nPart = 350; // Honeycomb
-// int nPart = 864; // Flower-1
- int nPart = 600; // Superflower
- int nSteps = 1000000;            // Total amount of MCS
- int nIter = nSteps * nPart;
- int nStepsEq = 500000;           // MCS for relaxation
- int nIterEq = nStepsEq * nPart;
- double Lx, Ly;  // Linear size of the system in A
- vector <state> coordinates(nPart*4); // Vector of the molecules coordinates, angles and charges
- //vector <double> pressure_stat(nIter - nIterEq);
- //vector <double> energy_stat(nIter - nIterEq);
-
  ////////////////////////////////////////////////////////////
  //         MC simulation of systems with different N      //
  ////////////////////////////////////////////////////////////
@@ -278,6 +263,9 @@ int main()
  //state_dens = 1.885; // in mkmol/m2 for SF
  //state_dens = 1.258; // in mkmol/m2 for HON in Dreiding54 model
  state_dens = 1.258; // in mkmol/m2 for SF
+
+ double Lx, Ly;  // Linear size of the system in A
+ vector <state> coordinates(5000); // Vector of the molecules coordinates, angles and charges
 
 
 	// Generating the initial structure for sequential MC simulation
@@ -290,9 +278,20 @@ int main()
     calculate_unit_cell_params();
     generate_structure(unit_cell_params, coordinates, Lx, Ly);
   }
-  nPart = unit_cell_params[0] * uc_in_x * uc_in_y;
+  int nPart = unit_cell_params[0] * uc_in_x * uc_in_y;
+
+	/////////////////////////////
+	// Set the Monte Carlo run //
+	/////////////////////////////
+	int nSteps = 1000000;            // Total amount of MCS
+	int nIter = nSteps * nPart;
+	int nStepsEq = 500000;           // MCS for relaxation
+	int nIterEq = nStepsEq * nPart;
+	//vector <double> pressure_stat(nIter - nIterEq);
+	//vector <double> energy_stat(nIter - nIterEq);
+
 	// Clear up the xyz file
-	write_xyz_file_TMA (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
+	write_xyz_file (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 	frame = 1;
 
 	// Write the model parameters to data-file
@@ -373,7 +372,7 @@ int main()
 			if(percent > nIter / 100.0)
 				{
 					frame++;
-					write_xyz_file_TMA (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
+					write_xyz_file (xyz_name, nPart, density, Lx, Ly, temperature, coordinates, frame, 1, false);
 					PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
 					cout << int(iter*100.0/nIter) << " %" << endl;
 					percent = 0;

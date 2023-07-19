@@ -1,4 +1,4 @@
-void write_xyz_file_TMA (string name, int &nPart, double &density, double &Lx, double &Ly, double &temperature, vector <state> &coordinates, int frame, double distance, bool init)
+void write_xyz_file (string name, int &nPart, double &density, double &Lx, double &Ly, double &temperature, vector <state> &coordinates, int frame, double distance, bool init)
 {
 	if (init) {ofstream fileOutput(name.c_str(), ios_base::trunc);fileOutput.close();}
 	ofstream fileOutput(name.c_str(), ios_base::app);

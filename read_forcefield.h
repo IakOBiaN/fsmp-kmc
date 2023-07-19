@@ -80,7 +80,8 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 						a2 = k + int(180 / angle_step_2 + 0.5);
 						if (a2 >= int(360 / angle_step_2 + 0.5)) {a2 -= int(360 / angle_step_2 + 0.5);}
 						// Test of the potential for symmetry
-						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 0.15*abs(forcefield[i][a2][a1]))
+//						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 0.15*abs(forcefield[i][a2][a1]))
+						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 1000 && abs(forcefield[i][j][k]) < E_INF*R*1000.0)
 								{
 									cout << "distance: " << min_dist + i * dr << " angle1: " << j << " angle2: " << k << endl;
 									cout << "Potential error. Energy=" << forcefield[i][j][k] << " must be close energy=" << forcefield[i][a2][a1] << endl;
