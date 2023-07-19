@@ -104,7 +104,7 @@ bool widom_test_index = false;
 
 string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat";
 const char * potential_name = temp_name.c_str();
-string structure_name = "SF";
+string structure_name = "TMA_fCW_qB3LYP_PBE_Dreiding_Dhb5.4";
 string xyz_name = "1_xyz_for_calculations.xyz";
 int uc_in_x = 10;
 int uc_in_y = 4;
@@ -141,9 +141,9 @@ void calculate_unit_cell_params()
 }
 
 /////// molecules visualization block (2 or 3 directions) /////////////
-int total_molecule_directions = 2;
+int total_molecule_directions = 3;
 //for trimesic acid
-double angle_1 = 180;
+double angle_1 = 120;
 double angle_2 = 240;       // it can be any angle as long as total_molecule_directions is 2
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -296,10 +296,9 @@ int main()
 	frame = 1;
 
 	// Write the model parameters to data-file
-	stringstream name_stat;
-	name_stat << "statistics_p0_SF.dat";
-//	name_stat << "statistics_" << "T" << temperature << "_lambda0_" << lambda0 << ".dat";
-	ofstream fileOutput(name_stat.str().c_str(), ios_base::trunc);
+	stringstream name_of_file_for_statistics;
+	name_of_file_for_statistics << "statistics_" << structure_name << "_" << "Xuc" << uc_in_x << "_" << "Yuc" << uc_in_y << "_" << "FreeSp" << free_space << ".dat" << endl;
+	ofstream fileOutput(name_of_file_for_statistics.str().c_str(), ios_base::trunc);
 
 	fileOutput << "Number of particles: " << nPart << endl;
 	fileOutput << "Total number of MCS: " << nSteps << "  MCS for relaxation: " << nStepsEq << endl;
@@ -581,7 +580,7 @@ int main()
 	cout << endl;
 	cout << "Pressure change over gas-solid interface (dP): " << delta_p_over_interface << " mN/m" << " Analytical pressure in the crystal (Pg + dP): " << R*temperature*gas_density/1000.0 + delta_p_over_interface << endl;
 
-	ofstream fileOutput(name_stat.str().c_str(), ios_base::app);
+	ofstream fileOutput(name_of_file_for_statistics.str().c_str(), ios_base::app);
 	fileOutput  << lambdam << "\t" << lambda0 << "\t" << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)// << "\t" << energy_error
 	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y// << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
 	<< "\t" << delta_p_over_interface << "\t" << R*temperature*gas_density/1000.0 + delta_p_over_interface
