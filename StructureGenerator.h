@@ -59,7 +59,7 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
 
 void generate_structure(vector <double> &params, string structure_name, vector <state> &coordinates, double &Lx, double &Ly)
 {
-	if (structure_name == "fCW")
+	if (structure_name == "TMA_fCW_qB3LYP_PBE_Dreiding_Dhb5.4")
 	{
     unit_cell_params.push_back(6);
     unit_cell_params.push_back(17.2785);
@@ -83,7 +83,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
     unit_cell_params.push_back(20.2558);
     unit_cell_params.push_back(90.3681);
 	}
-  if (structure_name == "CW")
+  if (structure_name == "TMA_CW_qB3LYP_PBE_Dreiding_Dhb5.4")
   {
      unit_cell_params.push_back(4);
      unit_cell_params.push_back(17.2634);
@@ -101,7 +101,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(149.578);
      unit_cell_params.push_back(87.0838);
   }
-  if (structure_name == "SF")
+  if (structure_name == "TMA_SF_qB3LYP_PBE_Dreiding_Dhb5.4")
   {
      unit_cell_params.push_back(2);
      unit_cell_params.push_back(10.0073);
@@ -113,6 +113,30 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(59.5439);
      unit_cell_params.push_back(41.3511);
   }
+  if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0")
+  {
+     unit_cell_params.push_back(2);
+     unit_cell_params.push_back(9.647);
+     unit_cell_params.push_back(11.735);
+     unit_cell_params.push_back(-0.000888541);
+     unit_cell_params.push_back(0.137772);
+     unit_cell_params.push_back(-0.0791286);
+     unit_cell_params.push_back(7.303);
+     unit_cell_params.push_back(53.002);
+     unit_cell_params.push_back(0.253273);
+  }
+  if (structure_name == "IPA_chain_qPBE_Dreiding_Dhb5.0")
+  {
+     unit_cell_params.push_back(2);
+     unit_cell_params.push_back( 16.2993);
+     unit_cell_params.push_back(6.63005);
+     unit_cell_params.push_back(0.403231);
+     unit_cell_params.push_back(0.184602);
+     unit_cell_params.push_back(146.679);
+     unit_cell_params.push_back(9.86998);
+     unit_cell_params.push_back(28.8775);
+     unit_cell_params.push_back(326.678);
+  }
 
   generate_elongated_cell(params, coordinates, Lx, Ly);
 }
@@ -123,7 +147,7 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   results empty_field;
   results en_and_press;
   int params_amount = params.size() - 1;
-  double delta_uc = 1.0;
+  double delta_uc = 0.75;
   double temp_energy = 1e10;
   bool first = true;
   int counter = 0;

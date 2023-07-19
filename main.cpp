@@ -140,11 +140,11 @@ void calculate_unit_cell_params()
   unit_cell_params.push_back(90);
 }
 
-//molecules visualization block (2 or 3 directions)
-int total_molecule_directions = 3;
+/////// molecules visualization block (2 or 3 directions) /////////////
+int total_molecule_directions = 2;
 //for trimesic acid
-double angle_1 = 120;
-double angle_2 = 240;                           //it can be any angle as long as total_molecule_directions is 2
+double angle_1 = 180;
+double angle_2 = 240;       // it can be any angle as long as total_molecule_directions is 2
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
