@@ -146,6 +146,10 @@ int total_molecule_directions = 3;
 double angle_1 = 120;
 double angle_2 = 240;       // it can be any angle as long as total_molecule_directions is 2
 
+/////////// Set the lenght of MC run ///////////////////////////////
+int nSteps = 1000000;            // Total amount of MCS
+int nStepsEq = 500000;           // MCS for relaxation
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,11 +238,10 @@ int main()
 			}
 			forcefield.push_back(mat); // Add the row to the main vector
 	}
-   // Read the forcefield from "forcefield.dat"
-   cout << "Now I'm reading the forcefield file." << endl;
-//   read_forcefield ("../simplified_model_num_potential_r_7.58_5524_002_phi_1.dat", forcefield, min_dist, max_dist, dr, da);
-//	read_forcefield ("../Dreiding_R2.75_D5.4_TMA_R7.5_14.005A_dr0.005_da1.dat", forcefield, min_dist, max_dist, dr, da);
+	// Read the forcefield from "forcefield.dat"
+	cout << "Now I'm reading the forcefield file." << endl;
 	read_forcefield (potential_name, forcefield, min_dist, max_dist, dr, da);
+
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
 	sigma_2 = min_dist_2 * PI / 4.0 / 100.0;
@@ -259,9 +262,6 @@ int main()
  ////////////////////////////////////////////////////////////
 
  double deltaT = 2000.0;
- //state_dens = 1.538; // in mkmol/m2 for HON in simplified model
- //state_dens = 1.885; // in mkmol/m2 for SF
- //state_dens = 1.258; // in mkmol/m2 for HON in Dreiding54 model
  state_dens = 1.258; // in mkmol/m2 for SF
 
  double Lx, Ly;  // Linear size of the system in A
@@ -283,9 +283,7 @@ int main()
 	/////////////////////////////
 	// Set the Monte Carlo run //
 	/////////////////////////////
-	int nSteps = 1000000;            // Total amount of MCS
-	int nIter = nSteps * nPart;
-	int nStepsEq = 500000;           // MCS for relaxation
+	int nIter = nSteps * nPart; // convert the MCS to iterations
 	int nIterEq = nStepsEq * nPart;
 	//vector <double> pressure_stat(nIter - nIterEq);
 	//vector <double> energy_stat(nIter - nIterEq);
