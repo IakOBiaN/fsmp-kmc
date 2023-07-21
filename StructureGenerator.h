@@ -128,11 +128,14 @@ void generate_structure(vector <double> &params, string structure_name, vector <
   if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0_vert")
   {
      unit_cell_params.push_back(1);
-     unit_cell_params.push_back(11.6894);
-     unit_cell_params.push_back(9.13562);
-     unit_cell_params.push_back(1.05486);
-     unit_cell_params.push_back(90.5493);
-     unit_cell_params.push_back(90.0918);
+     unit_cell_params.push_back(11.6946);
+     unit_cell_params.push_back(9.90999);
+     unit_cell_params.push_back(-0.74105);
+     unit_cell_params.push_back(91.1906);
+     unit_cell_params.push_back(91);
+     unit_cell_params.push_back(7.58993);
+     unit_cell_params.push_back(140.459);
+     unit_cell_params.push_back(90.9999);
   }
   if (structure_name == "IPA_chain_qPBE_Dreiding_Dhb5.0")
   {
@@ -152,16 +155,18 @@ void generate_structure(vector <double> &params, string structure_name, vector <
 
 void generate_structure(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
 {
+  double temp_E_INF = E_INF;
+  E_INF = 1e200;
   string unit_cell_name = "0_calculate_animation.xyz";
   results empty_field;
   results en_and_press;
   int params_amount = params.size() - 1;
-  double delta_uc = 0.75;
+  double delta_uc = 0.5;
   double temp_energy = 1e10;
   bool first = true;
   int counter = 0;
   double beta = 1.0 / (R * 300);
-  int N = params[0] * 3;
+  int N = params[0] * 3 * 3;
 
   while (counter < 10000)
   {
@@ -180,8 +185,8 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
 
     params[param_number] += temp_delta;
 
-    Lx = params[1];
-    Ly = params[2];
+    Lx = params[1] * 3;
+    Ly = params[2] * 3;
     double x_uc = params[1];
     double y_uc = params[2];
     int molecules = 0;
@@ -237,6 +242,12 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       cout << "ERROR!!! HC_radius!!!" << endl;
     }
 
+    if (first)
+    {
+      cout << "Initial properties:" << endl;
+      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+    }
+
     if ((temp_energy > EN_AND_PR_counter.energy) && !HC_radius)
     {
       counter = 0;
@@ -261,4 +272,5 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   }
 
   generate_elongated_cell(params, coordinates, Lx, Ly);
+  double E_INF = temp_E_INF;
 }

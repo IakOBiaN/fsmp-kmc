@@ -133,9 +133,9 @@ void calculate_unit_cell_params()
 }
 
 /////// molecules visualization block (2 or 3 directions) /////////////
-int total_molecule_directions = 3;
+int total_molecule_directions = 2;
 //for trimesic acid
-double angle_1 = 120;
+double angle_1 = 180;
 double angle_2 = 240;       // it can be any angle as long as total_molecule_directions is 2
 
 /////////// Set the lenght of MC run ///////////////////////////////
@@ -156,7 +156,7 @@ double ACCEPTANCE_RATIO_m[2] = {0, 0};								// 0 - not accepted steps of move,
 int BALANCE_STEPS;													// steps for balance statistics
 double R = 8.31446261815324;										// Gas constant in J per mol
 double N_a = 6.02214076e+23;										//	Avogadro constant
-const double E_INF = 75.0;											// in kT units
+double E_INF = 75.0;											// in kT units
 const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;				// Actual density of the layer in mkMol per m^2
 double state_dens, state_Ly;
@@ -286,7 +286,7 @@ int main()
 
 	// Write the model parameters to data-file
 	stringstream name_of_file_for_statistics;
-	name_of_file_for_statistics << "statistics_" << structure_name << "_" << "Xuc" << uc_in_x << "_" << "Yuc" << uc_in_y << "_" << "FreeSp" << free_space << ".dat" << endl;
+	name_of_file_for_statistics << "statistics_" << structure_name << "_" << "Xuc" << uc_in_x << "_" << "Yuc" << uc_in_y << "_" << "FreeSp" << free_space << ".dat";
 	ofstream fileOutput(name_of_file_for_statistics.str().c_str(), ios_base::trunc);
 
 	fileOutput << "Number of particles: " << nPart << endl;
@@ -348,7 +348,6 @@ int main()
 	cout << "Density: " << nPart_in_central_cell*(1.0e+26)/(Lx/4.0*Ly)/N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy/1000.0/nPart_in_central_cell << "\t" << " P: " << (R*temperature*(1.0e+23)*nPart_in_central_cell/(Lx/4.0*Ly)/N_a)+((EN_AND_PR_counter.p_X + EN_AND_PR_counter.p_Y)/2.0/(Lx/4.0)/Ly*1e23/N_a)<< endl;
 	cout << "P_X: " << (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a) << "\t" << "P_Y: " << (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a) <<  endl;
 	cout << endl;
-
 	//////////////////////////////////////////////////
 	//             Monte Carlo Simulation           //
 	//////////////////////////////////////////////////
