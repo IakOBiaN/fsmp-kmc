@@ -102,13 +102,13 @@ double lambdam = 0.0;
 bool numeric = true;
 bool widom_test_index = false;
 
-string temp_name = "Dreiding_R2.75_D5.4_TMA_R7.5_14A_dr0.005_da1.dat";
+string temp_name = "TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
 const char * potential_name = temp_name.c_str();
-string structure_name = "TMA_fCW_qB3LYP_PBE_Dreiding_Dhb5.4";
-string xyz_name = "1_xyz_for_calculations.xyz";
-int uc_in_x = 10;
+string structure_name = "calculate";
+string xyz_name = "1_xyz_for_calculations_TPA_vert.xyz";
+int uc_in_x = 4;
 int uc_in_y = 4;
-double free_space = 0.25;
+double free_space = 0.24;
 
 //you can use your own structures if set "structure_name" to "calculate"
 vector<double> unit_cell_params;
@@ -116,28 +116,20 @@ vector<double> unit_cell_params;
 void calculate_unit_cell_params()
 {
   //molecules count
-  unit_cell_params.push_back(4);
+  unit_cell_params.push_back(2);
   //size along x axis for unit cell
-  unit_cell_params.push_back(17.4596);
+  unit_cell_params.push_back(11.735);
   //size along y axis for unit cell
-  unit_cell_params.push_back(30.2409);
+   unit_cell_params.push_back(9.647);
 
   //unit cell graph (graph distance, graph angle, molecule angle)
-  unit_cell_params.push_back(0.0);
-  unit_cell_params.push_back(0.0);
-  unit_cell_params.push_back(30.0);
+  unit_cell_params.push_back(-0.000888541);
+  unit_cell_params.push_back(90.137772);
+  unit_cell_params.push_back(90.0);
 
-  unit_cell_params.push_back(10.0);
-  unit_cell_params.push_back(30);
-  unit_cell_params.push_back(90);
-
-  unit_cell_params.push_back(10.0);
-  unit_cell_params.push_back(90);
-  unit_cell_params.push_back(30);
-
-  unit_cell_params.push_back(10.0);
-  unit_cell_params.push_back(150);
-  unit_cell_params.push_back(90);
+  unit_cell_params.push_back(7.303);
+  unit_cell_params.push_back(143.002);
+  unit_cell_params.push_back(90.253273);
 }
 
 /////// molecules visualization block (2 or 3 directions) /////////////

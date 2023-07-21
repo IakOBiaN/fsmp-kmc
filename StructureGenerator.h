@@ -125,6 +125,15 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(53.002);
      unit_cell_params.push_back(0.253273);
   }
+  if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0_vert")
+  {
+     unit_cell_params.push_back(1);
+     unit_cell_params.push_back(11.6894);
+     unit_cell_params.push_back(9.13562);
+     unit_cell_params.push_back(1.05486);
+     unit_cell_params.push_back(90.5493);
+     unit_cell_params.push_back(90.0918);
+  }
   if (structure_name == "IPA_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
@@ -152,7 +161,7 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   bool first = true;
   int counter = 0;
   double beta = 1.0 / (R * 300);
-  int N = params[0];
+  int N = params[0] * 3;
 
   while (counter < 10000)
   {
@@ -173,31 +182,42 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
 
     Lx = params[1];
     Ly = params[2];
-    coordinates[0].x = params[3] * cos(params[4] / 180.0 * PI);
-    coordinates[0].y = params[3] * sin(params[4] / 180.0 * PI);
-    coordinates[0].x = PBC2D(Lx, coordinates[0].x);
-    coordinates[0].y = PBC2D(Ly, coordinates[0].y);
-    coordinates[0].phi = params[5];
-    coordinates[0].sin_phi = sin(coordinates[0].phi / 180.0 * PI);
-    coordinates[0].cos_phi = cos(coordinates[0].phi / 180.0 * PI);
-    coordinates[0].damping_coeff = 1.0;
-    coordinates[0].ex_field_coeff = empty_field;
-    coordinates[0].stat_weight = 1.0;
-    coordinates[0].en_and_pr = empty_field;
-    for (int mol = 1; mol < params[0]; mol++)
+    double x_uc = params[1];
+    double y_uc = params[2];
+    int molecules = 0;
+    for(int i = 0; i < 3; i++)
     {
-      int number = 3 + mol * 3;
-      coordinates[mol].x = coordinates[mol - 1].x + params[number] * cos(params[number + 1] / 180.0 * PI);
-      coordinates[mol].y = coordinates[mol - 1].y + params[number] * sin(params[number + 1] / 180.0 * PI);
-      coordinates[mol].x = PBC2D(Lx, coordinates[mol].x);
-      coordinates[mol].y = PBC2D(Ly, coordinates[mol].y);
-      coordinates[mol].phi = params[number + 2];
-      coordinates[mol].sin_phi = sin(coordinates[mol].phi / 180.0 * PI);
-      coordinates[mol].cos_phi = cos(coordinates[mol].phi / 180.0 * PI);
-      coordinates[mol].damping_coeff = 1.0;
-      coordinates[mol].ex_field_coeff = empty_field;
-      coordinates[mol].stat_weight = 1.0;
-      coordinates[mol].en_and_pr = empty_field;
+      for(int j = 0; j < 3; j++)
+      {
+        coordinates[molecules].x = i * x_uc + params[3] * cos(params[4] / 180.0 * PI);
+        coordinates[molecules].y = j * y_uc + params[3] * sin(params[4] / 180.0 * PI);
+        coordinates[molecules].x = PBC2D(Lx, coordinates[molecules].x);
+        coordinates[molecules].y = PBC2D(Ly, coordinates[molecules].y);
+        coordinates[molecules].phi = params[5];
+        coordinates[molecules].sin_phi = sin(coordinates[molecules].phi / 180.0 * PI);
+        coordinates[molecules].cos_phi = cos(coordinates[molecules].phi / 180.0 * PI);
+        coordinates[molecules].damping_coeff = 1.0;
+        coordinates[molecules].ex_field_coeff = empty_field;
+        coordinates[molecules].stat_weight = 1.0;
+        coordinates[molecules].en_and_pr = empty_field;
+        molecules++;
+        for (int mol = 1; mol < params[0]; mol++)
+        {
+          int number = 3 + mol * 3;
+          coordinates[molecules].x = coordinates[molecules - 1].x + params[number] * cos(params[number + 1] / 180.0 * PI);
+          coordinates[molecules].y = coordinates[molecules - 1].y + params[number] * sin(params[number + 1] / 180.0 * PI);
+          coordinates[molecules].x = PBC2D(Lx, coordinates[molecules].x);
+          coordinates[molecules].y = PBC2D(Ly, coordinates[molecules].y);
+          coordinates[molecules].phi = params[number + 2];
+          coordinates[molecules].sin_phi = sin(coordinates[molecules].phi / 180.0 * PI);
+          coordinates[molecules].cos_phi = cos(coordinates[molecules].phi / 180.0 * PI);
+          coordinates[molecules].damping_coeff = 1.0;
+          coordinates[molecules].ex_field_coeff = empty_field;
+          coordinates[molecules].stat_weight = 1.0;
+          coordinates[molecules].en_and_pr = empty_field;
+          molecules++;
+        }
+      }
     }
 
     for(int molA = 0; molA < (N - 1); molA++)
