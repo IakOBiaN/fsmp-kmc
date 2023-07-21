@@ -116,18 +116,18 @@ void generate_structure(vector <double> &params, string structure_name, vector <
   if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(9.647);
-     unit_cell_params.push_back(11.735);
-     unit_cell_params.push_back(-0.000888541);
-     unit_cell_params.push_back(0.137772);
-     unit_cell_params.push_back(-0.0791286);
-     unit_cell_params.push_back(7.303);
-     unit_cell_params.push_back(53.002);
-     unit_cell_params.push_back(0.253273);
+     unit_cell_params.push_back(9.90997);
+     unit_cell_params.push_back(11.698);
+     unit_cell_params.push_back(0.771123);
+     unit_cell_params.push_back(-0.837901);
+     unit_cell_params.push_back(1.00002);
+     unit_cell_params.push_back(7.59232);
+     unit_cell_params.push_back(50.475);
+     unit_cell_params.push_back(1.00003);
   }
   if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0_vert")
   {
-     unit_cell_params.push_back(1);
+     unit_cell_params.push_back(2);
      unit_cell_params.push_back(11.6946);
      unit_cell_params.push_back(9.90999);
      unit_cell_params.push_back(-0.74105);

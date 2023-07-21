@@ -94,7 +94,7 @@ results en_and_pr;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double temperature = 300.0;
-double u_m = -74000.0;												// Parameter of the external field
+double u_m = 0.0;												// Parameter of the external field
 double delta = 2.0;													// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
 double temperature_in_transition_zone = 800;						// K
@@ -104,10 +104,10 @@ bool widom_test_index = false;
 
 string temp_name = "TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
 const char * potential_name = temp_name.c_str();
-string structure_name = "calculate";
+string structure_name = "TPA_chain_qPBE_Dreiding_Dhb5.0";
 string xyz_name = "1_xyz_for_calculations_TPA_vert.xyz";
-int uc_in_x = 4;
-int uc_in_y = 4;
+int uc_in_x = 14;
+int uc_in_y = 6;
 double free_space = 0.24;
 
 //you can use your own structures if set "structure_name" to "calculate"
