@@ -108,28 +108,30 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 					double t_U;
 					energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y, t_U);
 					U += t_U;
+					if (pressure_calc)
+					{
+						t_U_delta = 0;
+						molB_clone.x = molB_clone.x - diff_delta;
+						dist_x_plus_delta = molB_clone.x - molA.x;
+						r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
+						r = sqrt(r2);
+						molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
+						molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
+						energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta);
+						pressure_X += -(t_U-t_U_delta)/diff_delta*dist_x;
+						molB_clone.x = molB_clone.x + diff_delta;
+						molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
+						molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
 
-					t_U_delta = 0;
-					molB_clone.x = molB_clone.x - diff_delta;
-					dist_x_plus_delta = molB_clone.x - molA.x;
-					r2 = dist_x_plus_delta*dist_x_plus_delta + dist_y*dist_y;
-					r = sqrt(r2);
-					molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
-					molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
-					energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x_plus_delta, dist_y, t_U_delta);
-					pressure_X += -(t_U-t_U_delta)/diff_delta*dist_x;
-					molB_clone.x = molB_clone.x + diff_delta;
-					molB_clone.damping_coeff = damping_field(molB_clone.x, Lx);
-					molB_clone.ex_field_coeff = external_field(molB_clone.x, Lx);
-
-					t_U_delta = 0;
-					molB_clone.y = molB_clone.y - diff_delta;
-					dist_y_plus_delta = molB_clone.y - molA.y;
-					r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
-					r = sqrt(r2);
-					energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta);
-					pressure_Y += -(t_U-t_U_delta)/diff_delta*dist_y;
-					molB_clone.y = molB_clone.y + diff_delta;
+						t_U_delta = 0;
+						molB_clone.y = molB_clone.y - diff_delta;
+						dist_y_plus_delta = molB_clone.y - molA.y;
+						r2 = dist_x*dist_x + dist_y_plus_delta*dist_y_plus_delta;
+						r = sqrt(r2);
+						energy_calculation(molA, molB_clone, Lx, Ly, beta, r, dist_x, dist_y_plus_delta, t_U_delta);
+						pressure_Y += -(t_U-t_U_delta)/diff_delta*dist_y;
+						molB_clone.y = molB_clone.y + diff_delta;
+					}
 				}
 		 }
 	}
