@@ -112,11 +112,11 @@ void pressure_balance_ratio_analytical(double Energy, double press_X, double del
 			 cout << "Lx: " << Lx << " Ly: " << Ly << " density: " << nPart_in_central_cell*(1.0e+26)/(Lx/4.0*Ly)/N_a << " Um: " << u_m << endl;
 }
 
-void um_tunning_to_zero_pressure(double Energy, double &u_m, double delta_p_over_interface, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
+void um_tunning_to_constant_pressure(double Energy, double &u_m, double delta_p_over_interface, double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &beta)
 {
 		double d_um = 500;
 		//pressure_balance for central cell
-		if(R*temperature*gas_density/1000.0 + delta_p_over_interface*1e23/Ly/N_a > 0)
+		if(R*temperature*gas_density/1000.0 + delta_p_over_interface*1e23/Ly/N_a > constant_pressure_value)
 		{
 			u_m -= d_um;
 		}

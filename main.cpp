@@ -89,12 +89,39 @@ double stat_weight;
 results en_and_pr;
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////// CONFIGURATION ///////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//////////////// CONFIGURATION ////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
-double temperature = 300.0;
-double u_m = 0.0;												// Parameter of the external field
+//MAIN PARAMETERS
+//temperature in crystal
+double temp_from = 300;
+double temp_to = 301;
+double temp_step = 10;
+//parameter of the external field
+double um_from = 0.0;
+double um_to = -100000.0;
+double um_step = -1000.0;
+/////////// Set the lenght of MC run ///////////////////////////////
+int nSteps = 1000000;            // Total amount of MCS
+int nStepsEq = 500000;           // MCS for relaxation
+bool constant_pressure = false;
+double constant_pressure_value = 0;
+bool kMC = true;
+
+//MODEL SETTINGS
+//you can use your own structures if set "structure_name" to "calculate"
+string structure_name = "TPA_chain_qPBE_Dreiding_Dhb5.0";
+int uc_in_x = 14;
+int uc_in_y = 6;
+double free_space = 0.24;
+/////// molecules visualization block (2 or 3 directions) /////////////
+int total_molecule_directions = 2;
+//for TPA
+double angle_1 = 180;
+double angle_2 = 240;       // it can be any angle as long as total_molecule_directions is 2
+
+//ADDITIONAL PARAMETERS
 double delta = 2.0;													// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
 double temperature_in_transition_zone = 800;						// K
@@ -102,15 +129,20 @@ double lambdam = 0.0;
 bool numeric = true;
 bool widom_test_index = false;
 
+//FILE NAMES
+//numerical potential name
 string temp_name = "TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
 const char * potential_name = temp_name.c_str();
-string structure_name = "TPA_chain_qPBE_Dreiding_Dhb5.0";
-string xyz_name = "1_xyz_for_calculations_TPA_vert.xyz";
-int uc_in_x = 14;
-int uc_in_y = 6;
-double free_space = 0.24;
-
-//you can use your own structures if set "structure_name" to "calculate"
+//name of xyz file of unit cell optimization (if you want to optimize a unit cell)
+string unit_cell_name = "0_calculate_animation.xyz";
+//name of xyz file for visualization
+string xyz_name = "1_xyz_for_calculations_TPA_hor.xyz";
+stringstream name_of_file_for_statistics;
+void complex_names()
+{
+  name_of_file_for_statistics << "2_statistics_" << structure_name << "_" << "Xuc" << uc_in_x << "_" << "Yuc" << uc_in_y << "_" << "FreeSp" << free_space << ".dat";
+}
+//IF YOU WANT TO CALCULATE UNIT CELL
 vector<double> unit_cell_params;
 
 void calculate_unit_cell_params()
@@ -123,30 +155,21 @@ void calculate_unit_cell_params()
    unit_cell_params.push_back(9.647);
 
   //unit cell graph (graph distance, graph angle, molecule angle)
+  //first molecule
   unit_cell_params.push_back(-0.000888541);
   unit_cell_params.push_back(90.137772);
   unit_cell_params.push_back(90.0);
-
+  //second molecule
   unit_cell_params.push_back(7.303);
   unit_cell_params.push_back(143.002);
   unit_cell_params.push_back(90.253273);
 }
 
-/////// molecules visualization block (2 or 3 directions) /////////////
-int total_molecule_directions = 2;
-//for trimesic acid
-double angle_1 = 180;
-double angle_2 = 240;       // it can be any angle as long as total_molecule_directions is 2
-
-/////////// Set the lenght of MC run ///////////////////////////////
-int nSteps = 1000000;            // Total amount of MCS
-int nStepsEq = 500000;           // MCS for relaxation
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double init_temp = temperature;
+double temperature, u_m;
 results EN_AND_PR_counter;											// energy and pressures in the system.
 double nPart_in_central_cell = 0;               					// molecules in central cell
 double nPart_in_gas = 0;											// molecules in gas phase
@@ -159,7 +182,6 @@ double N_a = 6.02214076e+23;										//	Avogadro constant
 double E_INF = 75.0;											// in kT units
 const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;				// Actual density of the layer in mkMol per m^2
-double state_dens, state_Ly;
 double lambda0 = sqrt(temperature / temperature_in_transition_zone);
 double dop_sin_angles[2] = {sin(angle_1 / 180.0 * PI), sin(angle_2 / 180.0 * PI)};
 double dop_cos_angles[2] = {cos(angle_1 / 180.0 * PI), cos(angle_2 / 180.0 * PI)};
@@ -207,6 +229,7 @@ int frame = 0; // For visualization purpose
 
 int main()
 {
+  complex_names();
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -253,12 +276,8 @@ int main()
  //         MC simulation of systems with different N      //
  ////////////////////////////////////////////////////////////
 
- double deltaT = 2000.0;
- state_dens = 1.258; // in mkmol/m2 for SF
-
  double Lx, Ly;  // Linear size of the system in A
  vector <state> coordinates(5000); // Vector of the molecules coordinates, angles and charges
-
 
 	// Generating the initial structure for sequential MC simulation
   if (structure_name != "calculate")
@@ -285,8 +304,6 @@ int main()
 	frame = 1;
 
 	// Write the model parameters to data-file
-	stringstream name_of_file_for_statistics;
-	name_of_file_for_statistics << "statistics_" << structure_name << "_" << "Xuc" << uc_in_x << "_" << "Yuc" << uc_in_y << "_" << "FreeSp" << free_space << ".dat";
 	ofstream fileOutput(name_of_file_for_statistics.str().c_str(), ios_base::trunc);
 
 	fileOutput << "Number of particles: " << nPart << endl;
@@ -302,9 +319,9 @@ int main()
 	<< "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
 	fileOutput.close();
 
-//	for(lambda0 = 1.0; lambda0 >= 0.0; lambda0 -= 0.05)
-// for(u_m = -25000.0; u_m >= -75000.0; u_m += -2500.0)
- for(temperature = init_temp; temperature <= 500; temperature += 20)
+ for(u_m = um_from; u_m >= um_to; u_m += um_step)
+ {
+ for(temperature = temp_from; temperature <= temp_to; temperature += temp_step)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
 	lambda0 = sqrt(temperature/800.0);
@@ -366,8 +383,6 @@ int main()
 					cout << int(iter*100.0/nIter) << " %" << endl;
 					percent = 0;
 				}
-
-        bool kMC = true;
 
         //if it is begining (we need it for MMC too)
         if (iter < nIter * 0.02)
@@ -444,8 +459,10 @@ int main()
 */
 								pressure_balance_ratio(Energy, press_X, press_Y, Lx, Ly, nPart, coordinates, beta);
 //								pressure_balance_ratio_analytical(Energy, press_X, delta_p_over_interface, gas_density, Lx, Ly, nPart, coordinates, beta);
-								um_tunning_to_zero_pressure(Energy, u_m, delta_p_over_interface, Lx, Ly, nPart, coordinates, beta);
-
+                if (constant_pressure)
+                {
+                  um_tunning_to_constant_pressure(Energy, u_m, delta_p_over_interface, Lx, Ly, nPart, coordinates, beta);
+                }
 								AR_r = ACCEPTANCE_RATIO_r[1]/(ACCEPTANCE_RATIO_r[0]+ACCEPTANCE_RATIO_r[1]);
 								AR_m = ACCEPTANCE_RATIO_m[1]/(ACCEPTANCE_RATIO_m[0]+ACCEPTANCE_RATIO_m[1]);
                 cout << "P_X_vir: " << press_X*(1.0/(Lx/4.0)/Ly*1e23)/N_a << "\t" << "P_Y_vir: " << press_Y*(1.0/(Lx/4.0)/Ly*1e23)/N_a <<  endl;
@@ -577,5 +594,6 @@ int main()
 	fileOutput.close();
 
  }
+}
  return 0;
 }

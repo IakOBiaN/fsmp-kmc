@@ -3,7 +3,6 @@ using namespace std;
 void generate_elongated_cell(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
 {
   results empty_field;
-  string cell_name = "1_generated_elongated_cell.xyz";
   double x_uc = params[1];
   double y_uc = params[2];
 
@@ -50,8 +49,6 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
     coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx); // u_ext
     coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx);
   }
-
-  write_xyz_file(cell_name, molecules, density, Lx, Ly, temperature, coordinates, 0, 1, true);
 
   cout << endl << "Elongated cell was generated: " << endl;
   cout << "N: " << molecules << "\t" << "Lx and Ly in A: " << Lx << " and " << Ly << endl;
@@ -157,7 +154,6 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
 {
   double temp_E_INF = E_INF;
   E_INF = 1e200;
-  string unit_cell_name = "0_calculate_animation.xyz";
   results empty_field;
   results en_and_press;
   int params_amount = params.size() - 1;
@@ -261,7 +257,6 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       counter++;
     }
 
-    //cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
     first = false;
     HC_radius = false;
   }
