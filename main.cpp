@@ -169,7 +169,8 @@ void calculate_unit_cell_params()
 //////////////// GLOBAL VARIABLES ////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double temperature, u_m;
+double temperature = temp_from;
+double u_m = um_from;												// Parameter of the external field
 results EN_AND_PR_counter;											// energy and pressures in the system.
 double nPart_in_central_cell = 0;               					// molecules in central cell
 double nPart_in_gas = 0;											// molecules in gas phase
