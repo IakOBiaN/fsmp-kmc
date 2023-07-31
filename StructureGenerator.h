@@ -56,6 +56,7 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
 
 void generate_structure(vector <double> &params, string structure_name, vector <state> &coordinates, double &Lx, double &Ly)
 {
+  //old optimization
 	if (structure_name == "TMA_fCW_qB3LYP_PBE_Dreiding_Dhb5.4")
 	{
     unit_cell_params.push_back(6);
@@ -80,24 +81,30 @@ void generate_structure(vector <double> &params, string structure_name, vector <
     unit_cell_params.push_back(20.2558);
     unit_cell_params.push_back(90.3681);
 	}
+  //optimized
   if (structure_name == "TMA_CW_qB3LYP_PBE_Dreiding_Dhb5.4")
   {
      unit_cell_params.push_back(4);
-     unit_cell_params.push_back(17.2634);
-     unit_cell_params.push_back(29.9728);
-     unit_cell_params.push_back(0.01);
-     unit_cell_params.push_back(0.01);
-     unit_cell_params.push_back(27.0113);
-     unit_cell_params.push_back(9.96432);
-     unit_cell_params.push_back(30.0115);
-     unit_cell_params.push_back(87.0109);
-     unit_cell_params.push_back(9.96796);
-     unit_cell_params.push_back(90.0231);
-     unit_cell_params.push_back(27.023);
-     unit_cell_params.push_back(9.98421);
-     unit_cell_params.push_back(149.578);
-     unit_cell_params.push_back(87.0838);
+     unit_cell_params.push_back(17.258);
+     unit_cell_params.push_back(29.948);
+
+     unit_cell_params.push_back(0.235903);
+     unit_cell_params.push_back(-0.764381);
+     unit_cell_params.push_back(27.0098);
+
+     unit_cell_params.push_back(9.96516);
+     unit_cell_params.push_back(30.0011);
+     unit_cell_params.push_back(87.0006);
+
+     unit_cell_params.push_back(9.96484);
+     unit_cell_params.push_back(90.1917);
+     unit_cell_params.push_back(27.192);
+
+     unit_cell_params.push_back(9.99148);
+     unit_cell_params.push_back(149.835);
+     unit_cell_params.push_back(87.5855);
   }
+  //old optimization
   if (structure_name == "TMA_SF_qB3LYP_PBE_Dreiding_Dhb5.4")
   {
      unit_cell_params.push_back(2);
@@ -110,6 +117,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(59.5439);
      unit_cell_params.push_back(41.3511);
   }
+  //optimized
   if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
@@ -122,6 +130,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(50.475);
      unit_cell_params.push_back(1.00003);
   }
+  //optimized
   if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0_vert")
   {
      unit_cell_params.push_back(2);
@@ -134,6 +143,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(140.459);
      unit_cell_params.push_back(90.9999);
   }
+  //old optimization
   if (structure_name == "IPA_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
