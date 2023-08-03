@@ -144,17 +144,17 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(90.9999);
   }
   //old optimization
-  if (structure_name == "IPA_chain_qPBE_Dreiding_Dhb5.0")
+  if (structure_name == "IPA_horizontal_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back( 16.2993);
-     unit_cell_params.push_back(6.63005);
-     unit_cell_params.push_back(0.403231);
-     unit_cell_params.push_back(0.184602);
-     unit_cell_params.push_back(146.679);
-     unit_cell_params.push_back(9.86998);
-     unit_cell_params.push_back(28.8775);
-     unit_cell_params.push_back(326.678);
+     unit_cell_params.push_back(16.9632);
+     unit_cell_params.push_back(7.33756);
+     unit_cell_params.push_back(3.1684);
+     unit_cell_params.push_back(-2.30584);
+     unit_cell_params.push_back(147.618);
+     unit_cell_params.push_back(9.85106);
+     unit_cell_params.push_back(30.6955);
+     unit_cell_params.push_back(327.696);
   }
 
   generate_elongated_cell(params, coordinates, Lx, Ly);
