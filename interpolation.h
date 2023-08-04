@@ -56,6 +56,10 @@ double interpolation(double dist_n, double ang1, double ang2, double beta) {
                 d_y = (v_find.y - v_000.place.y) / (v_010.place.y - v_000.place.y);
                 d_z = (v_find.z - v_000.place.z) / (v_001.place.z - v_000.place.z);
                 energy_interpol = ((v_000.value * (1 - d_x) + v_100.value * d_x) * (1 - d_y) + (v_010.value * (1 - d_x) + v_110.value * d_x) * d_y) * (1-d_z) + ((v_001.value * (1 - d_x) + v_101.value * d_x) * (1 - d_y) + (v_011.value * (1 - d_x) + v_111.value * d_x) * d_y) * d_z;
+                if ((v_000.value > 0) && (v_010.value > 0) && (v_100.value > 0) && (v_110.value > 0) && (v_001.value > 0) && (v_011.value > 0) && (v_101.value > 0) && (v_111.value > 0) && (energy_interpol < 0))
+                {
+                  energy_interpol = -energy_interpol;
+                }
                 if (energy_interpol > (E_INF / beta))
                 {
                   energy_interpol = E_INF / beta;
