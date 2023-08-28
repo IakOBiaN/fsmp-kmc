@@ -143,6 +143,18 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(140.459);
      unit_cell_params.push_back(90.9999);
   }
+  if (structure_name == "TPA_ladder_qPBE_Dreiding_Dhb5.0_hor")
+  {
+     unit_cell_params.push_back(2);
+     unit_cell_params.push_back(9.85863);
+     unit_cell_params.push_back(14.9832);
+     unit_cell_params.push_back(0.460148);
+     unit_cell_params.push_back(2.47113);
+     unit_cell_params.push_back(2.56578);
+     unit_cell_params.push_back(9.41467);
+     unit_cell_params.push_back(51.4863);
+     unit_cell_params.push_back(80.2502);
+  }
   if (structure_name == "TPA_ladder_qPBE_Dreiding_Dhb5.0_vert")
   {
      unit_cell_params.push_back(2);
