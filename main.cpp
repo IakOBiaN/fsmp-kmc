@@ -89,6 +89,13 @@ double stat_weight;
 results en_and_pr;
 };
 
+////////////// CONSTANTS /////////////////////////////////////////////////////
+
+double R = 8.31446261815324;										// Gas constant in J per mol
+double N_a = 6.02214076e+23;										//	Avogadro constant
+double E_INF = 75.0;											// in kT units
+const double PI = 3.14159265358979323846;
+
 ///////////////////////////////////////////////////////////////////////////////
 //////////////// CONFIGURATION ////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -178,10 +185,6 @@ double nPart_in_transition_zone = 0;								// molecules in nPart_in_transition_
 double ACCEPTANCE_RATIO_r[2] = {0, 0};								// 0 - not accepted steps of rotation, 1 - accepted steps of rotation
 double ACCEPTANCE_RATIO_m[2] = {0, 0};								// 0 - not accepted steps of move, 1 - accepted steps of move
 int BALANCE_STEPS;													// steps for balance statistics
-double R = 8.31446261815324;										// Gas constant in J per mol
-double N_a = 6.02214076e+23;										//	Avogadro constant
-double E_INF = 75.0;											// in kT units
-const double PI = 3.14159265358979323846;
 double density, gas_density, transition_zone_density;				// Actual density of the layer in mkMol per m^2
 double lambda0 = sqrt(temperature / temperature_in_transition_zone);
 double dop_sin_angles[2] = {sin(angle_1 / 180.0 * PI), sin(angle_2 / 180.0 * PI)};
@@ -325,7 +328,7 @@ int main()
  for(temperature = temp_from; temperature <= temp_to; temperature += temp_step)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
-	lambda0 = sqrt(temperature/800.0);
+	//lambda0 = sqrt(temperature/temperature_in_transition_zone);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////

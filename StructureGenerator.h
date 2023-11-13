@@ -104,18 +104,18 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(149.835);
      unit_cell_params.push_back(87.5855);
   }
-  //old optimization
+  //optimized
   if (structure_name == "TMA_SF_qB3LYP_PBE_Dreiding_Dhb5.4")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(10.0073);
-     unit_cell_params.push_back(16.8927);
-     unit_cell_params.push_back(-0.752751);
-     unit_cell_params.push_back(0.0391085);
-     unit_cell_params.push_back(36.9365);
-     unit_cell_params.push_back(9.87541);
-     unit_cell_params.push_back(59.5439);
-     unit_cell_params.push_back(41.3511);
+     unit_cell_params.push_back(9.76494);
+     unit_cell_params.push_back(16.9659);
+     unit_cell_params.push_back(-1.4425);
+     unit_cell_params.push_back(1.15426);
+     unit_cell_params.push_back(38.7484);
+     unit_cell_params.push_back(9.77999);
+     unit_cell_params.push_back(60.1552);
+     unit_cell_params.push_back(39.2479);
   }
   //optimized
   if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0")
@@ -167,7 +167,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(37.2725);
      unit_cell_params.push_back(-11.2231);
   }
-  //old optimization
+  //optimized
   if (structure_name == "IPA_horizontal_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
@@ -180,6 +180,148 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(30.6955);
      unit_cell_params.push_back(327.696);
   }
+	//optimized
+	if (structure_name == "IPA_vertical_chain_qPBE_Dreiding_Dhb5.0")
+	{
+		 unit_cell_params.push_back(2);
+		 unit_cell_params.push_back(7.41172);
+		 unit_cell_params.push_back(16.7164);
+		 unit_cell_params.push_back(0.472696);
+		 unit_cell_params.push_back(-0.646095);
+		 unit_cell_params.push_back(59.7553);
+		 unit_cell_params.push_back(9.84645);
+		 unit_cell_params.push_back(57.8756);
+		 unit_cell_params.push_back(240.191);
+	}
+	// optimized
+	if (structure_name == "IPA_hexagones_qPBE_Dreiding_Dhb5.0")
+	{
+		unit_cell_params.push_back(24);
+		unit_cell_params.push_back(42.6379);
+		unit_cell_params.push_back(49.1998);
+		//1
+		unit_cell_params.push_back(11.4791);
+		unit_cell_params.push_back(0.0714106);
+		unit_cell_params.push_back(238.214);
+		//2
+		unit_cell_params.push_back(9.88775);
+		unit_cell_params.push_back(120.151);
+		unit_cell_params.push_back(298.021);
+		//3
+		unit_cell_params.push_back(7.69802);
+		unit_cell_params.push_back(89.9078);
+		unit_cell_params.push_back(178.57);
+		//4
+		unit_cell_params.push_back(9.87203);
+		unit_cell_params.push_back(59.6657);
+		unit_cell_params.push_back(237.711);
+		//5
+		unit_cell_params.push_back(9.87488);
+		unit_cell_params.push_back(120.171);
+		unit_cell_params.push_back(299.081);
+		//6
+		unit_cell_params.push_back(7.33438);
+		unit_cell_params.push_back(89.9816);
+		unit_cell_params.push_back(177.82);
+		//7
+		unit_cell_params.push_back(12.41);
+		unit_cell_params.push_back(22.2247);
+		unit_cell_params.push_back(-2.32758);
+		//8
+		unit_cell_params.push_back(9.86637);
+		unit_cell_params.push_back(240.134);
+		unit_cell_params.push_back(58.0192);
+		//9
+		unit_cell_params.push_back(9.90949);
+		unit_cell_params.push_back(300.02);
+		unit_cell_params.push_back(118.865);
+		//10
+		unit_cell_params.push_back(7.55);
+		unit_cell_params.push_back(270.095);
+		unit_cell_params.push_back(-1.97112);
+		//11
+		unit_cell_params.push_back(9.85007);
+		unit_cell_params.push_back(240.122);
+		unit_cell_params.push_back(57.8898);
+		//12
+		unit_cell_params.push_back(9.85007);
+		unit_cell_params.push_back(299.999);
+		unit_cell_params.push_back(118.172);
+		//13
+		unit_cell_params.push_back(9.85);
+		unit_cell_params.push_back(0.659447);
+		unit_cell_params.push_back(177.63);
+		//14
+		unit_cell_params.push_back(9.86994);
+		unit_cell_params.push_back(59.9726);
+		unit_cell_params.push_back(238.041);
+		//15
+		unit_cell_params.push_back(9.8696);
+		unit_cell_params.push_back(120);
+		unit_cell_params.push_back(298.249);
+		//16
+		unit_cell_params.push_back(7.55138);
+		unit_cell_params.push_back(90.0516);
+		unit_cell_params.push_back(178.538);
+		//17
+		unit_cell_params.push_back(9.85537);
+		unit_cell_params.push_back(60.0484);
+		unit_cell_params.push_back(238.541);
+		//18
+		unit_cell_params.push_back(9.93114);
+		unit_cell_params.push_back(120.218);
+		unit_cell_params.push_back(298.191);
+		//19
+		unit_cell_params.push_back(7.54902);
+		unit_cell_params.push_back(29.177);
+		unit_cell_params.push_back(57.7393);
+		//20
+		unit_cell_params.push_back(9.85);
+		unit_cell_params.push_back(299.651);
+		unit_cell_params.push_back(117.65);
+		//21
+		unit_cell_params.push_back(7.52084);
+		unit_cell_params.push_back(269.726);
+		unit_cell_params.push_back(-1.65575);
+		//22
+		unit_cell_params.push_back(9.85);
+		unit_cell_params.push_back(239.844);
+		unit_cell_params.push_back(57.5787);
+		//23
+		unit_cell_params.push_back(9.85);
+		unit_cell_params.push_back(300.191);
+		unit_cell_params.push_back(117.997);
+		//24
+		unit_cell_params.push_back(7.50352);
+		unit_cell_params.push_back(269.753);
+		unit_cell_params.push_back(-1.95989);
+	}
+	//optimized
+	if (structure_name == "PA_horizontal_chain_qPBE_Dreiding_Dhb5.0")
+	{
+		unit_cell_params.push_back(2);
+	  unit_cell_params.push_back(12.48);
+	  unit_cell_params.push_back(9.85);
+		unit_cell_params.push_back(0.547938);
+		unit_cell_params.push_back(0.0439552);
+		unit_cell_params.push_back(127.03);
+		unit_cell_params.push_back(9.93052);
+		unit_cell_params.push_back(51.4783);
+		unit_cell_params.push_back(307.031);
+	}
+	//optimized
+	if (structure_name == "PA_vertical_chain_qPBE_Dreiding_Dhb5.0")
+	{
+		unit_cell_params.push_back(2);
+		unit_cell_params.push_back(9.43172);
+		unit_cell_params.push_back(12.8256);
+		unit_cell_params.push_back(2.95425);
+		unit_cell_params.push_back(0.146893);
+		unit_cell_params.push_back(35.2501);
+		unit_cell_params.push_back(9.92587);
+		unit_cell_params.push_back(40.2124);
+		unit_cell_params.push_back(214.654);
+	}
 
   generate_elongated_cell(params, coordinates, Lx, Ly);
 }
