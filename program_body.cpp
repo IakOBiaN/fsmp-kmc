@@ -211,14 +211,14 @@ int main()
 	fileOutput.close();
 
 bool u_m_loop_flag = true;
-double u_m = um_from;
+u_m = um_from;
 um_step = abs(um_step);
 
  while (u_m_loop_flag)
  {
 
   bool temperature_loop_flag = true;
-  double temperature = temp_from;
+  temperature = temp_from;
   temp_step = abs(temp_step);
 
  while (temperature_loop_flag)
