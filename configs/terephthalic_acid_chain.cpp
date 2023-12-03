@@ -11,7 +11,7 @@ double temp_step = 10;
 //parameter of the external field
 double um_from = 0.0;
 double um_to = -100000.0;
-double um_step = -1000.0;
+double um_step = 1000.0;
 /////////// Set the lenght of MC run ///////////////////////////////
 int nSteps = 1000000;            // Total amount of MCS
 int nStepsEq = 500000;           // MCS for relaxation
@@ -21,7 +21,7 @@ bool kMC = true;
 
 //MODEL SETTINGS
 //numerical potential name
-string p_name = "../TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
+string p_name = "../potentials/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
 //you can use your own structures if set "structure_name" to "calculate"
 string structure_name = "TPA_chain_qPBE_Dreiding_Dhb5.0";
 int uc_in_x = 14;
@@ -36,15 +36,14 @@ double angle_2 = 240;       // it can be any angle as long as total_molecule_dir
 //ADDITIONAL PARAMETERS
 double delta = 2.0;													// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
-double temperature_in_transition_zone = 800;						// K
+double temperature_in_transition_zone = 900;						// K
 double lambdam = 0.0;
-bool numeric = true;
 bool widom_test_index = false;
 
 //name of xyz file of unit cell optimization (if you want to optimize a unit cell)
 string unit_cell_name = "0_calculate_animation.xyz";
 //name of xyz file for visualization
-string xyz_name = "1_xyz_for_calculations_TPA_hor.xyz";
+string xyz_name = "1_xyz_for_calculations_TPA_chain.xyz";
 stringstream name_of_file_for_statistics;
 void complex_names()
 {

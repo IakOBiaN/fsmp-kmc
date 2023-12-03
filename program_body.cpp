@@ -106,17 +106,12 @@ int frame = 0; // For visualization purpose
 #include "PBC2D.h"
 #include "fields_pccp2022.h"
 #include "interpolation.h"
-//#include "fields_jpcc2021.h"
-//#include "fields_jcp2020.h"
 #include "energies_and_forces_numerical_Dreiding_TMA.h"
-//#include "energies_and_forces_approx.h"
-//#include "energies_and_forces_numerical_simple_model.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
 #include "Rosenbluth_iteration.h"
 #include "pressure_balance.h"
-//#include "block_error.h"
 #include "density_to_Ly.h"
 #include "Weighted_averages.h"
 #include "Widom_test.h"
@@ -215,9 +210,18 @@ int main()
 	<< "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
 	fileOutput.close();
 
- for(u_m = um_from; u_m >= um_to; u_m += um_step)
+bool u_m_loop_flag = true;
+double u_m = um_from;
+um_step = abs(um_step);
+
+ while (u_m_loop_flag)
  {
- for(temperature = temp_from; temperature <= temp_to; temperature += temp_step)
+
+  bool temperature_loop_flag = true;
+  double temperature = temp_from;
+  temp_step = abs(temp_step);
+
+ while (temperature_loop_flag)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
 	//lambda0 = sqrt(temperature/temperature_in_transition_zone);
@@ -489,7 +493,44 @@ int main()
   << "\t" << mu_ex_kMC << endl;
 	fileOutput.close();
 
+
+   if (temp_from < temp_to)
+   {
+     temperature += temp_step;
+     if (temperature > temp_to)
+     {
+       temperature_loop_flag = false;
+     }
+   }
+   else
+   {
+     temperature -= temp_step;
+     if (temperature < temp_to)
+     {
+       temperature_loop_flag = false;
+     }
+   }
+ // end of while loop for temperature
  }
+
+   if (um_from < um_to)
+   {
+     u_m += um_step;
+     if (u_m > um_to)
+     {
+       u_m_loop_flag = false;
+     }
+   }
+   else
+   {
+     u_m -= um_step;
+     if (u_m < um_to)
+     {
+       u_m_loop_flag = false;
+     }
+   }
+// end of while loop for u_m
 }
+
  return 0;
 }
