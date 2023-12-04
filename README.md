@@ -17,6 +17,9 @@ clang++ -O3 terephthalic_acid_chain.cpp -o program.o
 ./program.o
 ```
 
+## Acknowledgements
+We acknowledge financial support by the Russian Science Foundation (grant no. 22-23-00017).
+
 ## Программа FsMP_kMC
 Программа предназначена для моделирования адсорбционнхы слоёв методом FsMP_kMC с использованием численных потенциалов.
 Подробнее прочитать о методе можно в следующих работах: [J. Phys. Chem. C 2021, 125, 50, 27853–27864](https://pubs.acs.org/doi/10.1021/acs.jpcc.1c09086?ref=pdf), [Phys. Chem. Chem. Phys., 2022,24, 26111-26123](https://pubs.rsc.org/en/content/articlelanding/2022/CP/D2CP03380A) и [Phys. Chem. Chem. Phys., 2023,25, 31352-31362](https://pubs.rsc.org/en/content/articlelanding/2023/CP/D3CP03955B).
@@ -33,3 +36,6 @@ cd configs
 clang++ -O3 terephthalic_acid_chain.cpp -o program.o
 ./program.o
 ```
+
+## Финансирование
+Исследование выполнено за счёт гранта Российского научного фонда (проект № 22-23-00017).

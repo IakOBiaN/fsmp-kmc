@@ -118,7 +118,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(39.2479);
   }
   //optimized
-  if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0")
+  if (structure_name == "TPA_horizontal_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
      unit_cell_params.push_back(9.90997);
@@ -131,7 +131,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(1.00003);
   }
   //optimized
-  if (structure_name == "TPA_chain_qPBE_Dreiding_Dhb5.0_vert")
+  if (structure_name == "TPA_vertical_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
      unit_cell_params.push_back(11.6946);
@@ -143,7 +143,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(140.459);
      unit_cell_params.push_back(90.9999);
   }
-  if (structure_name == "TPA_ladder_qPBE_Dreiding_Dhb5.0_hor")
+  if (structure_name == "TPA_horizontal_ladder_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
      unit_cell_params.push_back(9.85863);
@@ -155,7 +155,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
      unit_cell_params.push_back(51.4863);
      unit_cell_params.push_back(80.2502);
   }
-  if (structure_name == "TPA_ladder_qPBE_Dreiding_Dhb5.0_vert")
+  if (structure_name == "TPA_vertical_ladder_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
      unit_cell_params.push_back(15.0487);
