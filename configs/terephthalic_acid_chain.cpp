@@ -4,7 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 //MAIN PARAMETERS
-//temperature in crystal
+//temperature in crystal (K)
 double temp_from = 300;
 double temp_to = 301;
 double temp_step = 10;
@@ -12,6 +12,9 @@ double temp_step = 10;
 double um_from = 0.0;
 double um_to = -100000.0;
 double um_step = 1000.0;
+//parameter of the external field
+double temperature_in_transition_zone = 900;						// K
+double lambdam = 0.0;
 /////////// Set the lenght of MC run ///////////////////////////////
 int nSteps = 1000000;            // Total amount of MCS
 int nStepsEq = 500000;           // MCS for relaxation
@@ -23,11 +26,11 @@ bool kMC = true;
 //numerical potential name
 string p_name = "../potentials/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
 //you can use your own structures if set "structure_name" to "calculate"
-string structure_name = "TPA_chain_qPBE_Dreiding_Dhb5.0";
-int uc_in_x = 14;
-int uc_in_y = 6;
-double free_space = 0.24;
-/////// molecules visualization block (2 or 3 directions) /////////////
+string structure_name = "TPA_chain_qPBE_Dreiding_Dhb5.0";  //from StructureGenerator.h file
+int uc_in_x = 14;  //unit cells in x direction
+int uc_in_y = 6;   //unit cells in y direction
+double free_space = 0.24;  //persent of the free space in the elongated cell
+/////// molecules visualization block (now it is 2 directions) /////////////
 int total_molecule_directions = 2;
 //for TPA
 double angle_1 = 180;
@@ -36,8 +39,6 @@ double angle_2 = 240;       // it can be any angle as long as total_molecule_dir
 //ADDITIONAL PARAMETERS
 double delta = 2.0;													// MC parameter. Maximal shift of the molecule
 double delta_angle = 60.0;    										// MC parameter. Maximal rotation in degrees
-double temperature_in_transition_zone = 900;						// K
-double lambdam = 0.0;
 bool widom_test_index = false;
 
 //name of xyz file of unit cell optimization (if you want to optimize a unit cell)
