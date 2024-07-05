@@ -26,7 +26,7 @@ bool kMC = true;
 //numerical potential name
 string p_name = "../forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
 //you can use your own structures if set "structure_name" to "calculate"
-string structure_name = "TPA_horizontal_chain_qPBE_Dreiding_Dhb5.0";  //from StructureGenerator.h file
+string structure_name = "calculate";  //from StructureGenerator.h file
 int uc_in_x = 26;  //unit cells in x direction
 int uc_in_y = 8;   //unit cells in y direction
 double free_space = 0.24;  //persent of the free space in the elongated cell
@@ -59,19 +59,19 @@ void calculate_unit_cell_params()
   //molecules count
   unit_cell_params.push_back(2);
   //size along x axis for unit cell
-  unit_cell_params.push_back(11.735);
+  unit_cell_params.push_back(10.90997);
   //size along y axis for unit cell
-   unit_cell_params.push_back(9.647);
+   unit_cell_params.push_back(10.698);
 
   //unit cell graph (graph distance, graph angle, molecule angle)
   //first molecule
-  unit_cell_params.push_back(-0.000888541);
-  unit_cell_params.push_back(90.137772);
-  unit_cell_params.push_back(90.0);
+  unit_cell_params.push_back(0.871123);
+  unit_cell_params.push_back(-0.537901);
+  unit_cell_params.push_back(6.00002);
   //second molecule
-  unit_cell_params.push_back(7.303);
-  unit_cell_params.push_back(143.002);
-  unit_cell_params.push_back(90.253273);
+  unit_cell_params.push_back(6.59232);
+  unit_cell_params.push_back(51.475);
+  unit_cell_params.push_back(6.00003);
 }
 
 const char * potential_name = p_name.c_str();

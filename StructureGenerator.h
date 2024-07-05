@@ -334,11 +334,15 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   results en_and_press;
   int params_amount = params.size() - 1;
   double delta_uc = 0.5;
-  double temp_energy = 1e10;
+  double temp_energy = 1e10;  //!!!
   bool first = true;
+  bool energy_optimization = true;  //First we optimize for energy
+  bool pressure_optimization = false; //We can then optimize power consumption if we need to
   int counter = 0;
+  int counter_P = 0;
   double beta = 1.0 / (R * 300);
   int N = params[0] * 3 * 3;
+  double temp_P = 0, temp_Px = 0, temp_Py = 0;
 
   while (counter < 10000)
   {
@@ -362,6 +366,7 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
     double x_uc = params[1];
     double y_uc = params[2];
     int molecules = 0;
+    //filling the unit cell for given unit cell parameters
     for(int i = 0; i < 3; i++)
     {
       for(int j = 0; j < 3; j++)
@@ -401,7 +406,7 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   	{
   		for(int molB = (molA + 1); molB < N; molB++)
   			{
-  				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, false);
+  				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, true);
   				en_and_press = en_and_press / 2.0;  //for molecules pair to value per molecule
   				coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + en_and_press;
   				coordinates[molB].en_and_pr = coordinates[molB].en_and_pr + en_and_press;
@@ -414,18 +419,41 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       cout << "ERROR!!! HC_radius!!!" << endl;
     }
 
+    temp_Px = (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a);
+    temp_Py = (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a);
+    temp_id_P = R*temperature*nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a/1000.0;
+    temp_P = temp_id_P + (temp_Px + temp_Py)/2.0;
+
     if (first)
     {
       cout << "Initial properties:" << endl;
-      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+      cout << "P_iter: " << counter_P << " Density: " << "\t" << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+      cout << "P_iter: " << counter_P << "Total_P:" << "\t" << temp_P << "\t" << " P_X: " << temp_Px << "\t" << "P_Y: " << temp_Py <<  endl;
     }
 
-    if ((temp_energy > EN_AND_PR_counter.energy) && !HC_radius)
+    bool energy_des = (temp_energy > EN_AND_PR_counter.energy);
+    bool pressure_des = false; //condition for pressure
+    bool main_des = false;
+    if (energy_optimization && !pressure_optimization)
+    {
+      main_des = energy_des;
+    }
+    if (!energy_optimization && pressure_optimization)
+    {
+      main_des = pressure_des;
+    }
+    if (energy_optimization && pressure_optimization)
+    {
+      main_des = (energy_des || pressure_des);
+    }
+
+    if (main_des && !HC_radius)
     {
       counter = 0;
       temp_energy = EN_AND_PR_counter.energy;
       write_xyz_file (unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, first);
-      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+      cout << "P_iter: " << counter_P << "Density: " << "\t" << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+      cout << "P_iter: " << counter_P << "Total_P:" << "\t" << temp_P << "\t" << " P_X: " << temp_Px << "\t" << "P_Y: " << temp_Py <<  endl;
     }
     else
     {
@@ -435,7 +463,22 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
 
     first = false;
     HC_radius = false;
+
+    //conditions for optimization
+    if (energy_optimization && !pressure_optimization && counter > 9998)
+    {
+      energy_optimization = false;
+      pressure_optimization = true;
+      counter = 0;
+    }
+    if (!energy_optimization && pressure_optimization && counter > 9998)
+    {
+      energy_optimization = true;
+      pressure_optimization = true;
+      counter = 0;
+    }
   }
+
   cout << "Final params: " << endl;
   for (int i = 0; i < params.size(); i++)
   {
