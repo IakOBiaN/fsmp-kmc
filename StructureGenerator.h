@@ -334,17 +334,16 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   results en_and_press;
   int params_amount = params.size() - 1;
   double delta_uc = 0.5;
-  double temp_energy = 1e10;  //!!!
+  double temp_energy = 1e10, temp_Px = 1e10, temp_Py = 1e10;  //!!!
   bool first = true;
   bool energy_optimization = true;  //First we optimize for energy
-  bool pressure_optimization = false; //We can then optimize power consumption if we need to
+  bool pressure_optimization = true; //We can then optimize power consumption if we need to
   int counter = 0;
-  int counter_P = 0;
   double beta = 1.0 / (R * 300);
   int N = params[0] * 3 * 3;
-  double temp_P = 0, temp_Px = 0, temp_Py = 0;
+  double dop_id_P = 0, dop_P = 0, dop_Px = 0, dop_Py = 0;
 
-  while (counter < 10000)
+  while (counter < 1000000)
   {
     int param_number;
     double temp_delta;
@@ -419,41 +418,71 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       cout << "ERROR!!! HC_radius!!!" << endl;
     }
 
-    temp_Px = (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a);
-    temp_Py = (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a);
-    temp_id_P = R*temperature*nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a/1000.0;
-    temp_P = temp_id_P + (temp_Px + temp_Py)/2.0;
+    dop_Px = (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a);
+    dop_Py = (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a);
+    dop_id_P = R*temperature*nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a/1000.0;
+    dop_P = dop_id_P + (dop_Px + dop_Py)/2.0;
 
     if (first)
     {
       cout << "Initial properties:" << endl;
-      cout << "P_iter: " << counter_P << " Density: " << "\t" << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
-      cout << "P_iter: " << counter_P << "Total_P:" << "\t" << temp_P << "\t" << " P_X: " << temp_Px << "\t" << "P_Y: " << temp_Py <<  endl;
+      cout << "P_iter: " << counter << " Density: " << "\t" << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+      cout << "P_iter: " << counter << "Total_P:" << "\t" << dop_P << "\t" << " P_X: " << dop_Px << "\t" << "P_Y: " << dop_Py <<  endl;
     }
 
-    bool energy_des = (temp_energy > EN_AND_PR_counter.energy);
-    bool pressure_des = false; //condition for pressure
-    bool main_des = false;
+    bool energy_decision = (temp_energy > EN_AND_PR_counter.energy);
+    bool pressure_decision = false;
+    if (temp_Px + dop_id_P < 0 && (dop_Px - temp_Px) > 0)
+    {
+      pressure_decision = true;
+    }
+
+    if (temp_Px + dop_id_P > 0 && (dop_Px - temp_Px) < 0)
+    {
+      pressure_decision = true;
+    }
+
+    if (temp_Py + dop_id_P < 0 && (dop_Py - temp_Py) > 0)
+    {
+      pressure_decision = true;
+    }
+    if (temp_Py + dop_id_P > 0 && (dop_Py - temp_Py) < 0)
+    {
+      pressure_decision = true;
+    }
+
+    double ksi = RanGen.Random();
+    if (energy_decision && ksi < exp(-(EN_AND_PR_counter.energy - temp_energy)/nPart_in_central_cell/300/R))
+    {
+      pressure_decision = true;
+    }
+
+    bool main_decision = false;
     if (energy_optimization && !pressure_optimization)
     {
-      main_des = energy_des;
+      main_decision = energy_decision;
     }
     if (!energy_optimization && pressure_optimization)
     {
-      main_des = pressure_des;
+      main_decision = pressure_decision;
     }
     if (energy_optimization && pressure_optimization)
     {
-      main_des = (energy_des || pressure_des);
+      main_decision = (energy_decision && pressure_decision);
     }
-
-    if (main_des && !HC_radius)
+    //if (counter < 50 || counter > 9950)
+    //{
+    //  cout << "Counter: " << counter << endl;
+    //}
+    if (main_decision && !HC_radius)
     {
-      counter = 0;
       temp_energy = EN_AND_PR_counter.energy;
+      temp_Px = dop_Px;
+      temp_Py = dop_Py;
       write_xyz_file (unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, first);
-      cout << "P_iter: " << counter_P << "Density: " << "\t" << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
-      cout << "P_iter: " << counter_P << "Total_P:" << "\t" << temp_P << "\t" << " P_X: " << temp_Px << "\t" << "P_Y: " << temp_Py <<  endl;
+      cout << "P_iter: " << counter << " Density: " << "\t" << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell;
+      cout << " Total_P:" << "\t" << dop_P << "\t" << " P_X: " << dop_Px << "\t" << "P_Y: " << dop_Py <<  endl;
+      counter = 0;
     }
     else
     {
