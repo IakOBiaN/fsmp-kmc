@@ -1,15 +1,40 @@
-## Program FsMP_kMC
+# FSMP-kMC
 
-The program is designed for modeling adsorption layers using the FsMP_kMC method using numerical forcefields.
-You can read more about the method in the following works: [J. Phys. Chem. C 2021, 125, 50, 27853–27864](https://pubs.acs.org/doi/10.1021/acs.jpcc.1c09086?ref=pdf), [Phys. Chem. Chem. Phys., 2022,24, 26111-26123](https://pubs.rsc.org/en/content/articlelanding/2022/CP/D2CP03380A), and [Phys. Chem. Chem. Phys., 2023,25, 31352-31362](https://pubs.rsc.org/en/content/articlelanding/2023/CP/D3CP03955B).
+**Field-Stabilized Multiphase kinetic Monte Carlo.** A kinetic Monte Carlo
+engine for the atomistic thermodynamics of rigid molecular crystals and
+two-dimensional adsorption layers.
 
-## Instruction
+The code simulates two coexisting phases (a crystal and an ideal-gas reservoir)
+in a single elongated cell. Two imposed inhomogeneous fields, a *damping* field
+and an *external* field, stabilize this coexistence over a wide range of
+temperature and pressure. This makes it possible to determine the free energy,
+entropy and chemical potential of dense molecular layers from the equality of
+chemical potentials in the coexisting phases.
 
-* To run the program, you first need to download (or generate) forcefield and place it in the "forcefields" folder. You can download the available numerical forcefields using the link: [DOWNLOAD NUMERICAL FORCEFIELDS](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
-* Then you need to go to the "configs" folder (cd configs).
-* Take one of the available ones (for example, terephthalic_acid_chain.cpp) or write your own configuration file.
-* Compile it. It is recommended to use the clang++ compiler (clang++ -O3 terephthalic_acid_chain.cpp -o program.o).
-* The program can then be launched to perform calculations (./program.o).
+## Method
+
+This code accompanies the following study:
+
+> S. S. Akimenko, V. A. Gorbunov and E. A. Ustinov, *Equilibrium structure of a
+> dense trimesic acid monolayer on a homogeneous solid surface: from atomistic
+> simulation to thermodynamics*, *Phys. Chem. Chem. Phys.*, 2023, **25**,
+> 31352–31362. <https://doi.org/10.1039/D3CP03955B>
+
+The method was originally introduced as *Fields-supported MultiPhase kinetic
+Monte Carlo (FsMP/kMC)*.
+
+## Requirements
+
+- A C++ compiler (clang++ is recommended).
+- A numerical forcefield (potential) file. See [Forcefields](#forcefields).
+- Python 3 (optional) for the post-processing scripts in `xyz_modification/`.
+
+## Building and running
+
+The program is built per configuration: each file in `configs/` includes the
+core `program_body.cpp` and defines the parameters of a single simulation.
+Use one of the provided configurations (for example `terephthalic_acid_chain.cpp`)
+as a template, or write your own.
 
 ```bash
 cd configs
@@ -17,25 +42,52 @@ clang++ -O3 terephthalic_acid_chain.cpp -o program.o
 ./program.o
 ```
 
-## Acknowledgements
-We acknowledge financial support by the Russian Science Foundation (grant no. 22-23-00017).
+## Forcefields
 
-## Программа FsMP_kMC
-Программа предназначена для моделирования адсорбционнхы слоёв методом FsMP_kMC с использованием численных потенциалов.
-Подробнее прочитать о методе можно в следующих работах: [J. Phys. Chem. C 2021, 125, 50, 27853–27864](https://pubs.acs.org/doi/10.1021/acs.jpcc.1c09086?ref=pdf), [Phys. Chem. Chem. Phys., 2022,24, 26111-26123](https://pubs.rsc.org/en/content/articlelanding/2022/CP/D2CP03380A) и [Phys. Chem. Chem. Phys., 2023,25, 31352-31362](https://pubs.rsc.org/en/content/articlelanding/2023/CP/D3CP03955B).
+The intermolecular interaction is supplied as a precalculated *numerical
+potential*. Download the available potentials and unpack them into the
+`forcefields/` folder:
 
-## Инструкция для запуска
-* Для запуска программы сначала необходимо скачать или сгенерировать свой потенциал и поместить его в папку "forcefields". Скачать имеющиеся численные потенциалы можно по ссылке: [СКАЧАТЬ ЧИСЛЕННЫЕ ПОТЕНЦИАЛЫ](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
-* Затем необходимо перейти в папку "configs" (cd configs).
-* Взять один из имеющихся или написать свой конфигурационный файл. Например, terephthalic_acid_chain.cpp.
-* Провести его компиляцию. Рекомендуется использовать компилятор clang++ (clang++ -O3 terephthalic_acid_chain.cpp -o program.o).
-* Затем программу можно запустить для проведения рассчётов (./program.o).
+[Download numerical forcefields](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS)
 
-```bash
-cd configs
-clang++ -O3 terephthalic_acid_chain.cpp -o program.o
-./program.o
-```
+## Repository layout
 
-## Финансирование
-Работа выполнена за счёт гранта Российского научного фонда (проект № 22-23-00017).
+| Path | Description |
+| --- | --- |
+| `program_body.cpp` | Core simulation loop, included by every config file. |
+| `configs/` | Ready-to-compile run configurations (compile a file here to build a run). |
+| `includes.h` | Master list of headers pulled into `program_body.cpp`. |
+| `energies_and_forces_*.h` | Alternative implementations of the intermolecular potential (exact, approximate, numerical Dreiding TMA, simple model). |
+| `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the precalculated numerical potential. |
+| `fields_*.h` | Damping and external field definitions (per publication). |
+| `Rosenbluth_iteration.h`, `Metropolis_iteration.h` | Kinetic Monte Carlo (Rosenbluth) and Metropolis moves. |
+| `StructureGenerator*.h` | Generation of the initial molecular structure and unit cell. |
+| `pressure_balance.h` | Mechanical equilibrium and pressure balancing. |
+| `Widom_test.h` | Widom insertion check of the chemical potential. |
+| `Weighted_averages.h`, `block_error.h`, `bootstrap_error.h` | Time averaging and error estimation. |
+| `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
+| `random/` | SFMT / Mersenne Twister random number generator (by Agner Fog). |
+| `forcefields/` | Numerical potential files (downloaded separately). |
+| `xyz_modification/` | Python helper scripts for post-processing XYZ trajectories. |
+
+## Status
+
+This is a research code under active cleanup. It reproduces the published
+results, but it is not yet packaged for general use. The build is per
+configuration (no build system yet), there is no automated test suite, and parts
+of the optimization routines are experimental and may be unstable. Improving and
+documenting the code is ongoing.
+
+## License
+
+Released under the GNU General Public License v3.0. See [LICENSE](LICENSE).
+
+This repository is a fork and continuation of the FSMP-kMC code. The code was
+written by S. S. Akimenko and V. A. Gorbunov, under the scientific supervision of
+E. A. Ustinov. It is now maintained and further developed by Sergey S. Akimenko.
+See the commit history for the changes made in this fork.
+
+## In memory
+
+In memory of Eugene A. Ustinov (1948–2024), whose scientific guidance shaped this
+work.
