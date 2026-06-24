@@ -1,5 +1,11 @@
-// Random number generator
-int seed = (int)time(0);
+// Random number generator.
+// By default the seed is randomized from the wall clock (production runs).
+// Define FSMP_RANDOM_SEED at compile time for deterministic, reproducible runs,
+// e.g. for tests:  clang++ -DFSMP_RANDOM_SEED=12345 ...
+#ifndef FSMP_RANDOM_SEED
+#define FSMP_RANDOM_SEED ((int)time(0))
+#endif
+int seed = (FSMP_RANDOM_SEED);
 CRandomSFMT0 RanGen(seed);
 
 class results {
