@@ -33,3 +33,9 @@
 
 # Archives
 *.zip
+
+# Local experiments / scratch verification (not part of the project)
+experiments/
+
+# Papers and documents
+*.docx
