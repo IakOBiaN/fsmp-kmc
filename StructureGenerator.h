@@ -56,6 +56,18 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
 
 void generate_structure(vector <double> &params, string structure_name, vector <state> &coordinates, double &Lx, double &Ly)
 {
+  if (structure_name == "TMA_HCP_simple_2020")
+{
+  unit_cell_params.push_back(2);
+  unit_cell_params.push_back(11.100);
+  unit_cell_params.push_back(19.200);
+  unit_cell_params.push_back(0);
+  unit_cell_params.push_back(0);
+  unit_cell_params.push_back(90);
+  unit_cell_params.push_back(11.089); 
+  unit_cell_params.push_back(59.967); 
+  unit_cell_params.push_back(90);
+}
   //old optimization
 	if (structure_name == "TMA_fCW_qB3LYP_PBE_Dreiding_Dhb5.4")
 	{
@@ -334,30 +346,19 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   results en_and_press;
   int params_amount = params.size() - 1;
   double delta_uc = 0.5;
-  double temp_energy = 1e10, temp_Px = 1e10, temp_Py = 1e10;  //!!!
+  double temp_energy = 1e10;
   bool first = true;
-  bool energy_optimization = true;  //First we optimize for energy
-  bool pressure_optimization = true; //We can then optimize power consumption if we need to
   int counter = 0;
-	int counter_pressure = 0;
-	int counter_pressure_max = 1000;
   double beta = 1.0 / (R * 300);
   int N = params[0] * 3 * 3;
-  double dop_id_P = 0, dop_P = 0, dop_Px = 0, dop_Py = 0;
-	int max_counter = 10000;
-	int step = 0;
 
-	bool full_energy_optimization = true;
-
-  while (counter < max_counter)
+  while (counter < 10000)
   {
     int param_number;
-    double temp_delta = 0;
-		double trial_delta_uc = 0;
+    double temp_delta;
     if (!first)
     {
-			if (full_energy_optimization){param_number = RanGen.IRandom(1, params_amount);}
-      	else {param_number = RanGen.IRandom(3, params_amount);}
+      param_number = RanGen.IRandom(1, params_amount);
       temp_delta = (2 * delta_uc * RanGen.Random() - delta_uc);
     }
     else
@@ -366,24 +367,13 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       temp_delta = 0;
     }
 
-		if(counter == max_counter-2-1)
-			{
-				temp_delta = 0;
-			}
-
     params[param_number] += temp_delta;
 
     Lx = params[1] * 3;
     Ly = params[2] * 3;
     double x_uc = params[1];
     double y_uc = params[2];
-		double default_Lx = Lx;
-		double default_Ly = Ly;
-		double default_x_uc = x_uc;
-		double default_y_uc = y_uc;
-
     int molecules = 0;
-    //filling the unit cell for given unit cell parameters
     for(int i = 0; i < 3; i++)
     {
       for(int j = 0; j < 3; j++)
@@ -423,7 +413,7 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   	{
   		for(int molB = (molA + 1); molB < N; molB++)
   			{
-  				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, true);
+  				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, false);
   				en_and_press = en_and_press / 2.0;  //for molecules pair to value per molecule
   				coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + en_and_press;
   				coordinates[molB].en_and_pr = coordinates[molB].en_and_pr + en_and_press;
@@ -436,38 +426,18 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       cout << "ERROR!!! HC_radius!!!" << endl;
     }
 
-    dop_Px = (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a);
-    dop_Py = (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a);
-    dop_id_P = R*temperature*nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a/1000.0;
-    dop_P = dop_id_P + (dop_Px + dop_Py)/2.0;
-
     if (first)
     {
-			cout << endl << "\\\\\\\\" << "Initial properties" << "\\\\\\\\" << endl;
-			cout << " Density" << "\t" << " Energy" << "\t" << "P" << "\t" << " P_X" << "\t" << "P_Y" <<  endl;
-			cout << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << "\t" << dop_P << "\t" << dop_Px << "\t" << dop_Py <<  endl << endl;
-			cout << "Step" << "\t" << "Iterations" << "\t" << "UC_change" << "\t" << "Shift_or_rotation" << "\t"
-							<< "Lx" << "\t" << "Ly" << "\t"
-							<< " Density" << "\t" << " Energy" << "\t" << "P" << "\t" << " P_X" << "\t" << "P_Y" <<  endl;
+      cout << "Initial properties:" << endl;
+      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
     }
 
-    bool energy_decision = (temp_energy > EN_AND_PR_counter.energy);
-
-    if (energy_decision && !HC_radius)
+    if ((temp_energy > EN_AND_PR_counter.energy) && !HC_radius)
     {
+      counter = 0;
       temp_energy = EN_AND_PR_counter.energy;
       write_xyz_file (unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, first);
-			cout << step << "\t" << counter  << "\t" << trial_delta_uc << "\t" << temp_delta << "\t"
-			<< Lx << "\t" << Ly << "\t"
-			<< nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << "\t" << dop_P << "\t" << dop_Px << "\t" << dop_Py << endl;
-/*			cout << "current parameters of the structure graph" << endl;
-			for (int i=1; i < params[0]*3 + 3; i++)
-				{
-					cout << params[i] << " ";
-				}
-			cout << endl;*/
-      counter = 0;
-			step++;
+      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
     }
     else
     {
@@ -475,105 +445,9 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
       counter++;
     }
 
-		if(counter == max_counter-2)
-			{
-				full_energy_optimization = false;
-				counter_pressure++;
-				if (counter_pressure > counter_pressure_max){break;}
-				HC_radius = false;
-				trial_delta_uc = delta_uc * 0.00001;
-				if (dop_P < 0) // We should decrease the unit cell size
-					{
-						if (dop_Px < dop_Py) // We should decrease lx
-							{
-								x_uc = x_uc - trial_delta_uc;
-								Lx =  3*x_uc;
-							}
-							else // We should decrease ly
-								{
-									y_uc = y_uc - trial_delta_uc;
-									Ly = 3*y_uc;
-								}
-					}
-					else // We should increase the unit cell size
-						{
-							if (dop_Px > dop_Py) // We should increase lx
-								{
-									x_uc = x_uc + trial_delta_uc;
-									Lx =  3*x_uc;
-								}
-								else // We should increase ly
-									{
-										y_uc = y_uc + trial_delta_uc;
-										Ly =  3*y_uc;
-									}
-						}
-			// Recalculte the coordinates for the expanded or compressed unit cell
-			for (int i = 0; i < N; i++)
-				{
-					coordinates[i].x = coordinates[i].x*(Lx/default_Lx);
-					coordinates[i].y = coordinates[i].y*(Ly/default_Ly);
-					coordinates[i].x = PBC2D(Lx, coordinates[i].x);
-					coordinates[i].y = PBC2D(Ly, coordinates[i].y);
-					coordinates[i].damping_coeff = 1.0;
-					coordinates[i].ex_field_coeff = empty_field;
-					coordinates[i].stat_weight = 1.0;
-					coordinates[i].en_and_pr = empty_field;
-					// Angles of molecules orientation
-					// do not change when expand or compress the unit cell
-				}
-				//	Realculate the energy of new state
-				for(int molA = 0; molA < (N - 1); molA++)
-				{
-					for(int molB = (molA + 1); molB < N; molB++)
-						{
-							en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, true);
-							en_and_press = en_and_press / 2.0;  //for molecules pair to value per molecule
-							coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + en_and_press;
-							coordinates[molB].en_and_pr = coordinates[molB].en_and_pr + en_and_press;
-						}
-				}
-				weighted_averages_in_central_cell(coordinates, N, Lx, Ly);
-				energy_decision = (temp_energy > EN_AND_PR_counter.energy);
-
-				if (!HC_radius && EN_AND_PR_counter.energy < E_INF)
-					{
-						write_xyz_file (unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, first);
-						temp_energy = EN_AND_PR_counter.energy;
-						dop_Px = (EN_AND_PR_counter.p_X/(Lx/4.0)/Ly*1e23/N_a);
-						dop_Py = (EN_AND_PR_counter.p_Y/(Lx/4.0)/Ly*1e23/N_a);
-						dop_id_P = R*temperature*nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a/1000.0;
-						dop_P = dop_id_P + (dop_Px + dop_Py)/2.0;
-
-						// Modification of the unit cell parameters
-						params[1] = x_uc;
-						params[2] = y_uc;
-						params[3] = sqrt(coordinates[0].x*coordinates[0].x + coordinates[0].y*coordinates[0].y);
-						params[4] = acos(coordinates[0].x/params[3])/PI*180.0;
-						for (int i = 1; i < params[0]; i++)
-							{
-								params[3+i*3] = sqrt((coordinates[i].x - coordinates[i-1].x)*(coordinates[i].x - coordinates[i-1].x) + (coordinates[i].y - coordinates[i-1].y)*(coordinates[i].y - coordinates[i-1].y));
-								params[4+i*3] = acos((coordinates[i].x - coordinates[i-1].x)/params[3+i*3])/PI*180.0;
-							}
-						step++;
-						cout << step << "\t" << counter  << "\t" << trial_delta_uc << "\t" << temp_delta << "\t"
-						<< Lx << "\t" << Ly << "\t"
-						<< nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << "\t" << dop_P << "\t" << dop_Px << "\t" << dop_Py <<  endl;
-/*						cout << "current parameters of the structure graph" << endl;
-						for (int i=1; i < params[0]*3 + 3; i++)
-							{
-								cout << params[i] << " ";
-							}
-						cout << endl;*/
-					}
-					else {cout << "HC_radius: " << HC_radius << "\t" <<  "energy: " << EN_AND_PR_counter.energy << endl;}
-				counter = 0;
-			}
-
     first = false;
     HC_radius = false;
-	}
-
+  }
   cout << "Final params: " << endl;
   for (int i = 0; i < params.size(); i++)
   {
