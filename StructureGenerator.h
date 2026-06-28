@@ -1,5 +1,3 @@
-using namespace std;
-
 void generate_elongated_cell(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
 {
   results empty_field;

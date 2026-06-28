@@ -95,7 +95,6 @@ double sigma_2; // sigma in nm^2
 
 // Forcefield
 vector <vector <vector <double> > > forcefield;
-vector <vector <vector <double> > > energy;
 // Minimal (hard core distance) and maximal distance between the molecules
 double min_dist;
 double min_dist_2;
@@ -257,9 +256,6 @@ um_step = abs(um_step);
   double center_of_mass_x = 0;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Write the item for average image
-	vector <vector <double> > xy_matrix(6000, vector<double> (6000));
-	for(int i = 0; i < 6000; i++){for(int j = 0; j < 6000; j++){xy_matrix[i][j] = 0;}}
 // Calculate initial energy
 	PotentialEnergy(nPart, Lx, Ly, coordinates, beta);
   center_of_mass_x = center_of_mass(nPart, coordinates);
