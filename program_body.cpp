@@ -110,9 +110,9 @@ int frame = 0; // For visualization purpose
 
 #include "read_forcefield.h"
 #include "PBC2D.h"
-#include "fields_pccp2022.h"
+#include "fields.h"
 #include "interpolation.h"
-#include "energies_and_forces_numerical_Dreiding_TMA.h"
+#include "energies_and_forces_numerical.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
@@ -156,7 +156,7 @@ int main()
 
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
-	sigma_2 = min_dist_2 * PI / 4.0 / 100.0;
+	sigma_2 = (11.052 * 11.052) / 100.0;
 	cut_index = (int)(((max_dist - min_dist) / dr) + 0.5);
 
  // Set configuration parameters
