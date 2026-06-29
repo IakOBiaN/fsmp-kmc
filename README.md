@@ -57,11 +57,11 @@ potential*. Download the available potentials and unpack them into the
 | `program_body.cpp` | Core simulation loop, included by every config file. |
 | `configs/` | Ready-to-compile run configurations (compile a file here to build a run). |
 | `includes.h` | Master list of headers pulled into `program_body.cpp`. |
-| `energies_and_forces_*.h` | Alternative implementations of the intermolecular potential (exact, approximate, numerical Dreiding TMA, simple model). |
+| `energies_and_forces_numerical.h` | Intermolecular potential evaluated from the precalculated numerical grid (interpolation, tail correction, hard-core cutoff). |
 | `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the precalculated numerical potential. |
-| `fields_*.h` | Damping and external field definitions (per publication). |
+| `fields.h` | Damping field, external field, and the pressure change across the gas-solid interface. |
 | `Rosenbluth_iteration.h`, `Metropolis_iteration.h` | Kinetic Monte Carlo (Rosenbluth) and Metropolis moves. |
-| `StructureGenerator*.h` | Generation of the initial molecular structure and unit cell. |
+| `StructureGenerator.h` | Generation of the initial molecular structure and unit cell. |
 | `pressure_balance.h` | Mechanical equilibrium and pressure balancing. |
 | `Widom_test.h` | Widom insertion check of the chemical potential. |
 | `Weighted_averages.h`, `block_error.h`, `bootstrap_error.h` | Time averaging and error estimation. |
