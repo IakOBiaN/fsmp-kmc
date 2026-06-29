@@ -51,6 +51,12 @@ void read_forcefield (const char * filename, vector <vector <vector <double> > >
 				}
 				now_a1 = line[1];
 
+				if (i >= (int)forcefield.size() || j >= (int)forcefield[i].size() || k >= (int)forcefield[i][j].size())
+				{
+					cerr << "ERROR: forcefield file exceeds the allocated grid at index ["
+					     << i << "][" << j << "][" << k << "]. Increase the allocation in program_body.cpp." << endl;
+					exit(1);
+				}
 				forcefield[i][j][k] = line[3] * 4184.0;
 
     }

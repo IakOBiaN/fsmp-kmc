@@ -10,6 +10,14 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
   Ly = y_uc * uc_in_y;
   int molecules = 0;
 
+  int needed = (int)params[0] * uc_in_x * uc_in_y;
+  if (needed > (int)coordinates.size())
+  {
+    cerr << "ERROR: structure needs " << needed << " molecules, but the coordinates buffer holds only "
+         << coordinates.size() << ". Increase its capacity in program_body.cpp (vector<state> coordinates)." << endl;
+    exit(1);
+  }
+
   for(int i = 0; i < uc_in_x; i++)
   {
     for(int j = 0; j < uc_in_y; j++)
