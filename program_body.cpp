@@ -144,12 +144,6 @@ int main()
 	// Read the precalculated numerical potential (binary; see tools/pack_forcefield).
 	cout << "Now I'm reading the forcefield file." << endl;
 	read_forcefield (potential_name, forcefield, ff_nang, min_dist, max_dist, dr, da, ff_fold_deg);
-	if (ff_fold_deg < 359.999)
-	{
-		cout << "ERROR: folded forcefields are not supported by the run time yet "
-		     << "(fold=" << ff_fold_deg << " deg). Pack with fold_deg=360 for now." << endl;
-		return 1;
-	}
 
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;

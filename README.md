@@ -59,6 +59,10 @@ clang++ -O3 tools/pack_forcefield.cpp -o pack
 ./pack forcefields/NAME.dat forcefields/NAME.bin
 ```
 
+If the molecule has an n-fold rotational symmetry, pass the period in degrees as a
+third argument (120 for a C3 molecule, 180 for C2) to store a single period and
+shrink the grid; the tool checks the symmetry against the data before folding.
+
 ## Repository layout
 
 | Path | Description |

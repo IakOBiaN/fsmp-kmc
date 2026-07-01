@@ -13,14 +13,16 @@
 // partners).
 //
 // Optional rotational folding: pass a period in degrees (e.g. 120 for the C3 trimesic
-// acid) to store a single angular period. Each slab is checked for that periodicity and
-// the tool refuses to fold if the data is not periodic. With no period (or 360) the grid
-// is stored in full, and the tool still reports what a 120 / 180 deg fold would cost.
+// acid, 180 for a C2 molecule) to store a single angular period. Periodicity is checked
+// only in the physical region (where the energy is below the runtime hard-core cap at
+// T_ref; above it all values fold losslessly to the cap), and the tool refuses to fold if
+// the physical deviation exceeds the tolerance. With no period (or 360) the grid is stored
+// in full, and the tool reports what a 120 / 180 deg fold would cost.
 //
 // Streams one distance slab (n_ang x n_ang) at a time, so it converts arbitrarily large
 // grids in O(n_ang^2) memory.
 //
-// Usage:  pack_forcefield <input.dat> <output.bin> [fold_deg]
+// Usage:  pack_forcefield <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]
 // Build:  clang++ -O3 tools/pack_forcefield.cpp -o pack
 //
 #include <cstdio>
@@ -33,27 +35,32 @@
 static const char     MAGIC[4]       = {'F', 'S', 'M', 'P'};
 static const uint32_t FORMAT_VERSION = 1;
 static const int      HEADER_BYTES   = 64;
-static const double   FOLD_TOL_JMOL  = 1.0;   // max |dU| over a period to accept a fold
+static const double   E_INF          = 75.0;         // hard-core cap, in units of kT
+static const double   R              = 8.314462618;  // gas constant, J/(mol K)
 
-// Largest deviation between points one period (p steps) apart, along both angular axes
-// of a single slab. Returns -1 if p is out of range.
-static double slab_period_dev(const std::vector<double>& s, int n_ang, int p) {
+// Largest deviation between points one period (p steps) apart, along both angular axes of
+// a slab, counting only pairs where at least one partner is below thr (the physical
+// region: pairs where both are above the runtime cap fold losslessly). -1 if p is invalid.
+static double slab_period_dev(const std::vector<double>& s, int n_ang, int p, double thr) {
     if (p <= 0 || p >= n_ang) return -1.0;
     double maxd = 0.0;
     for (int j = 0; j < n_ang; ++j)
         for (int k = 0; k < n_ang; ++k) {
             double v = s[(size_t)j * n_ang + k];
-            if (j + p < n_ang) { double e = fabs(v - s[(size_t)(j + p) * n_ang + k]); if (e > maxd) maxd = e; }
-            if (k + p < n_ang) { double e = fabs(v - s[(size_t)j * n_ang + (k + p)]); if (e > maxd) maxd = e; }
+            if (j + p < n_ang) { double w = s[(size_t)(j + p) * n_ang + k]; if ((v < thr || w < thr) && fabs(v - w) > maxd) maxd = fabs(v - w); }
+            if (k + p < n_ang) { double w = s[(size_t)j * n_ang + (k + p)]; if ((v < thr || w < thr) && fabs(v - w) > maxd) maxd = fabs(v - w); }
         }
     return maxd;
 }
 
 int main(int argc, char** argv) {
-    if (argc < 3) { fprintf(stderr, "usage: %s <input.dat> <output.bin> [fold_deg]\n", argv[0]); return 2; }
+    if (argc < 3) { fprintf(stderr, "usage: %s <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]\n", argv[0]); return 2; }
     const char* in_path  = argv[1];
     const char* out_path = argv[2];
     double      fold_deg = (argc > 3) ? atof(argv[3]) : 360.0;
+    double      fold_tol = (argc > 4) ? atof(argv[4]) : 100.0;   // max physical |dU|, J/mol
+    double      T_ref    = (argc > 5) ? atof(argv[5]) : 1000.0;  // reference temperature, K
+    double      thr      = E_INF * R * T_ref;                    // runtime cap at T_ref, J/mol
 
     FILE* fin = fopen(in_path, "r");
     if (!fin) { fprintf(stderr, "cannot open %s\n", in_path); return 1; }
@@ -122,13 +129,13 @@ int main(int argc, char** argv) {
                 double& A = slab[(size_t)j * n_ang + k]; double& B = slab[(size_t)kp * n_ang + jp];
                 double m = (A > B) ? A : B; A = B = m; } }
 
-        double d1 = slab_period_dev(slab, n_ang, p120); if (d1 > dev120) dev120 = d1;
-        double d2 = slab_period_dev(slab, n_ang, p180); if (d2 > dev180) dev180 = d2;
+        double d1 = slab_period_dev(slab, n_ang, p120, thr); if (d1 > dev120) dev120 = d1;
+        double d2 = slab_period_dev(slab, n_ang, p180, thr); if (d2 > dev180) dev180 = d2;
 
         const std::vector<double>* w = &slab;
         if (do_fold) {
-            double df = slab_period_dev(slab, n_ang, fold_p); if (df > devfold) devfold = df;
-            if (df > FOLD_TOL_JMOL) { fprintf(stderr, "slab %ld is not %.0f-deg periodic (|dU|=%.6g J/mol); refusing to fold\n", n_dist, fold_deg, df); fclose(fout); remove(out_path); return 1; }
+            double df = slab_period_dev(slab, n_ang, fold_p, thr); if (df > devfold) devfold = df;
+            if (df > fold_tol) { fprintf(stderr, "slab %ld: physical periodicity error %.6g J/mol > tol %.6g at %.0f deg; refusing to fold (raise the tolerance to force)\n", n_dist, df, fold_tol, fold_deg); fclose(fout); remove(out_path); return 1; }
             for (int j = 0; j < out_n_ang; ++j)
                 for (int k = 0; k < out_n_ang; ++k)
                     out[(size_t)j * out_n_ang + k] = slab[(size_t)j * n_ang + k];
@@ -149,8 +156,9 @@ int main(int argc, char** argv) {
     printf("packed %s\n", out_path);
     printf("  n_dist=%ld n_ang=%d -> out_n_ang=%d  r=[%.4f, %.4f] dr=%.5f da=%.4f fold=%.0f\n",
            n_dist, n_ang, out_n_ang, first_dist, max_dist, dr, da, out_fold);
-    printf("  fold cost: 120 deg = %.6g J/mol, 180 deg = %.6g J/mol\n", dev120, dev180);
-    if (do_fold) printf("  folded at %.0f deg, max |dU| = %.6g J/mol\n", fold_deg, devfold);
+    printf("  physical periodicity (cap at %.0f K = %.4g J/mol): 120 deg = %.4g J/mol, 180 deg = %.4g J/mol\n",
+           T_ref, thr, dev120, dev180);
+    if (do_fold) printf("  folded at %.0f deg, physical |dU| = %.4g J/mol (tol %.4g)\n", fold_deg, devfold, fold_tol);
     double mb = (double)(HEADER_BYTES + (size_t)n_dist * out_n_ang * out_n_ang * 8) / (1024.0 * 1024.0);
     printf("  size: %.1f MB (dtype=double)\n", mb);
     return 0;

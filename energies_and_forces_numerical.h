@@ -15,11 +15,21 @@ void energy_calculation(const state &molA, const state &molB, double &Lx, double
 	if (dist_y<0) {dang=-acos(dang)/PI*180.0;} else {dang=acos(dang)/PI*180.0;}
 	ang1 = ang_molA - dang;
 	ang2 = ang_molB - dang;
-	// Molecule should always has the angle in the range of 0-360 degrees
-	if (ang1 < 0) {ang1 += 360.0;}
-	if (ang2 < 0) {ang2 += 360.0;}
-	if (ang1 > 359.95) {ang1 -= 360.0;}
-	if (ang2 > 359.95) {ang2 -= 360.0;}
+	// Reduce the orientation into the stored angular range. For an unfolded grid that is
+	// [0, 360); for a grid folded to the molecule's symmetry period it is [0, ff_fold_deg),
+	// which is equivalent by that rotational symmetry.
+	if (ff_fold_deg >= 359.999)
+	{
+		if (ang1 < 0) {ang1 += 360.0;}
+		if (ang2 < 0) {ang2 += 360.0;}
+		if (ang1 > 359.95) {ang1 -= 360.0;}
+		if (ang2 > 359.95) {ang2 -= 360.0;}
+	}
+	else
+	{
+		ang1 = fmod(ang1, ff_fold_deg); if (ang1 < 0) {ang1 += ff_fold_deg;}
+		ang2 = fmod(ang2, ff_fold_deg); if (ang2 < 0) {ang2 += ff_fold_deg;}
+	}
 	dist_n = (r - min_dist) / dr;
 	dist = (int)(dist_n + 0.5);
 	a1 = (int)((ang1 / da) + 0.5);
