@@ -1,107 +1,65 @@
-#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 
-void read_forcefield (const char * filename, vector <vector <vector <double> > > &forcefield, double &min_dist, double &max_dist, double &dr, double &da)
+// Reads a compact binary forcefield produced by tools/pack_forcefield. The grid is a
+// flat block of energies (J/mol) in (distance, angle1, angle2) order, preceded by a
+// 64-byte header. One extra distance-row of zeros is appended as a guard so the
+// trilinear interpolation can read the (r + dr) neighbour at r = max_dist in range.
+void read_forcefield(const char * filename, vector<double> & ff, int & n_ang,
+                     double & min_dist, double & max_dist, double & dr, double & da,
+                     double & fold_deg)
 {
-    //Create an input file stream
-		FILE *pf = fopen (filename,"r");
-		assert (pf != 0);
-		assert (ferror(pf) == 0);
+	FILE * pf = fopen(filename, "rb");
+	if (!pf) { cerr << "ERROR: cannot open forcefield \"" << filename << "\"" << endl; exit(1); }
 
-	  double line[4];
-		double first_dist = -1;
-		double first_a1;
-		double first_a2;
-		double now_dist = -100;
-		double now_a1 = -100;
-		double now_a2 = -100;
-		int i = 0;
-		int j = 0;
-		int k = -1;
-		int counter_dist = 0;
-		int counter_da = 0;
-		int counter_da2 = 0;
-		while( 4 == fscanf (pf, "%lf %lf %lf %lf", line, line+1, line+2, line+3 ))
-    {
-				assert (ferror(pf) == 0);
-				assert (feof(pf) == 0);
-				if (first_dist == -1)
-				{
-					first_dist = line[0];
-					first_a1 = line[1];
-					first_a2 = line[2];
+	char magic[4];
+	uint32_t version = 0, dtype = 0, n_dist_u = 0, n_ang_u = 0;
+	bool ok = true;
+	ok &= fread(magic, 1, 4, pf) == 4;
+	ok &= fread(&version,  4, 1, pf) == 1;
+	ok &= fread(&dtype,    4, 1, pf) == 1;
+	ok &= fread(&n_dist_u, 4, 1, pf) == 1;
+	ok &= fread(&n_ang_u,  4, 1, pf) == 1;
+	ok &= fread(&min_dist, 8, 1, pf) == 1;
+	ok &= fread(&dr,       8, 1, pf) == 1;
+	ok &= fread(&da,       8, 1, pf) == 1;
+	ok &= fread(&fold_deg, 8, 1, pf) == 1;
+	char skip[64];
+	fread(skip, 1, 64 - 52, pf);   // header is padded to 64 bytes
+	if (!ok || memcmp(magic, "FSMP", 4) != 0)
+	{
+		cerr << "ERROR: \"" << filename << "\" is not an FSMP forcefield. "
+		     << "Convert the ASCII potential with tools/pack_forcefield first." << endl;
+		exit(1);
+	}
+	if (version != 1) { cerr << "ERROR: unsupported forcefield version " << version << endl; exit(1); }
 
-					now_a1 = line[1];
-					now_dist = line[0];
-				}
+	int n_dist = (int)n_dist_u;
+	n_ang = (int)n_ang_u;
+	max_dist = min_dist + (n_dist - 1) * dr;
 
-				k++;
-				if (now_a1 != line[1])
-				{
-					da = line[1] - now_a1;
-					k = 0;
-					j++;
-					if (now_dist != line[0])
-					{
-						cout << "Now r:" << line[0] << endl;
-						dr = line[0] - now_dist;
-						j = 0;
-						i++;
-					}
-					now_dist = line[0];
-				}
-				now_a1 = line[1];
+	size_t slab = (size_t)n_ang * n_ang;
+	size_t count = (size_t)n_dist * slab;
+	ff.assign((size_t)(n_dist + 1) * slab, 0.0);   // last distance-row stays zero (guard)
 
-				if (i >= (int)forcefield.size() || j >= (int)forcefield[i].size() || k >= (int)forcefield[i][j].size())
-				{
-					cerr << "ERROR: forcefield file exceeds the allocated grid at index ["
-					     << i << "][" << j << "][" << k << "]. Increase the allocation in program_body.cpp." << endl;
-					exit(1);
-				}
-				forcefield[i][j][k] = line[3] * 4184.0;
+	bool read_ok = false;
+	if (dtype == 0)
+	{
+		read_ok = fread(ff.data(), sizeof(double), count, pf) == count;
+	}
+	else if (dtype == 1)
+	{
+		vector<float> tmp(count);
+		read_ok = fread(tmp.data(), sizeof(float), count, pf) == count;
+		for (size_t m = 0; m < count; ++m) ff[m] = tmp[m];
+	}
+	else { cerr << "ERROR: unknown forcefield dtype " << dtype << endl; exit(1); }
+	fclose(pf);
+	if (!read_ok) { cerr << "ERROR: forcefield \"" << filename << "\" is truncated" << endl; exit(1); }
 
-    }
-		assert (feof(pf) != 0);
-
-    //Close the file stream
-		fclose(pf);
-
-		min_dist = first_dist;
-		max_dist = now_dist;
-
-		cout << "min:" << min_dist << " max:" << max_dist << endl;
-		cout << "dr:" << dr << " da:" << da << endl;
-		cout << "max_ijk:" << i << " " << j << " " << k << endl;
-
-			int dist = i;
-			int ang1 = j;
-			int ang2 = k;
-			int a1, a2;
-			for (int i = 0; i <= dist; i++)
-			{
-				for (int j = 0; j <= ang1; j++)
-				{
-					a1 = j + int(180 / da + 0.5);
-					if (a1 >= int(360 / da + 0.5)) {a1 -= int(360 / da + 0.5);}
-					for(int k = 0; k <= ang2; k++)
-					{
-						a2 = k + int(180 / da + 0.5);
-						if (a2 >= int(360 / da + 0.5)) {a2 -= int(360 / da + 0.5);}
-						// Test of the potential for symmetry
-						//if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 0.15*abs(forcefield[i][a2][a1]))
-						if (abs(forcefield[i][j][k]-forcefield[i][a2][a1]) > 1000 && abs(forcefield[i][j][k]) < E_INF * R * 1000.0)
-								{
-									cout << "distance: " << min_dist + i * dr << " angle1: " << j * da << " angle2: " << k * da << endl;
-									cout << "Potential error. Energy=" << forcefield[i][j][k] << " must be close energy=" << forcefield[i][a2][a1] << endl;
-								}
-						if (forcefield[i][j][k] < forcefield[i][a2][a1])
-						{
-							forcefield[i][j][k] = forcefield[i][a2][a1];
-						}
-						else
-						{
-							forcefield[i][a2][a1] = forcefield[i][j][k];
-						}
-					}
-				}
-			}
+	cout << "forcefield: n_dist=" << n_dist << " n_ang=" << n_ang
+	     << " r=[" << min_dist << ", " << max_dist << "] dr=" << dr
+	     << " da=" << da << " fold=" << fold_deg << " deg" << endl;
 }

@@ -4,6 +4,7 @@
 *.o
 *.obj
 *.dat
+*.bin
 *.depend
 *.layout
 *.xyz

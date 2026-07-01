@@ -1,4 +1,4 @@
-void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
+void energy_calculation(const state &molA, const state &molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
 {
 	bool tail_correction = true; // Use or not the tail correction
 	bool interpol = true; // Use or not the interpolation procedure
@@ -32,15 +32,15 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 							{
 								if (tail_correction)
 									{
-										u_cut = forcefield[cut_index][a1][a2];
-										u_before_cut = forcefield[cut_index-1][a1][a2];
+										u_cut = FF(cut_index, a1, a2);
+										u_before_cut = FF(cut_index - 1, a1, a2);
 										if (interpol)
 										{
 											en = interpolation(dist_n, ang1, ang2, beta) - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
 										}
 										else
 										{
-											en = forcefield[dist][a1][a2] - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
+											en = FF(dist, a1, a2) - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
 										}
 									}
 								else
@@ -51,7 +51,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 										}
 										else
 										{
-											en = forcefield[dist][a1][a2];
+											en = FF(dist, a1, a2);
 										}
 									}
 								en = en * molA.damping_coeff * molB.damping_coeff;
@@ -59,7 +59,7 @@ void energy_calculation(state molA, state molB, double &Lx, double &Ly, double &
 			}
 }
 
-results energies_and_forces(state molA, state molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
+results energies_and_forces(const state &molA, const state &molB, double &Lx, double &Ly, double &beta, bool pressure_calc)
 {
 	results en_and_press;
   if ((molA.damping_coeff == 0) || (molB.damping_coeff == 0))
@@ -156,7 +156,7 @@ results energies_and_forces(state molA, state molB, double &Lx, double &Ly, doub
 	return en_and_press;
 }
 
-int check_HC(state molA, state molB, double &Lx, double &Ly)
+int check_HC(const state &molA, const state &molB, double &Lx, double &Ly)
 {
   if ((molA.damping_coeff == 0) || (molB.damping_coeff == 0))
   {

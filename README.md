@@ -50,6 +50,15 @@ potential*. Download the available potentials and unpack them into the
 
 [Download numerical forcefields](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS)
 
+The run time reads a compact binary grid. Convert an ASCII potential (a downloaded
+one, or your own) to that format once with the bundled tool, then point a
+configuration's potential path at the resulting `.bin` file:
+
+```bash
+clang++ -O3 tools/pack_forcefield.cpp -o pack
+./pack forcefields/NAME.dat forcefields/NAME.bin
+```
+
 ## Repository layout
 
 | Path | Description |
@@ -58,7 +67,7 @@ potential*. Download the available potentials and unpack them into the
 | `configs/` | Ready-to-compile run configurations (compile a file here to build a run). |
 | `includes.h` | Master list of headers pulled into `program_body.cpp`. |
 | `energies_and_forces_numerical.h` | Intermolecular potential evaluated from the precalculated numerical grid (interpolation, tail correction, hard-core cutoff). |
-| `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the precalculated numerical potential. |
+| `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the binary numerical potential. |
 | `fields.h` | Damping field, external field, and the pressure change across the gas-solid interface. |
 | `Rosenbluth_iteration.h`, `Metropolis_iteration.h` | Kinetic Monte Carlo (Rosenbluth) and Metropolis moves. |
 | `StructureGenerator.h` | Generation of the initial molecular structure and unit cell. |
@@ -68,6 +77,7 @@ potential*. Download the available potentials and unpack them into the
 | `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
 | `random/` | SFMT / Mersenne Twister random number generator (by Agner Fog). |
 | `forcefields/` | Numerical potential files (downloaded separately). |
+| `tools/` | `pack_forcefield.cpp`: converts an ASCII potential into the compact binary grid the run time reads. |
 | `xyz_modification/` | Python helper scripts for post-processing XYZ trajectories. |
 
 ## Status

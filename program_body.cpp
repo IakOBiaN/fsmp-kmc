@@ -93,8 +93,15 @@ bool findTrialPart = true;                      					// Condition for additional
 int trialPart;
 double sigma_2; // sigma in nm^2
 
-// Forcefield
-vector <vector <vector <double> > > forcefield;
+// Forcefield: flat grid (distance, angle1, angle2) with ff_nang angular points per
+// axis. Filled by read_forcefield; indexed through FF(i, j, k).
+vector <double> forcefield;
+int ff_nang;
+double ff_fold_deg;
+inline double & FF(int i, int j, int k)
+{
+	return forcefield[((size_t)i * ff_nang + j) * ff_nang + k];
+}
 // Minimal (hard core distance) and maximal distance between the molecules
 double min_dist;
 double min_dist_2;
@@ -134,24 +141,15 @@ int main()
  //////////////////////////// READ FORCEFIELD FROM FILE ///////////////////////////////
  /////////////////////////////////////////////////////////////////////////////////////
 
-	// Fill in the forcefield
-	// First dimension is distance
-	// Second dimension is angle of first molecule
-	// Third dimension is angle of second molecule
-	for (int i = 0; i < 1303; i++) {
-		vector< vector<double> > mat; // Create an empty matrix
-			for (int j = 0; j < 721; j++) {
-				vector<double> row; // Create an empty row
-					for (int k =0; k <721; k++) {
-						row.push_back(0);
-					}
-					mat.push_back(row); // Add an element (column) to the row
-			}
-			forcefield.push_back(mat); // Add the row to the main vector
-	}
-	// Read the forcefield from "forcefield.dat"
+	// Read the precalculated numerical potential (binary; see tools/pack_forcefield).
 	cout << "Now I'm reading the forcefield file." << endl;
-	read_forcefield (potential_name, forcefield, min_dist, max_dist, dr, da);
+	read_forcefield (potential_name, forcefield, ff_nang, min_dist, max_dist, dr, da, ff_fold_deg);
+	if (ff_fold_deg < 359.999)
+	{
+		cout << "ERROR: folded forcefields are not supported by the run time yet "
+		     << "(fold=" << ff_fold_deg << " deg). Pack with fold_deg=360 for now." << endl;
+		return 1;
+	}
 
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
