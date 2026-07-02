@@ -50,7 +50,7 @@ the program directly; download and unpack them into the `forcefields/` folder:
 
 [Download numerical forcefields (binary, v2)](https://1drv.ms/f/c/18917b5147a88b6c/IgC8SnvBaZORTYWhHGeVLxWQAUzqPePWJhDM3ah1dJotJos?e=5CZNiR)
 
-The original ASCII grids are kept in a
+The original ASCII grids of the DFT potentials are kept in a
 [separate folder](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
 They are only needed to repack a potential yourself, for example with different
 folding or in double precision.
@@ -72,6 +72,19 @@ Add `--float` to store the energies in 32-bit precision. The file is half the
 size, and the rounding error in the physically relevant region (about 0.01 J/mol)
 is negligible compared to the thermal energy.
 
+## Tests
+
+```bash
+./tests/run_tests.sh
+```
+
+The suite first checks the ASCII-to-binary converter on a synthetic grid
+against an independent reimplementation of the packing rules, then runs the
+engine on a small grid committed to the repository and compares the
+deterministic initial energy of the TMA HCP crystal with a pinned value. When
+the full TMA simple potential is present in `forcefields/`, the same check also
+runs against the published reference energy.
+
 ## Repository layout
 
 | Path | Description |
@@ -91,15 +104,16 @@ is negligible compared to the thermal energy.
 | `random/` | SFMT / Mersenne Twister random number generator (by Agner Fog). |
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `tools/` | `pack_forcefield.cpp`: converts an ASCII potential into the compact binary grid the run time reads. |
+| `tests/` | Regression tests and their small data grid (`./tests/run_tests.sh`). |
 | `xyz_modification/` | Python helper scripts for post-processing XYZ trajectories. |
 
 ## Status
 
 This is a research code under active cleanup. It reproduces the published
 results, but it is not yet packaged for general use. The build is per
-configuration (no build system yet), there is no automated test suite, and parts
-of the optimization routines are experimental and may be unstable. Improving and
-documenting the code is ongoing.
+configuration (no build system yet), and parts of the optimization routines are
+experimental and may be unstable. A regression test suite lives in `tests/`
+(see [Tests](#tests)). Improving and documenting the code is ongoing.
 
 ## License
 

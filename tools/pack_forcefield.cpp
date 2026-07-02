@@ -26,7 +26,11 @@
 // rounding error in the physical region (|E| ~ 1e5 J/mol) is ~0.01 J/mol, far below
 // kT; the run time still works in double internally.
 //
-// Usage:  pack_forcefield [--float] <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]
+// --stride N keeps every N-th grid point along the distance and both angles: a
+// coarse copy for regression tests, NOT for production runs. N must divide the
+// angular grid so that the 180-deg exchange symmetry stays exact on the new step.
+//
+// Usage:  pack_forcefield [--float] [--stride N] <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]
 // Build:  clang++ -O3 tools/pack_forcefield.cpp -o pack
 //
 #include <cstdio>
@@ -59,13 +63,15 @@ static double slab_period_dev(const std::vector<double>& s, int n_ang, int p, do
 
 int main(int argc, char** argv) {
     bool use_float = false;
+    int  stride    = 1;
     const char* pos[5] = {0, 0, 0, 0, 0};
     int npos = 0;
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--float") == 0) { use_float = true; continue; }
+        if (strcmp(argv[i], "--stride") == 0 && i + 1 < argc) { stride = atoi(argv[++i]); continue; }
         if (npos < 5) pos[npos++] = argv[i];
     }
-    if (npos < 2) { fprintf(stderr, "usage: %s [--float] <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]\n", argv[0]); return 2; }
+    if (npos < 2 || stride < 1) { fprintf(stderr, "usage: %s [--float] [--stride N] <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]\n", argv[0]); return 2; }
     const char* in_path  = pos[0];
     const char* out_path = pos[1];
     double      fold_deg = (npos > 2) ? atof(pos[2]) : 360.0;
@@ -90,6 +96,14 @@ int main(int argc, char** argv) {
     if (n_ang_l * n_ang_l != block_lines) { fprintf(stderr, "first block (%ld lines) is not a perfect square\n", block_lines); return 1; }
     if (!have_da || dr == 0) { fprintf(stderr, "could not detect da/dr\n"); return 1; }
     int n_ang = (int)n_ang_l;
+    int    n_in  = n_ang;   // input slab width; n_ang/da/dr below describe the (possibly strided) output
+    if (stride > 1) {
+        if ((n_ang - 1) % stride != 0) { fprintf(stderr, "stride %d does not divide the angular grid (n_ang-1 = %d)\n", stride, n_ang - 1); return 1; }
+        n_ang = (n_ang - 1) / stride + 1;
+        da *= stride;
+        dr *= stride;
+        if (fabs(llround(180.0 / da) * da - 180.0) > 1e-9) { fprintf(stderr, "stride %d breaks the 180-deg exchange symmetry (da becomes %.4f)\n", stride, da); return 1; }
+    }
     int half = (int)llround(180.0 / da), full = (int)llround(360.0 / da);
 
     int    fold_p = 0, out_n_ang = n_ang; double out_fold = 360.0;
@@ -120,21 +134,29 @@ int main(int argc, char** argv) {
 
     // --- stream every slab from the start of the file ---
     rewind(fin);
-    size_t sn = (size_t)n_ang * n_ang;
-    std::vector<double> slab(sn), out;
+    size_t sn_in = (size_t)n_in * n_in;
+    size_t sn    = (size_t)n_ang * n_ang;
+    std::vector<double> slab_in(sn_in), slab_s, out;
     std::vector<float> f32;
+    if (stride > 1) slab_s.resize(sn);
+    std::vector<double>& slab = (stride > 1) ? slab_s : slab_in;
     if (do_fold) out.resize((size_t)out_n_ang * out_n_ang);
     int p120 = (int)llround(120.0 / da), p180 = (int)llround(180.0 / da);
     double dev120 = 0, dev180 = 0, devfold = 0;
-    long n_dist = 0;
+    long n_dist = 0, slab_idx = 0;
     while (true) {
         size_t got = 0;
-        for (; got < sn; ++got) {
+        for (; got < sn_in; ++got) {
             if (fscanf(fin, "%lf %lf %lf %lf", &r, &a1, &a2, &e) != 4) break;
-            slab[got] = e * 4184.0;
+            slab_in[got] = e * 4184.0;
         }
         if (got == 0) break;                            // clean end of file
-        if (got != sn) { fprintf(stderr, "truncated slab %ld (%zu/%zu lines)\n", n_dist, got, sn); fclose(fout); remove(out_path); return 1; }
+        if (got != sn_in) { fprintf(stderr, "truncated slab %ld (%zu/%zu lines)\n", slab_idx, got, sn_in); fclose(fout); remove(out_path); return 1; }
+        if (slab_idx++ % stride) continue;
+        if (stride > 1)
+            for (int j = 0; j < n_ang; ++j)
+                for (int k = 0; k < n_ang; ++k)
+                    slab_s[(size_t)j * n_ang + k] = slab_in[(size_t)j * stride * n_in + (size_t)k * stride];
 
         for (int j = 0; j < n_ang; ++j) { int jp = j + half; if (jp >= full) jp -= full;
             for (int k = 0; k < n_ang; ++k) { int kp = k + half; if (kp >= full) kp -= full;
@@ -171,8 +193,8 @@ int main(int argc, char** argv) {
 
     double max_dist = first_dist + (n_dist - 1) * dr;
     printf("packed %s\n", out_path);
-    printf("  n_dist=%ld n_ang=%d -> out_n_ang=%d  r=[%.4f, %.4f] dr=%.5f da=%.4f fold=%.0f\n",
-           n_dist, n_ang, out_n_ang, first_dist, max_dist, dr, da, out_fold);
+    printf("  n_dist=%ld n_ang=%d -> out_n_ang=%d  r=[%.4f, %.4f] dr=%.5f da=%.4f fold=%.0f stride=%d\n",
+           n_dist, n_ang, out_n_ang, first_dist, max_dist, dr, da, out_fold, stride);
     printf("  physical periodicity (cap at %.0f K = %.4g J/mol): 120 deg = %.4g J/mol, 180 deg = %.4g J/mol\n",
            T_ref, thr, dev120, dev180);
     if (do_fold) printf("  folded at %.0f deg, physical |dU| = %.4g J/mol (tol %.4g)\n", fold_deg, devfold, fold_tol);
