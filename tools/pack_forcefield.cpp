@@ -22,7 +22,11 @@
 // Streams one distance slab (n_ang x n_ang) at a time, so it converts arbitrarily large
 // grids in O(n_ang^2) memory.
 //
-// Usage:  pack_forcefield <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]
+// --float stores the energies as 32-bit floats (half the file size). The absolute
+// rounding error in the physical region (|E| ~ 1e5 J/mol) is ~0.01 J/mol, far below
+// kT; the run time still works in double internally.
+//
+// Usage:  pack_forcefield [--float] <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]
 // Build:  clang++ -O3 tools/pack_forcefield.cpp -o pack
 //
 #include <cstdio>
@@ -33,7 +37,7 @@
 #include <vector>
 
 static const char     MAGIC[4]       = {'F', 'S', 'M', 'P'};
-static const uint32_t FORMAT_VERSION = 1;
+static const uint32_t FORMAT_VERSION = 2;
 static const int      HEADER_BYTES   = 64;
 static const double   E_INF          = 75.0;         // hard-core cap, in units of kT
 static const double   R              = 8.314462618;  // gas constant, J/(mol K)
@@ -54,12 +58,19 @@ static double slab_period_dev(const std::vector<double>& s, int n_ang, int p, do
 }
 
 int main(int argc, char** argv) {
-    if (argc < 3) { fprintf(stderr, "usage: %s <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]\n", argv[0]); return 2; }
-    const char* in_path  = argv[1];
-    const char* out_path = argv[2];
-    double      fold_deg = (argc > 3) ? atof(argv[3]) : 360.0;
-    double      fold_tol = (argc > 4) ? atof(argv[4]) : 100.0;   // max physical |dU|, J/mol
-    double      T_ref    = (argc > 5) ? atof(argv[5]) : 1000.0;  // reference temperature, K
+    bool use_float = false;
+    const char* pos[5] = {0, 0, 0, 0, 0};
+    int npos = 0;
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--float") == 0) { use_float = true; continue; }
+        if (npos < 5) pos[npos++] = argv[i];
+    }
+    if (npos < 2) { fprintf(stderr, "usage: %s [--float] <input.dat> <output.bin> [fold_deg] [tol_Jmol] [T_ref_K]\n", argv[0]); return 2; }
+    const char* in_path  = pos[0];
+    const char* out_path = pos[1];
+    double      fold_deg = (npos > 2) ? atof(pos[2]) : 360.0;
+    double      fold_tol = (npos > 3) ? atof(pos[3]) : 100.0;   // max physical |dU|, J/mol
+    double      T_ref    = (npos > 4) ? atof(pos[4]) : 1000.0;  // reference temperature, K
     double      thr      = E_INF * R * T_ref;                    // runtime cap at T_ref, J/mol
 
     FILE* fin = fopen(in_path, "r");
@@ -92,7 +103,7 @@ int main(int argc, char** argv) {
     // --- write a placeholder header (n_dist is patched once we have counted slabs) ---
     FILE* fout = fopen(out_path, "wb");
     if (!fout) { fprintf(stderr, "cannot open %s\n", out_path); return 1; }
-    uint32_t dtype = 0, nd0 = 0, na = (uint32_t)out_n_ang;
+    uint32_t dtype = use_float ? 1u : 0u, nd0 = 0, na = (uint32_t)out_n_ang;
     long hb = 0;
     hb += fwrite(MAGIC, 1, 4, fout);
     hb += fwrite(&FORMAT_VERSION, 4, 1, fout) * 4;
@@ -111,6 +122,7 @@ int main(int argc, char** argv) {
     rewind(fin);
     size_t sn = (size_t)n_ang * n_ang;
     std::vector<double> slab(sn), out;
+    std::vector<float> f32;
     if (do_fold) out.resize((size_t)out_n_ang * out_n_ang);
     int p120 = (int)llround(120.0 / da), p180 = (int)llround(180.0 / da);
     double dev120 = 0, dev180 = 0, devfold = 0;
@@ -141,7 +153,12 @@ int main(int argc, char** argv) {
                     out[(size_t)j * out_n_ang + k] = slab[(size_t)j * n_ang + k];
             w = &out;
         }
-        fwrite(w->data(), sizeof(double), w->size(), fout);
+        if (use_float) {
+            f32.assign(w->begin(), w->end());
+            fwrite(f32.data(), sizeof(float), f32.size(), fout);
+        } else {
+            fwrite(w->data(), sizeof(double), w->size(), fout);
+        }
         ++n_dist;
     }
     fclose(fin);
@@ -159,7 +176,8 @@ int main(int argc, char** argv) {
     printf("  physical periodicity (cap at %.0f K = %.4g J/mol): 120 deg = %.4g J/mol, 180 deg = %.4g J/mol\n",
            T_ref, thr, dev120, dev180);
     if (do_fold) printf("  folded at %.0f deg, physical |dU| = %.4g J/mol (tol %.4g)\n", fold_deg, devfold, fold_tol);
-    double mb = (double)(HEADER_BYTES + (size_t)n_dist * out_n_ang * out_n_ang * 8) / (1024.0 * 1024.0);
-    printf("  size: %.1f MB (dtype=double)\n", mb);
+    size_t vbytes = use_float ? 4 : 8;
+    double mb = (double)(HEADER_BYTES + (size_t)n_dist * out_n_ang * out_n_ang * vbytes) / (1024.0 * 1024.0);
+    printf("  size: %.1f MB (dtype=%s)\n", mb, use_float ? "float" : "double");
     return 0;
 }

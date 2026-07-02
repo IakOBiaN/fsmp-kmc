@@ -27,14 +27,20 @@ void read_forcefield(const char * filename, vector<double> & ff, int & n_ang,
 	ok &= fread(&da,       8, 1, pf) == 1;
 	ok &= fread(&fold_deg, 8, 1, pf) == 1;
 	char skip[64];
-	fread(skip, 1, 64 - 52, pf);   // header is padded to 64 bytes
+	ok &= fread(skip, 1, 64 - 52, pf) == 64 - 52;   // header is padded to 64 bytes
 	if (!ok || memcmp(magic, "FSMP", 4) != 0)
 	{
 		cerr << "ERROR: \"" << filename << "\" is not an FSMP forcefield. "
 		     << "Convert the ASCII potential with tools/pack_forcefield first." << endl;
 		exit(1);
 	}
-	if (version != 1) { cerr << "ERROR: unsupported forcefield version " << version << endl; exit(1); }
+	if (version != 2)
+	{
+		cerr << "ERROR: unsupported forcefield format version " << version
+		     << " (this build reads version 2). Re-convert the ASCII potential with "
+		     << "the current tools/pack_forcefield." << endl;
+		exit(1);
+	}
 
 	int n_dist = (int)n_dist_u;
 	n_ang = (int)n_ang_u;

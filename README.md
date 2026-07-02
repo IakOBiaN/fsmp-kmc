@@ -45,14 +45,19 @@ clang++ -O3 terephthalic_acid_chain.cpp -o program.o
 ## Forcefields
 
 The intermolecular interaction is supplied as a precalculated *numerical
-potential*. Download the available potentials and unpack them into the
-`forcefields/` folder:
+potential*. Ready-to-use potentials in the compact binary format (v2) are read by
+the program directly; download and unpack them into the `forcefields/` folder:
 
-[Download numerical forcefields](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS)
+[Download numerical forcefields (binary, v2)](https://1drv.ms/f/c/18917b5147a88b6c/IgC8SnvBaZORTYWhHGeVLxWQAUzqPePWJhDM3ah1dJotJos?e=5CZNiR)
 
-The run time reads a compact binary grid. Convert an ASCII potential (a downloaded
-one, or your own) to that format once with the bundled tool, then point a
-configuration's potential path at the resulting `.bin` file:
+The original ASCII grids are kept in a
+[separate folder](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
+They are only needed to repack a potential yourself, for example with different
+folding or in double precision.
+
+The run time reads only the binary format. To convert an ASCII potential (a
+legacy one, or your own) use the bundled tool, then point a configuration's
+potential path at the resulting `.bin` file:
 
 ```bash
 clang++ -O3 tools/pack_forcefield.cpp -o pack
@@ -62,6 +67,10 @@ clang++ -O3 tools/pack_forcefield.cpp -o pack
 If the molecule has an n-fold rotational symmetry, pass the period in degrees as a
 third argument (120 for a C3 molecule, 180 for C2) to store a single period and
 shrink the grid; the tool checks the symmetry against the data before folding.
+
+Add `--float` to store the energies in 32-bit precision. The file is half the
+size, and the rounding error in the physically relevant region (about 0.01 J/mol)
+is negligible compared to the thermal energy.
 
 ## Repository layout
 
