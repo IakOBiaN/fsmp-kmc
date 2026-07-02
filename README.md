@@ -119,10 +119,13 @@ experimental and may be unstable. A regression test suite lives in `tests/`
 
 Released under the GNU General Public License v3.0. See [LICENSE](LICENSE).
 
-This repository is a fork and continuation of the FSMP-kMC code. The code was
-written by S. S. Akimenko and V. A. Gorbunov, under the scientific supervision of
-E. A. Ustinov. It is now maintained and further developed by Sergey S. Akimenko.
-See the commit history for the changes made in this fork.
+This repository is a fork and continuation of the original FSMP-kMC code,
+published on GitLab under its historical name
+[pedl/n2_quadrupole](https://gitlab.com/pedl/n2_quadrupole). The code was
+written by S. S. Akimenko and V. A. Gorbunov, under the scientific supervision
+of E. A. Ustinov. The fork is maintained and further developed by
+Sergey S. Akimenko. It carries the full history of the original project; see
+the commit history for the changes made since the fork.
 
 ## In memory
 
