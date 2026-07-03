@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="logo/logo.svg" alt="FSMP-kMC: Field-Stabilized Multiphase kinetic Monte Carlo" width="760">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logo/logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="logo/logo.svg">
+    <img src="logo/logo.svg" alt="FSMP-kMC: Field-Stabilized Multiphase kinetic Monte Carlo" width="720">
+  </picture>
 </p>
 
 # FSMP-kMC
