@@ -344,51 +344,43 @@ void generate_structure(vector <double> &params, string structure_name, vector <
   generate_elongated_cell(params, coordinates, Lx, Ly);
 }
 
-void generate_structure(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
+// Build the 3x3 tiling of the unit cell described by params into coordinates and
+// return its total energy in J/mol (summed over the 9*params[0] molecules, no
+// external fields). Sets the global HC_radius flag if any pair overlaps the hard core.
+double optimizer_tiling_energy(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly, double beta)
 {
-  double temp_E_INF = E_INF;
-  E_INF = 1e200;
   results empty_field;
   results en_and_press;
-  int params_amount = params.size() - 1;
-  double delta_uc = 0.5;
-  double temp_energy = 1e10;
-  bool first = true;
-  int counter = 0;
-  double beta = 1.0 / (R * 300);
-  int N = params[0] * 3 * 3;
-
-  while (counter < 10000)
+  int N = (int)params[0] * 3 * 3;
+  Lx = params[1] * 3;
+  Ly = params[2] * 3;
+  double x_uc = params[1];
+  double y_uc = params[2];
+  int molecules = 0;
+  for (int i = 0; i < 3; i++)
   {
-    int param_number;
-    double temp_delta;
-    if (!first)
+    for (int j = 0; j < 3; j++)
     {
-      param_number = RanGen.IRandom(1, params_amount);
-      temp_delta = (2 * delta_uc * RanGen.Random() - delta_uc);
-    }
-    else
-    {
-      param_number = 2;
-      temp_delta = 0;
-    }
-
-    params[param_number] += temp_delta;
-
-    Lx = params[1] * 3;
-    Ly = params[2] * 3;
-    double x_uc = params[1];
-    double y_uc = params[2];
-    int molecules = 0;
-    for(int i = 0; i < 3; i++)
-    {
-      for(int j = 0; j < 3; j++)
+      coordinates[molecules].x = i * x_uc + params[3] * cos(params[4] / 180.0 * PI);
+      coordinates[molecules].y = j * y_uc + params[3] * sin(params[4] / 180.0 * PI);
+      coordinates[molecules].x = PBC2D(Lx, coordinates[molecules].x);
+      coordinates[molecules].y = PBC2D(Ly, coordinates[molecules].y);
+      coordinates[molecules].phi = params[5];
+      coordinates[molecules].sin_phi = sin(coordinates[molecules].phi / 180.0 * PI);
+      coordinates[molecules].cos_phi = cos(coordinates[molecules].phi / 180.0 * PI);
+      coordinates[molecules].damping_coeff = 1.0;
+      coordinates[molecules].ex_field_coeff = empty_field;
+      coordinates[molecules].stat_weight = 1.0;
+      coordinates[molecules].en_and_pr = empty_field;
+      molecules++;
+      for (int mol = 1; mol < params[0]; mol++)
       {
-        coordinates[molecules].x = i * x_uc + params[3] * cos(params[4] / 180.0 * PI);
-        coordinates[molecules].y = j * y_uc + params[3] * sin(params[4] / 180.0 * PI);
+        int number = 3 + mol * 3;
+        coordinates[molecules].x = coordinates[molecules - 1].x + params[number] * cos(params[number + 1] / 180.0 * PI);
+        coordinates[molecules].y = coordinates[molecules - 1].y + params[number] * sin(params[number + 1] / 180.0 * PI);
         coordinates[molecules].x = PBC2D(Lx, coordinates[molecules].x);
         coordinates[molecules].y = PBC2D(Ly, coordinates[molecules].y);
-        coordinates[molecules].phi = params[5];
+        coordinates[molecules].phi = params[number + 2];
         coordinates[molecules].sin_phi = sin(coordinates[molecules].phi / 180.0 * PI);
         coordinates[molecules].cos_phi = cos(coordinates[molecules].phi / 180.0 * PI);
         coordinates[molecules].damping_coeff = 1.0;
@@ -396,64 +388,124 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
         coordinates[molecules].stat_weight = 1.0;
         coordinates[molecules].en_and_pr = empty_field;
         molecules++;
-        for (int mol = 1; mol < params[0]; mol++)
-        {
-          int number = 3 + mol * 3;
-          coordinates[molecules].x = coordinates[molecules - 1].x + params[number] * cos(params[number + 1] / 180.0 * PI);
-          coordinates[molecules].y = coordinates[molecules - 1].y + params[number] * sin(params[number + 1] / 180.0 * PI);
-          coordinates[molecules].x = PBC2D(Lx, coordinates[molecules].x);
-          coordinates[molecules].y = PBC2D(Ly, coordinates[molecules].y);
-          coordinates[molecules].phi = params[number + 2];
-          coordinates[molecules].sin_phi = sin(coordinates[molecules].phi / 180.0 * PI);
-          coordinates[molecules].cos_phi = cos(coordinates[molecules].phi / 180.0 * PI);
-          coordinates[molecules].damping_coeff = 1.0;
-          coordinates[molecules].ex_field_coeff = empty_field;
-          coordinates[molecules].stat_weight = 1.0;
-          coordinates[molecules].en_and_pr = empty_field;
-          molecules++;
-        }
       }
     }
+  }
 
-    for(int molA = 0; molA < (N - 1); molA++)
-  	{
-  		for(int molB = (molA + 1); molB < N; molB++)
-  			{
-  				en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, false);
-  				en_and_press = en_and_press / 2.0;  //for molecules pair to value per molecule
-  				coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + en_and_press;
-  				coordinates[molB].en_and_pr = coordinates[molB].en_and_pr + en_and_press;
-  			}
-    }
-
-    weighted_averages_in_central_cell(coordinates, N, Lx, Ly);
-    if (first && HC_radius)
+  HC_radius = false;
+  for (int molA = 0; molA < (N - 1); molA++)
+  {
+    for (int molB = (molA + 1); molB < N; molB++)
     {
-      cout << "ERROR!!! HC_radius!!!" << endl;
+      en_and_press = energies_and_forces(coordinates[molA], coordinates[molB], Lx, Ly, beta, false);
+      en_and_press = en_and_press / 2.0;  //for molecules pair to value per molecule
+      coordinates[molA].en_and_pr = coordinates[molA].en_and_pr + en_and_press;
+      coordinates[molB].en_and_pr = coordinates[molB].en_and_pr + en_and_press;
     }
+  }
+  weighted_averages_in_central_cell(coordinates, N, Lx, Ly);
+  return EN_AND_PR_counter.energy;
+}
 
-    if (first)
-    {
-      cout << "Initial properties:" << endl;
-      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
-    }
+// Refine a rough unit cell (structure_name = "calculate"): adaptive random descent
+// over the cell sides and the molecular placement parameters. One random parameter
+// is perturbed at a time; a move is accepted only when the energy of the 3x3 tiling
+// strictly decreases and no hard-core overlap appears. Lengths and angles carry
+// separate step sizes; after stall_limit consecutive rejections both steps are
+// halved, and convergence is declared once they fall below the thresholds.
+//
+// params[3] and params[4] (the offset of the first molecule from the cell origin)
+// only translate the lattice as a whole, so they are never perturbed.
+//
+// Deterministic when compiled with -DFSMP_RANDOM_SEED=<n>.
+void generate_structure(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
+{
+  double temp_E_INF = E_INF;
+  E_INF = 1e200;   // expose the true repulsion to the optimizer instead of the flat cap
+  double beta = 1.0 / (R * 300);
+  int n_params = (int)params.size();
+  int N = (int)params[0] * 3 * 3;
 
-    if ((temp_energy > EN_AND_PR_counter.energy) && !HC_radius)
+  // Optimizable degrees of freedom, split by type: lengths in A, angles in degrees
+  vector<int> dof_len, dof_ang;
+  dof_len.push_back(1);   // cell side x
+  dof_len.push_back(2);   // cell side y
+  if (n_params > 5) { dof_ang.push_back(5); }   // rotation of the first molecule
+  for (int mol = 1; 3 + mol * 3 + 2 < n_params; mol++)
+  {
+    dof_len.push_back(3 + mol * 3);       // distance from the previous molecule
+    dof_ang.push_back(3 + mol * 3 + 1);   // direction of that displacement
+    dof_ang.push_back(3 + mol * 3 + 2);   // own rotation
+  }
+  int n_dof = (int)(dof_len.size() + dof_ang.size());
+
+  double step_len = 0.3;               // A
+  double step_ang = 5.0;               // deg
+  const double step_len_min = 0.001;   // convergence thresholds
+  const double step_ang_min = 0.02;
+  const int  stall_limit = 300;        // consecutive rejections before halving the steps
+  const long iter_cap = 2000000;       // safety net
+
+  double energy = optimizer_tiling_energy(params, coordinates, Lx, Ly, beta);
+  if (HC_radius)
+  {
+    cerr << "ERROR: the starting unit cell has overlapping molecules (hard core). "
+         << "Fix the initial guess in the configuration." << endl;
+    exit(1);
+  }
+  cout << endl << "Unit cell optimization: " << n_dof << " degrees of freedom" << endl;
+  cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx * Ly) / N_a << "\t"
+       << " Energy: " << energy / 1000.0 / nPart_in_central_cell << endl;
+  write_xyz_file(unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, true);
+
+  long iter = 0, accepted = 0;
+  int stall = 0;
+  while (iter < iter_cap)
+  {
+    iter++;
+    int pick = RanGen.IRandom(0, n_dof - 1);
+    int param_number;
+    double step;
+    if (pick < (int)dof_len.size()) { param_number = dof_len[pick]; step = step_len; }
+    else { param_number = dof_ang[pick - dof_len.size()]; step = step_ang; }
+
+    double old_value = params[param_number];
+    params[param_number] = old_value + (2.0 * RanGen.Random() - 1.0) * step;
+
+    bool bad = (step == step_len && params[param_number] <= 0.0);  // lengths must stay positive
+    double trial = bad ? 0.0 : optimizer_tiling_energy(params, coordinates, Lx, Ly, beta);
+    if (!bad && trial < energy && !HC_radius)
     {
-      counter = 0;
-      temp_energy = EN_AND_PR_counter.energy;
-      write_xyz_file (unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, first);
-      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx*Ly) / N_a << "\t" << " Energy: " << EN_AND_PR_counter.energy / 1000.0 / nPart_in_central_cell << endl;
+      energy = trial;
+      accepted++;
+      stall = 0;
+      write_xyz_file(unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, false);
+      cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx * Ly) / N_a << "\t"
+           << " Energy: " << energy / 1000.0 / nPart_in_central_cell << endl;
     }
     else
     {
-      params[param_number] -= temp_delta;
-      counter++;
+      params[param_number] = old_value;
+      stall++;
+      if (stall >= stall_limit)
+      {
+        step_len /= 2.0;
+        step_ang /= 2.0;
+        stall = 0;
+        if (step_len < step_len_min && step_ang < step_ang_min) { break; }
+        cout << "Steps halved to " << step_len << " A / " << step_ang
+             << " deg (iteration " << iter << ", accepted " << accepted << ")" << endl;
+      }
     }
-
-    first = false;
-    HC_radius = false;
   }
+
+  // Rebuild at the accepted parameters and report
+  energy = optimizer_tiling_energy(params, coordinates, Lx, Ly, beta);
+  HC_radius = false;
+  cout << "Optimization " << ((iter < iter_cap) ? "converged" : "hit the iteration cap")
+       << " after " << iter << " iterations (" << accepted << " accepted)" << endl;
+  cout << "Final energy per molecule: " << energy / 1000.0 / nPart_in_central_cell << " kJ/mol" << endl;
+  cout << "Final density: " << nPart_in_central_cell * (1.0e+26) / (Lx * Ly) / N_a << " mkmol/m2" << endl;
   cout << "Final params: " << endl;
   for (size_t i = 0; i < params.size(); i++)
   {
