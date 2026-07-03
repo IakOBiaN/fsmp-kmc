@@ -1,4 +1,4 @@
-double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &dt, double &beta, int &iter, int &trialPart, bool findTrialPart, double &center_of_mass_x)
+double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &coordinates, double &dt, double &beta, int & /*iter*/, int &trialPart, bool findTrialPart, double &center_of_mass_x)
 {
 
 	//int trialPart = 0;
@@ -81,7 +81,6 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
   new_coordinates.ex_field_coeff = external_field(new_coordinates.x, Lx); // u_ext
   new_coordinates.stat_weight = weights_for_central_cell (new_coordinates.x, Lx);
 
-double eno = 0;
 for (int l = 0; l < nPart; l++)
   {
 		if (l == trialPart){continue;}

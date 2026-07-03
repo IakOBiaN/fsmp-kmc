@@ -24,7 +24,7 @@ bool kMC = true;
 
 //MODEL SETTINGS
 //numerical potential name
-string p_name = "../forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.dat";
+string p_name = "../forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.v2.bin";
 //you can use your own structures if set "structure_name" to "calculate"
 string structure_name = "TPA_horizontal_ladder_qPBE_Dreiding_Dhb5.0";  //from StructureGenerator.h file
 int uc_in_x = 30;  //unit cells in x direction

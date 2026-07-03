@@ -156,7 +156,7 @@ int main()
  double press_X_gas = 0, press_Y_gas = 0, Energy_gas = 0, gas_density = 0;
  double press_X_transition_zone = 0, Energy_transition_zone = 0, transition_zone_density = 0;
  double delta_p_over_interface = 0;
- double persent = 0, AR_r, AR_m;
+ double AR_r, AR_m;
  int N_test;																			// Counter for attempts to insert the test particle in Widom's algorythm
  double e_test;																	// Counter for energy change due to the insertion of the test particle
 
@@ -244,7 +244,6 @@ um_step = abs(um_step);
 	ACCEPTANCE_RATIO_m[0] = 0;  // rejected translations
 	ACCEPTANCE_RATIO_m[1] = 0; // accepted translations
 	int balanceEq = 0;
-	persent = 0;
   double center_of_mass_x = 0;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,4 +1,4 @@
-void energy_calculation(const state &molA, const state &molB, double &Lx, double &Ly, double &beta, double &r, double dist_x, double dist_y, double &en)
+void energy_calculation(const state &molA, const state &molB, double & /*Lx*/, double & /*Ly*/, double &beta, double &r, double dist_x, double dist_y, double &en)
 {
 	bool tail_correction = true; // Use or not the tail correction
 	bool interpol = true; // Use or not the interpolation procedure
@@ -88,7 +88,6 @@ results energies_and_forces(const state &molA, const state &molB, double &Lx, do
 	state molB_clone = molB;
 
 	double dist_x_plus_delta, dist_y_plus_delta;
-	double dist_x_plus_delta_2, dist_y_plus_delta_2;
 	double t_U_delta;
 
 	for (int id = -1; id < 2; id++)
@@ -172,7 +171,6 @@ int check_HC(const state &molA, const state &molB, double &Lx, double &Ly)
   {
     return 0;
   }
-	double r;	// Distance between A and B molecules
 	double r2;	// Distance sqaured
 	double dist_x, dist_y;	// Distance between A and B molecules along x and y axies
 	double dist_x_2, dist_y_2;
@@ -186,7 +184,6 @@ int check_HC(const state &molA, const state &molB, double &Lx, double &Ly)
      if (HC_radius) {break;}
 		 dist_x = 0;
 		 dist_y = 0;
-		 r = 0;
 		 molB_clone.x = molB.x + id*Lx;
 		 dist_x = molB_clone.x - molA.x;
 		 dist_x_2 = dist_x*dist_x;

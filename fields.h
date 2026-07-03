@@ -52,7 +52,7 @@ double weights_for_central_cell (double x, double &Lx)
   return 0;
 }
 
-void pressure_change_over_interface(vector <state> &coordinates, int &nPart, double &Lx, double &Ly)
+void pressure_change_over_interface(vector <state> &coordinates, int &nPart, double &Lx, double & /*Ly*/)
 {
 	EN_AND_PR_counter.energy = 0;
 	EN_AND_PR_counter.p_X = 0;

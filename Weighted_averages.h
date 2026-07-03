@@ -1,4 +1,4 @@
-void weighted_averages_in_central_cell(vector <state> &coordinates, int &nPart, double &Lx, double &Ly)
+void weighted_averages_in_central_cell(vector <state> &coordinates, int &nPart, double & /*Lx*/, double & /*Ly*/)
 {
 	EN_AND_PR_counter.energy = 0;
 	EN_AND_PR_counter.p_X = 0;
@@ -13,7 +13,7 @@ void weighted_averages_in_central_cell(vector <state> &coordinates, int &nPart, 
 	}
 }
 
-void weighted_averages_in_gas(vector <state> &coordinates, int &nPart, double &Lx, double &Ly)
+void weighted_averages_in_gas(vector <state> &coordinates, int &nPart, double &Lx, double & /*Ly*/)
 {
 	EN_AND_PR_counter.energy = 0;
 	EN_AND_PR_counter.p_X = 0;
@@ -34,7 +34,7 @@ void weighted_averages_in_gas(vector <state> &coordinates, int &nPart, double &L
 	}
 }
 
-void weighted_averages_in_transition_zone(vector <state> &coordinates, int &nPart, double &Lx, double &Ly)
+void weighted_averages_in_transition_zone(vector <state> &coordinates, int &nPart, double &Lx, double & /*Ly*/)
 {
 	EN_AND_PR_counter.energy = 0;
 	EN_AND_PR_counter.p_X = 0;

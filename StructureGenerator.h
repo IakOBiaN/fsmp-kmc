@@ -455,11 +455,11 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
     HC_radius = false;
   }
   cout << "Final params: " << endl;
-  for (int i = 0; i < params.size(); i++)
+  for (size_t i = 0; i < params.size(); i++)
   {
     cout << "Number " << i << ": " << params[i] << endl;
   }
 
   generate_elongated_cell(params, coordinates, Lx, Ly);
-  double E_INF = temp_E_INF;
+  E_INF = temp_E_INF;   // restore the hard-core cap disabled for the optimization
 }

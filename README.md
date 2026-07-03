@@ -8,6 +8,8 @@
 
 # FSMP-kMC
 
+[![CI](https://github.com/iakobian/fsmp-kmc/actions/workflows/ci.yml/badge.svg)](https://github.com/iakobian/fsmp-kmc/actions/workflows/ci.yml)
+
 **Field-Stabilized Multiphase kinetic Monte Carlo.** A kinetic Monte Carlo
 engine for the atomistic thermodynamics of rigid molecular crystals and
 two-dimensional adsorption layers.
@@ -45,9 +47,16 @@ Use one of the provided configurations (for example `terephthalic_acid_chain.cpp
 as a template, or write your own.
 
 ```bash
+make CONFIG=configs/tma_acid_hcp.cpp
+cd configs && ./tma_acid_hcp.out
+```
+
+Or compile directly, which is all the Makefile does:
+
+```bash
 cd configs
-clang++ -O3 terephthalic_acid_chain.cpp -o program.o
-./program.o
+clang++ -O3 tma_acid_hcp.cpp -o program.out
+./program.out
 ```
 
 ## Forcefields
@@ -68,8 +77,8 @@ legacy one, or your own) use the bundled tool, then point a configuration's
 potential path at the resulting `.bin` file:
 
 ```bash
-clang++ -O3 tools/pack_forcefield.cpp -o pack
-./pack forcefields/NAME.dat forcefields/NAME.bin
+make pack
+./pack.out forcefields/NAME.dat forcefields/NAME.v2.bin
 ```
 
 If the molecule has an n-fold rotational symmetry, pass the period in degrees as a
@@ -83,7 +92,7 @@ is negligible compared to the thermal energy.
 ## Tests
 
 ```bash
-./tests/run_tests.sh
+make test
 ```
 
 The suite first checks the ASCII-to-binary converter on a synthetic grid
@@ -99,6 +108,7 @@ runs against the published reference energy.
 | --- | --- |
 | `program_body.cpp` | Core simulation loop, included by every config file. |
 | `configs/` | Ready-to-compile run configurations (compile a file here to build a run). |
+| `Makefile` | Build helper: run configurations, the converter, and the tests. |
 | `includes.h` | Master list of headers pulled into `program_body.cpp`. |
 | `energies_and_forces_numerical.h` | Intermolecular potential evaluated from the precalculated numerical grid (interpolation, tail correction, hard-core cutoff). |
 | `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the binary numerical potential. |
@@ -120,9 +130,10 @@ runs against the published reference energy.
 
 This is a research code under active cleanup. It reproduces the published
 results, but it is not yet packaged for general use. The build is per
-configuration (no build system yet), and parts of the optimization routines are
-experimental and may be unstable. A regression test suite lives in `tests/`
-(see [Tests](#tests)). Improving and documenting the code is ongoing.
+configuration (a small Makefile wraps it), and parts of the optimization
+routines are experimental and may be unstable. Every push is checked by CI: a
+warning-free build with GCC and Clang, plus the regression test suite in
+`tests/` (see [Tests](#tests)). Improving and documenting the code is ongoing.
 
 ## License
 
