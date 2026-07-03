@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Compare the deterministic initial energy printed by the engine with a pin.
+"""Compare a deterministic energy printed by the engine with a pin.
 
-Reads the run log, takes the first "Energy:" value (printed for the central
-cell before any Monte Carlo step) and checks it against the expected value.
+Reads the run log and takes the value after the first occurrence of the label
+("Energy:" by default, i.e. the central-cell energy printed before any Monte
+Carlo step; pass another label to pin a different line, e.g. the optimizer's
+"Final energy per molecule:").
 
-Usage: check_energy.py <run.log> <expected_kJmol> <tolerance_kJmol>
+Usage: check_energy.py <run.log> <expected_kJmol> <tolerance_kJmol> [label]
 """
 import re
 import sys
 
 log, expected, tol = sys.argv[1], float(sys.argv[2]), float(sys.argv[3])
+label = sys.argv[4] if len(sys.argv) > 4 else "Energy:"
 
 with open(log) as f:
     for line in f:
-        m = re.search(r"Energy:\s*(-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)", line)
+        m = re.search(re.escape(label) + r"\s*(-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)", line)
         if m:
             value = float(m.group(1))
             if abs(value - expected) <= tol:
@@ -24,5 +27,5 @@ with open(log) as f:
                   % (value, expected, tol))
             sys.exit(1)
 
-print("FAIL: no 'Energy:' line found in %s" % log)
+print("FAIL: no '%s' line found in %s" % (label, log))
 sys.exit(1)

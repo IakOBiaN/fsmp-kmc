@@ -15,10 +15,24 @@ jobs:
 
       - name: Warning-free build gate
         run: |
-          ${{ matrix.cxx }} -O2 -Wall -Wextra -Werror -fsyntax-only tests/hcp_small.cpp
+          ${{ matrix.cxx }} -O2 -Wall -Wextra -Werror -fsyntax-only fsmp.cpp
           ${{ matrix.cxx }} -O2 -Wall -Wextra -Werror -fsyntax-only tools/pack_forcefield.cpp
 
       - name: Regression tests
         env:
           CXX: ${{ matrix.cxx }}
+        run: bash tests/run_tests.sh
+
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: mingw-w64-ucrt-x86_64-gcc python
+
+      - name: Regression tests (native Windows, MinGW g++)
+        shell: msys2 {0}
         run: bash tests/run_tests.sh

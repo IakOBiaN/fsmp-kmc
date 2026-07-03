@@ -1,0 +1,55 @@
+# FSMP-kMC parameters: TMA monolayer, HCP structure, simplified 2020 model.
+# Run from the repository root:  ./fsmp.out configs/tma_acid_hcp.txt
+# Paths are relative to the working directory; output is written there too.
+
+# Crystal temperature loop, K
+temp_from = 300
+temp_to = 301
+temp_step = 10
+
+# External field strength loop, J/mol
+um_from = 0.0
+um_to = -100000.0
+um_step = 5000.0
+
+# Temperature in the transition zone, K
+temperature_in_transition_zone = 900
+lambdam = 0.0
+
+# Length of the MC run: total Monte Carlo steps and steps for relaxation
+nSteps = 500000
+nStepsEq = 250000
+
+constant_pressure = false
+constant_pressure_value = 0
+kMC = true
+
+# Numerical potential (binary v2; see forcefields/readme.txt)
+potential = forcefields/TMA_simple_2020.v2.bin
+
+# Initial structure: a name from StructureGenerator.h, or "calculate" to
+# optimize a rough unit cell given by the unit_cell key
+structure = TMA_HCP_simple_2020
+
+# Unit cells along x and y, and the fraction of free (gas) space in the cell
+uc_in_x = 22
+uc_in_y = 6
+free_space = 0.24
+
+# Visualization: molecule drawing directions
+total_molecule_directions = 3
+angle_1 = 120
+angle_2 = 240
+
+# MC move sizes: maximal shift (A) and rotation (deg)
+delta = 2.0
+delta_angle = 60.0
+
+widom_test_index = false
+
+# Output files (xyz animation of the cell optimization, xyz trajectory)
+unit_cell_name = 0_calculate_animation.xyz
+xyz_name = 1_xyz_for_calculations_TMA_hcp.xyz
+
+# Optional: statistics_name = my_statistics.dat  (default is built from the structure)
+# Optional: seed = 12345  (fixes the random sequence for a reproducible run)

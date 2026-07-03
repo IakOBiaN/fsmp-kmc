@@ -130,8 +130,27 @@ int frame = 0; // For visualization purpose
 #include "center_of_mass.h"
 #include "StructureGenerator.h"
 
-int main()
+int main(int argc, char ** argv)
 {
+	if (argc != 2)
+	{
+		cerr << "usage: " << argv[0] << " <parameters.txt>" << endl;
+		cerr << "See configs/ for ready-to-run parameter files." << endl;
+		return 2;
+	}
+	read_parameters(argv[1]);
+
+	// Late initialization of the globals that depend on the parameters
+	temperature = temp_from;
+	u_m = um_from;
+	lambda0 = sqrt(temperature / temperature_in_transition_zone);
+	dop_sin_angles[0] = sin(angle_1 / 180.0 * PI);
+	dop_sin_angles[1] = sin(angle_2 / 180.0 * PI);
+	dop_cos_angles[0] = cos(angle_1 / 180.0 * PI);
+	dop_cos_angles[1] = cos(angle_2 / 180.0 * PI);
+	potential_name = p_name.c_str();
+	if (param_seed_given) { RanGen.RandomInit(param_seed); }
+
   complex_names();
  ///////////////////////////////////////
  //           Initialization          //

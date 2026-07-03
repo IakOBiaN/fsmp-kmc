@@ -1,0 +1,50 @@
+# FSMP-kMC parameters: TPA monolayer, horizontal ladder structure.
+# Run from the repository root:  ./fsmp.out configs/terephthalic_acid_ladder.txt
+
+# Crystal temperature loop, K
+temp_from = 300
+temp_to = 301
+temp_step = 10
+
+# External field strength loop, J/mol
+um_from = 0.0
+um_to = -100000.0
+um_step = 1000.0
+
+# Temperature in the transition zone, K
+temperature_in_transition_zone = 900
+lambdam = 0.0
+
+# Length of the MC run: total Monte Carlo steps and steps for relaxation
+nSteps = 1000000
+nStepsEq = 500000
+
+constant_pressure = false
+constant_pressure_value = 0
+kMC = true
+
+# Numerical potential (binary v2; see forcefields/readme.txt)
+potential = forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.v2.bin
+
+# Initial structure from StructureGenerator.h
+structure = TPA_horizontal_ladder_qPBE_Dreiding_Dhb5.0
+
+# Unit cells along x and y, and the fraction of free (gas) space in the cell
+uc_in_x = 30
+uc_in_y = 7
+free_space = 0.24
+
+# Visualization: molecule drawing directions (2 for TPA)
+total_molecule_directions = 2
+angle_1 = 180
+angle_2 = 240
+
+# MC move sizes: maximal shift (A) and rotation (deg)
+delta = 2.0
+delta_angle = 60.0
+
+widom_test_index = false
+
+# Output files (xyz animation of the cell optimization, xyz trajectory)
+unit_cell_name = 0_calculate_animation.xyz
+xyz_name = 1_xyz_for_calculations_TPA_ladder.xyz

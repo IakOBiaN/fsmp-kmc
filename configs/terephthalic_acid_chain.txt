@@ -1,0 +1,55 @@
+# FSMP-kMC parameters: TPA monolayer, chain structure obtained by optimizing
+# a rough unit cell (structure = calculate).
+# Run from the repository root:  ./fsmp.out configs/terephthalic_acid_chain.txt
+
+# Crystal temperature loop, K
+temp_from = 300
+temp_to = 301
+temp_step = 10
+
+# External field strength loop, J/mol
+um_from = 0.0
+um_to = -100000.0
+um_step = 1000.0
+
+# Temperature in the transition zone, K
+temperature_in_transition_zone = 900
+lambdam = 0.0
+
+# Length of the MC run: total Monte Carlo steps and steps for relaxation
+nSteps = 1000000
+nStepsEq = 500000
+
+constant_pressure = false
+constant_pressure_value = 0
+kMC = true
+
+# Numerical potential (binary v2; see forcefields/readme.txt)
+potential = forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.v2.bin
+
+# Optimize the rough unit cell below before the run
+structure = calculate
+
+# Rough unit cell: mols_per_cell cell_x cell_y, then r theta phi per molecule
+# (r, theta = polar offset from the previous molecule, A and deg; phi = rotation)
+unit_cell = 2  10.90997 10.698  0.871123 -0.537901 6.00002  6.59232 51.475 6.00003
+
+# Unit cells along x and y, and the fraction of free (gas) space in the cell
+uc_in_x = 26
+uc_in_y = 8
+free_space = 0.24
+
+# Visualization: molecule drawing directions (2 for TPA)
+total_molecule_directions = 2
+angle_1 = 180
+angle_2 = 240
+
+# MC move sizes: maximal shift (A) and rotation (deg)
+delta = 2.0
+delta_angle = 60.0
+
+widom_test_index = false
+
+# Output files (xyz animation of the cell optimization, xyz trajectory)
+unit_cell_name = 0_calculate_animation.xyz
+xyz_name = 1_xyz_for_calculations_TPA_chain.xyz

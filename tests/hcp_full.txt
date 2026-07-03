@@ -1,0 +1,30 @@
+# Regression test: the engine on the real TMA simple potential (65 MB, separate
+# download; the runner skips this test when the file is absent). Pin: initial
+# HCP energy -62.8605 kJ/mol, validated against the published model.
+temp_from = 300
+temp_to = 300
+temp_step = 10
+um_from = 0.0
+um_to = 0.0
+um_step = 5000.0
+temperature_in_transition_zone = 900
+lambdam = 0.0
+nSteps = 2
+nStepsEq = 1
+constant_pressure = false
+constant_pressure_value = 0
+kMC = true
+potential = ../forcefields/TMA_simple_2020.v2.bin
+structure = TMA_HCP_simple_2020
+uc_in_x = 22
+uc_in_y = 6
+free_space = 0.24
+total_molecule_directions = 3
+angle_1 = 120
+angle_2 = 240
+delta = 2.0
+delta_angle = 60.0
+widom_test_index = false
+unit_cell_name = 0_hcp_full.xyz
+xyz_name = 1_hcp_full.xyz
+statistics_name = 2_hcp_full.dat

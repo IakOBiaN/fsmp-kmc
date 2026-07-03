@@ -41,23 +41,24 @@ Monte Carlo (FsMP/kMC)*.
 
 ## Building and running
 
-The program is built per configuration: each file in `configs/` includes the
-core `program_body.cpp` and defines the parameters of a single simulation.
-Use one of the provided configurations (for example `terephthalic_acid_chain.cpp`)
-as a template, or write your own.
+The program is built once and reads all simulation parameters from a text file
+at run time. The files in `configs/` are ready-to-run examples that document
+every key; use one as a template for your own system.
 
 ```bash
-make CONFIG=configs/tma_acid_hcp.cpp
-cd configs && ./tma_acid_hcp.out
+make
+./fsmp.out configs/tma_acid_hcp.txt
 ```
 
 Or compile directly, which is all the Makefile does:
 
 ```bash
-cd configs
-clang++ -O3 tma_acid_hcp.cpp -o program.out
-./program.out
+clang++ -O3 fsmp.cpp -o fsmp.out
 ```
+
+Paths inside a parameter file are relative to the directory the program is
+started from (the examples expect the repository root), and all output files
+are written there.
 
 ## Forcefields
 
@@ -106,9 +107,11 @@ runs against the published reference energy.
 
 | Path | Description |
 | --- | --- |
-| `program_body.cpp` | Core simulation loop, included by every config file. |
-| `configs/` | Ready-to-compile run configurations (compile a file here to build a run). |
-| `Makefile` | Build helper: run configurations, the converter, and the tests. |
+| `fsmp.cpp` | Program entry point: reads the parameter file, runs the simulation. |
+| `program_body.cpp` | Core simulation loop. |
+| `read_parameters.h` | Strict parser of the run-time parameter file. |
+| `configs/` | Ready-to-run parameter files (see [Building and running](#building-and-running)). |
+| `Makefile` | Build helper: the program, the converter, and the tests. |
 | `includes.h` | Master list of headers pulled into `program_body.cpp`. |
 | `energies_and_forces_numerical.h` | Intermolecular potential evaluated from the precalculated numerical grid (interpolation, tail correction, hard-core cutoff). |
 | `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the binary numerical potential. |
@@ -129,11 +132,11 @@ runs against the published reference energy.
 ## Status
 
 This is a research code under active cleanup. It reproduces the published
-results, but it is not yet packaged for general use. The build is per
-configuration (a small Makefile wraps it), and parts of the optimization
-routines are experimental and may be unstable. Every push is checked by CI: a
-warning-free build with GCC and Clang, plus the regression test suite in
-`tests/` (see [Tests](#tests)). Improving and documenting the code is ongoing.
+results, but it is not yet packaged for general use. The program is a single
+binary driven by text parameter files. Every push is checked by CI: a
+warning-free build with GCC and Clang, and the regression test suite (see
+[Tests](#tests)) on both Linux and native Windows. Improving and documenting
+the code is ongoing.
 
 ## License
 
