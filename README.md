@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo/logo.svg" alt="FSMP-kMC: Field-Stabilized Multiphase kinetic Monte Carlo" width="760">
+</p>
+
 # FSMP-kMC
 
 **Field-Stabilized Multiphase kinetic Monte Carlo.** A kinetic Monte Carlo
@@ -103,6 +107,7 @@ runs against the published reference energy.
 | `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
 | `random/` | SFMT / Mersenne Twister random number generator (by Agner Fog). |
 | `forcefields/` | Numerical potential files (downloaded separately). |
+| `logo/` | Project logo and GitHub preview artwork in SVG format. |
 | `tools/` | `pack_forcefield.cpp`: converts an ASCII potential into the compact binary grid the run time reads. |
 | `tests/` | Regression tests and their small data grid (`./tests/run_tests.sh`). |
 | `xyz_modification/` | Python helper scripts for post-processing XYZ trajectories. |

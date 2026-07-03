@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">FSMP-kMC social preview</title>
+  <desc id="desc">GitHub preview for FSMP-kMC, showing a central molecular crystal, gas reservoirs on both sides, and two field regions inside the simulation cell.</desc>
+  <defs>
+    <linearGradient id="panel" x1="116" y1="76" x2="1164" y2="564" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#153438"/>
+      <stop offset="1" stop-color="#0A1A1C"/>
+    </linearGradient>
+    <linearGradient id="cellStroke" x1="146" y1="0" x2="1134" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#159D96"/>
+      <stop offset="0.24" stop-color="#159D96"/>
+      <stop offset="0.42" stop-color="#D8B74D"/>
+      <stop offset="0.58" stop-color="#D8B74D"/>
+      <stop offset="0.76" stop-color="#159D96"/>
+      <stop offset="1" stop-color="#159D96"/>
+    </linearGradient>
+    <filter id="shadow" x="-12%" y="-18%" width="124%" height="136%">
+      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#061314" flood-opacity="0.25"/>
+    </filter>
+    <g id="mol" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="0" cy="0" r="4.5" fill="currentColor" stroke="none"/>
+      <path d="M0 0 L0 -22 M0 0 L19 11 M0 0 L-19 11"/>
+      <circle cx="0" cy="-29" r="7"/>
+      <circle cx="25" cy="14.5" r="7"/>
+      <circle cx="-25" cy="14.5" r="7"/>
+    </g>
+  </defs>
+  <rect width="1280" height="640" fill="#F8FAF6"/>
+  <g filter="url(#shadow)">
+    <rect x="116" y="76" width="1048" height="488" rx="58" fill="url(#panel)"/>
+    <rect x="146" y="140" width="988" height="292" rx="40" fill="#E9F7F2" fill-opacity="0.045" stroke="url(#cellStroke)" stroke-width="5"/>
+    <rect x="172" y="162" width="210" height="248" rx="32" fill="#159D96" fill-opacity="0.13"/>
+    <rect x="898" y="162" width="210" height="248" rx="32" fill="#159D96" fill-opacity="0.13"/>
+    <rect x="408" y="162" width="76" height="248" rx="28" fill="#D8B74D" fill-opacity="0.14"/>
+    <rect x="796" y="162" width="76" height="248" rx="28" fill="#D8B74D" fill-opacity="0.14"/>
+    <g color="#F1FAF5">
+      <use href="#mol" transform="translate(476 220) scale(0.78) rotate(0)"/>
+      <use href="#mol" transform="translate(558 220) scale(0.78) rotate(60)"/>
+      <use href="#mol" transform="translate(640 220) scale(0.78) rotate(0)"/>
+      <use href="#mol" transform="translate(722 220) scale(0.78) rotate(60)"/>
+      <use href="#mol" transform="translate(804 220) scale(0.78) rotate(0)"/>
+      <use href="#mol" transform="translate(517 292) scale(0.78) rotate(60)"/>
+      <use href="#mol" transform="translate(599 292) scale(0.78) rotate(0)"/>
+      <use href="#mol" transform="translate(681 292) scale(0.78) rotate(60)"/>
+      <use href="#mol" transform="translate(763 292) scale(0.78) rotate(0)"/>
+      <use href="#mol" transform="translate(476 364) scale(0.78) rotate(0)"/>
+      <use href="#mol" transform="translate(558 364) scale(0.78) rotate(60)"/>
+      <use href="#mol" transform="translate(640 364) scale(0.78) rotate(0)"/>
+      <use href="#mol" transform="translate(722 364) scale(0.78) rotate(60)"/>
+      <use href="#mol" transform="translate(804 364) scale(0.78) rotate(0)"/>
+    </g>
+    <g color="#D8B74D" opacity="0.95">
+      <use href="#mol" transform="translate(230 210) scale(0.42) rotate(-20)"/>
+      <use href="#mol" transform="translate(306 252) scale(0.42) rotate(36)"/>
+      <use href="#mol" transform="translate(246 328) scale(0.42) rotate(88)"/>
+      <use href="#mol" transform="translate(350 360) scale(0.42) rotate(-54)"/>
+      <use href="#mol" transform="translate(1050 210) scale(0.42) rotate(22)"/>
+      <use href="#mol" transform="translate(974 252) scale(0.42) rotate(-38)"/>
+      <use href="#mol" transform="translate(1034 328) scale(0.42) rotate(82)"/>
+      <use href="#mol" transform="translate(930 360) scale(0.42) rotate(50)"/>
+    </g>
+    <text x="640" y="505" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="80" font-weight="800" fill="#F4FBF6">FSMP-kMC</text>
+    <text x="640" y="545" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" fill="#BBD1CA" letter-spacing="1.7">Field-Stabilized Multiphase kinetic Monte Carlo</text>
+  </g>
+</svg>
