@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: mingw-w64-ucrt-x86_64-gcc python zip
+
+      # -static bakes the MinGW runtime in, so the exe runs on any Windows
+      # machine with no extra DLLs
+      - name: Build static Windows binaries
+        shell: msys2 {0}
+        run: |
+          g++ -O3 -static -Wall -Wextra fsmp.cpp -o fsmp.exe
+          g++ -O3 -static -Wall -Wextra tools/pack_forcefield.cpp -o pack.exe
+
+      - name: Run the test suite
+        shell: msys2 {0}
+        run: bash tests/run_tests.sh
+
+      - name: Smoke-test the release binary
+        shell: msys2 {0}
+        run: |
+          cd tests
+          ../fsmp.exe hcp_small.txt > release_smoke.log
+          python3 check_energy.py release_smoke.log -61.7449 0.001
+
+      - name: Package
+        shell: msys2 {0}
+        run: |
+          d="fsmp-kmc-${{ github.ref_name }}-windows-x86_64"
+          mkdir -p "$d/forcefields"
+          cp fsmp.exe pack.exe "$d/"
+          cp -r configs "$d/configs"
+          cp forcefields/readme.txt "$d/forcefields/"
+          cp .github/release_readme.txt "$d/README.txt"
+          zip -r "$d.zip" "$d"
+
+      - name: Create the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fsmp-kmc-*.zip
+          generate_release_notes: true

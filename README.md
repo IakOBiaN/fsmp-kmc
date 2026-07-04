@@ -60,6 +60,17 @@ Paths inside a parameter file are relative to the directory the program is
 started from (the examples expect the repository root), and all output files
 are written there.
 
+### Windows without a compiler
+
+Every [release](https://github.com/IakOBiaN/fsmp-kmc/releases/latest) ships a
+ready-made Windows build. Download the `...windows-x86_64.zip`, unpack it, put
+the downloaded potentials into its `forcefields/` folder and run from the
+command prompt:
+
+```
+fsmp.exe configs\tma_acid_hcp.txt
+```
+
 ## Forcefields
 
 The intermolecular interaction is supplied as a precalculated *numerical

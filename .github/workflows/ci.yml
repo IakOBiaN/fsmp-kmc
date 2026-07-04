@@ -36,3 +36,19 @@ jobs:
       - name: Regression tests (native Windows, MinGW g++)
         shell: msys2 {0}
         run: bash tests/run_tests.sh
+
+      # Fresh development build of the Windows binaries: downloadable from the
+      # workflow run page (Actions tab), kept for 90 days. Tagged releases are
+      # built and published separately by release.yml.
+      - name: Build static Windows binaries
+        shell: msys2 {0}
+        run: |
+          g++ -O3 -static -Wall -Wextra fsmp.cpp -o fsmp.exe
+          g++ -O3 -static -Wall -Wextra tools/pack_forcefield.cpp -o pack.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsmp-kmc-windows-x86_64-dev
+          path: |
+            fsmp.exe
+            pack.exe
