@@ -29,6 +29,11 @@ potential = forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.v2.bin
 # Initial structure from StructureGenerator.h
 structure = TPA_horizontal_ladder_qPBE_Dreiding_Dhb5.0
 
+# Reference area for the chemical potential: manual (uses the sigma key, in A),
+# min_dist (pi*min_dist^2/4 from the potential's hard core), or molecule_area
+# (from the U=0 contour of the potential)
+sigma_mode = min_dist
+
 # Unit cells along x and y, and the fraction of free (gas) space in the cell
 uc_in_x = 30
 uc_in_y = 7

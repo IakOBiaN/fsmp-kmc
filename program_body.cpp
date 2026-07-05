@@ -115,6 +115,8 @@ int frame = 0; // For visualization purpose
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "read_forcefield.h"
+#include "unique_output_name.h"
+#include "molecule_area.h"
 #include "PBC2D.h"
 #include "fields.h"
 #include "interpolation.h"
@@ -152,6 +154,12 @@ int main(int argc, char ** argv)
 	if (param_seed_given) { RanGen.RandomInit(param_seed); }
 
   complex_names();
+
+	// Never overwrite the outputs of a previous run: shift the names if taken
+	xyz_name = unique_output_name(xyz_name);
+	if (structure_name == "calculate") { unit_cell_name = unique_output_name(unit_cell_name); }
+	name_of_file_for_statistics.str(unique_output_name(name_of_file_for_statistics.str()));
+
  ///////////////////////////////////////
  //           Initialization          //
  ///////////////////////////////////////
@@ -166,8 +174,24 @@ int main(int argc, char ** argv)
 
 	min_dist_2 = min_dist*min_dist;
 	max_dist_2 = max_dist*max_dist;
-	sigma_2 = (11.052 * 11.052) / 100.0;
 	cut_index = (int)(((max_dist - min_dist) / dr) + 0.5);
+
+	// Reference area for the chemical potential (see sigma_mode in the parameter file)
+	if (sigma_mode == "manual")
+	{
+		sigma_2 = sigma_manual * sigma_manual / 100.0;
+	}
+	else if (sigma_mode == "min_dist")
+	{
+		sigma_2 = min_dist_2 * PI / 4.0 / 100.0;
+	}
+	else // molecule_area
+	{
+		double area = molecule_area();
+		sigma_2 = area / 100.0;
+		cout << "Molecular area from the potential: " << area << " A^2" << endl;
+	}
+	cout << "Reference area sigma_2 (" << sigma_mode << "): " << sigma_2 << " nm^2" << endl;
 
  // Set configuration parameters
 

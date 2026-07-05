@@ -22,6 +22,8 @@ double constant_pressure_value = 0;
 bool kMC = true;
 string p_name;                                         // numerical potential (binary v2)
 string structure_name;                                 // named structure or "calculate"
+string sigma_mode;                                     // reference area: manual | min_dist | molecule_area
+double sigma_manual = 0;                               // sigma in A (used with sigma_mode = manual)
 int uc_in_x = 0, uc_in_y = 0;                          // unit cells along x and y
 double free_space = 0;                                 // fraction of free space in the elongated cell
 int total_molecule_directions = 0;                     // visualization

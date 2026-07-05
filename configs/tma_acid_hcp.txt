@@ -31,6 +31,12 @@ potential = forcefields/TMA_simple_2020.v2.bin
 # optimize a rough unit cell given by the unit_cell key
 structure = TMA_HCP_simple_2020
 
+# Reference area for the chemical potential: manual (uses the sigma key, in A),
+# min_dist (pi*min_dist^2/4 from the potential's hard core), or molecule_area
+# (from the U=0 contour of the potential)
+sigma_mode = manual
+sigma = 11.052
+
 # Unit cells along x and y, and the fraction of free (gas) space in the cell
 uc_in_x = 22
 uc_in_y = 6

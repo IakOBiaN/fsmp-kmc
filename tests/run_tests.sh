@@ -20,6 +20,9 @@ set -e
 cd "$(dirname "$0")"
 CXX="${CXX:-g++}"
 mkdir -p build
+# the engine never overwrites existing outputs, so clear the previous run's
+# files to keep the output names canonical
+rm -f 0_*.xyz 1_*.xyz 2_*.dat
 
 echo "== [1/4] pack_forcefield round-trip on a synthetic grid =="
 "$CXX" -O2 -Wall -Wextra ../tools/pack_forcefield.cpp -o build/pack

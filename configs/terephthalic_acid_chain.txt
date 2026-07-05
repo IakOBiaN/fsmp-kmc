@@ -10,7 +10,7 @@ temp_step = 10
 # External field strength loop, J/mol
 um_from = 0.0
 um_to = -100000.0
-um_step = 1000.0
+um_step = 5000.0
 
 # Temperature in the transition zone, K
 temperature_in_transition_zone = 900
@@ -29,6 +29,11 @@ potential = forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.v2.bin
 
 # Optimize the rough unit cell below before the run
 structure = calculate
+
+# Reference area for the chemical potential: manual (uses the sigma key, in A),
+# min_dist (pi*min_dist^2/4 from the potential's hard core), or molecule_area
+# (from the U=0 contour of the potential)
+sigma_mode = min_dist
 
 # Rough unit cell: mols_per_cell cell_x cell_y, then r theta phi per molecule
 # (r, theta = polar offset from the previous molecule, A and deg; phi = rotation)

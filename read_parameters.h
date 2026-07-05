@@ -89,6 +89,15 @@ void read_parameters(const char * path)
 
 		if      (key == "potential")                      { p_name = value; }
 		else if (key == "structure")                      { structure_name = value; }
+		else if (key == "sigma_mode")
+		{
+			if (value != "manual" && value != "min_dist" && value != "molecule_area")
+			{
+				param_error(file, lineno, "key \"sigma_mode\" must be manual, min_dist or molecule_area");
+			}
+			sigma_mode = value;
+		}
+		else if (key == "sigma")                          { sigma_manual = param_double(file, lineno, key, value); }
 		else if (key == "temp_from")                      { temp_from = param_double(file, lineno, key, value); }
 		else if (key == "temp_to")                        { temp_to = param_double(file, lineno, key, value); }
 		else if (key == "temp_step")                      { temp_step = param_double(file, lineno, key, value); }
@@ -130,7 +139,7 @@ void read_parameters(const char * path)
 	}
 
 	static const char * required[] = {
-		"potential", "structure", "temp_from", "temp_to", "temp_step",
+		"potential", "structure", "sigma_mode", "temp_from", "temp_to", "temp_step",
 		"um_from", "um_to", "um_step", "temperature_in_transition_zone", "lambdam",
 		"nSteps", "nStepsEq", "constant_pressure", "kMC", "uc_in_x", "uc_in_y",
 		"free_space", "total_molecule_directions", "angle_1", "angle_2",
@@ -143,6 +152,16 @@ void read_parameters(const char * path)
 	if (!missing.empty())
 	{
 		cerr << "ERROR: " << file << ": missing required keys:" << missing << endl;
+		exit(1);
+	}
+	if (sigma_mode == "manual" && !seen.count("sigma"))
+	{
+		cerr << "ERROR: " << file << ": sigma_mode = manual requires the sigma key (sigma in A)" << endl;
+		exit(1);
+	}
+	if (sigma_mode != "manual" && seen.count("sigma"))
+	{
+		cerr << "ERROR: " << file << ": the sigma key is only used with sigma_mode = manual" << endl;
 		exit(1);
 	}
 	if (structure_name == "calculate" && !seen.count("unit_cell"))
