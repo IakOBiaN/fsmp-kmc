@@ -23,11 +23,16 @@ MIN_DIST, DR, N_DIST = 5.0, 0.5, 4
 DA, N_ANG = 30.0, 13  # angles 0..360 inclusive
 
 
-def energy(r, t1, t2):
-    return (1.0 / r) * math.cos(3 * math.radians(t1)) * math.cos(3 * math.radians(t2)) + 0.01 * r
+def energy(r, t1, t2, asym):
+    e = (1.0 / r) * math.cos(3 * math.radians(t1)) * math.cos(3 * math.radians(t2)) + 0.01 * r
+    if asym:
+        # small 360-periodic term that breaks the 120-deg symmetry: exercises the
+        # averaging fold while staying below the default folding tolerance
+        e += 0.001 * math.cos(math.radians(t1))
+    return e
 
 
-def write_ascii(path):
+def write_ascii(path, asym):
     """Write the grid and return the values exactly as the C tool will parse them."""
     grid = []  # grid[i][j][k], J/mol
     with open(path, "w") as f:
@@ -37,7 +42,7 @@ def write_ascii(path):
             for j in range(N_ANG):
                 row = []
                 for k in range(N_ANG):
-                    text = "%.12g" % energy(r, j * DA, k * DA)
+                    text = "%.12g" % energy(r, j * DA, k * DA, asym)
                     f.write("%.6g %.6g %.6g %s\n" % (r, j * DA, k * DA, text))
                     row.append(float(text) * 4184.0)
                 slab.append(row)
@@ -66,10 +71,24 @@ def expected_payload(grid, fold_deg, stride):
                 m = max(s[j][k], s[kp][jp])
                 s[j][k] = m
                 s[kp][jp] = m
-    out_n_ang = n_ang
     if fold_deg < 359.999:
-        out_n_ang = round(fold_deg / da) + 1
-    flat = [s[j][k] for s in sub for j in range(out_n_ang) for k in range(out_n_ang)]
+        p = round(fold_deg / da)
+        out_n_ang = p + 1
+        copies = round(360.0 / fold_deg)
+        # the stored period is the average over all symmetric periods; the
+        # accumulation order matches the C tool so the comparison stays bit-exact
+        flat = []
+        for s in sub:
+            for j in range(out_n_ang):
+                for k in range(out_n_ang):
+                    total = 0.0
+                    for a in range(copies):
+                        for b in range(copies):
+                            total += s[j + a * p][k + b * p]
+                    flat.append(total / (copies * copies))
+    else:
+        out_n_ang = n_ang
+        flat = [s[j][k] for s in sub for j in range(out_n_ang) for k in range(out_n_ang)]
     header = (len(sub), out_n_ang, MIN_DIST, DR * stride, da,
               fold_deg if fold_deg < 359.999 else 360.0)
     return header, flat
@@ -93,11 +112,11 @@ def run_pack(args):
                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
 
 
-def check_case(grid, name, use_float, fold_deg, stride):
+def check_case(grid, src, name, use_float, fold_deg, stride):
     out = "toy_%s.bin" % name
     args = (["--float"] if use_float else []) \
         + (["--stride", str(stride)] if stride > 1 else []) \
-        + ["toy.dat", out] + ([str(fold_deg)] if fold_deg < 360 else [])
+        + [src, out] + ([str(fold_deg)] if fold_deg < 360 else [])
     rc = run_pack(args)
     assert rc == 0, "%s: pack failed (rc=%d)" % (name, rc)
     dtype, header, vals = read_bin(os.path.join(WORK, out))
@@ -120,14 +139,20 @@ def check_case(grid, name, use_float, fold_deg, stride):
 
 def main():
     os.makedirs(WORK, exist_ok=True)
-    grid = write_ascii(os.path.join(WORK, "toy.dat"))
+    grid = write_ascii(os.path.join(WORK, "toy.dat"), False)
+    asym = write_ascii(os.path.join(WORK, "toy_asym.dat"), True)
 
-    check_case(grid, "d",       False, 360, 1)
-    check_case(grid, "f",       True,  360, 1)
-    check_case(grid, "d_fold",  False, 120, 1)
-    check_case(grid, "f_fold",  True,  120, 1)
-    check_case(grid, "d_s2",    False, 360, 2)
-    check_case(grid, "f_fold_s2", True, 120, 2)
+    check_case(grid, "toy.dat", "d",       False, 360, 1)
+    check_case(grid, "toy.dat", "f",       True,  360, 1)
+    check_case(grid, "toy.dat", "d_fold",  False, 120, 1)
+    check_case(grid, "toy.dat", "f_fold",  True,  120, 1)
+    check_case(grid, "toy.dat", "d_s2",    False, 360, 2)
+    check_case(grid, "toy.dat", "f_fold_s2", True, 120, 2)
+
+    # symmetric molecule, slightly asymmetric potential: the fold must store the
+    # AVERAGE of the periods, not the first period
+    check_case(asym, "toy_asym.dat", "asym_d_fold",    False, 120, 1)
+    check_case(asym, "toy_asym.dat", "asym_f_fold_s2", True,  120, 2)
 
     # the toy grid is 120-deg periodic but NOT 180-deg periodic: folding at 180
     # must be refused with the default tolerance, and no output may be left over

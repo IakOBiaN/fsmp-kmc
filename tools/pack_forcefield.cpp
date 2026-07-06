@@ -13,11 +13,15 @@
 // partners).
 //
 // Optional rotational folding: pass a period in degrees (e.g. 120 for the C3 trimesic
-// acid, 180 for a C2 molecule) to store a single angular period. Periodicity is checked
-// only in the physical region (where the energy is below the runtime hard-core cap at
-// T_ref; above it all values fold losslessly to the cap), and the tool refuses to fold if
-// the physical deviation exceeds the tolerance. With no period (or 360) the grid is stored
-// in full, and the tool reports what a 120 / 180 deg fold would cost.
+// acid, 180 for a C2 molecule) to store a single angular period. The stored period is
+// the AVERAGE over all symmetric periods: when the molecule is symmetric but the
+// numerical potential is slightly not (e.g. TPA), the deviation is split evenly between
+// the periods instead of keeping the first period as is; for an exactly periodic grid
+// the average changes nothing. Periodicity is checked only in the physical region
+// (where the energy is below the runtime hard-core cap at T_ref; above it all values
+// fold losslessly to the cap), and the tool refuses to fold if the physical deviation
+// exceeds the tolerance. With no period (or 360) the grid is stored in full, and the
+// tool reports what a 120 / 180 deg fold would cost.
 //
 // Streams one distance slab (n_ang x n_ang) at a time, so it converts arbitrarily large
 // grids in O(n_ang^2) memory.
@@ -106,11 +110,13 @@ int main(int argc, char** argv) {
     }
     int half = (int)llround(180.0 / da), full = (int)llround(360.0 / da);
 
-    int    fold_p = 0, out_n_ang = n_ang; double out_fold = 360.0;
+    int    fold_p = 0, fold_copies = 1, out_n_ang = n_ang; double out_fold = 360.0;
     bool   do_fold = (fold_deg < 359.999);
     if (do_fold) {
         fold_p = (int)llround(fold_deg / da);
         if (fold_p <= 0 || fabs(fold_p * da - fold_deg) > 1e-9) { fprintf(stderr, "fold_deg not a multiple of da=%.4f\n", da); return 1; }
+        fold_copies = (int)llround(360.0 / fold_deg);
+        if (fold_copies < 2 || fabs(fold_copies * fold_deg - 360.0) > 1e-9) { fprintf(stderr, "fold_deg must divide 360\n"); return 1; }
         out_n_ang = fold_p + 1; out_fold = fold_deg;
     }
 
@@ -171,8 +177,13 @@ int main(int argc, char** argv) {
             double df = slab_period_dev(slab, n_ang, fold_p, thr); if (df > devfold) devfold = df;
             if (df > fold_tol) { fprintf(stderr, "slab %ld: physical periodicity error %.6g J/mol > tol %.6g at %.0f deg; refusing to fold (raise the tolerance to force)\n", n_dist, df, fold_tol, fold_deg); fclose(fout); remove(out_path); return 1; }
             for (int j = 0; j < out_n_ang; ++j)
-                for (int k = 0; k < out_n_ang; ++k)
-                    out[(size_t)j * out_n_ang + k] = slab[(size_t)j * n_ang + k];
+                for (int k = 0; k < out_n_ang; ++k) {
+                    double sum = 0.0;
+                    for (int a = 0; a < fold_copies; ++a)
+                        for (int b = 0; b < fold_copies; ++b)
+                            sum += slab[(size_t)(j + a * fold_p) * n_ang + (k + b * fold_p)];
+                    out[(size_t)j * out_n_ang + k] = sum / (fold_copies * fold_copies);
+                }
             w = &out;
         }
         if (use_float) {

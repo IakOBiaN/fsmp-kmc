@@ -95,7 +95,10 @@ make pack
 
 If the molecule has an n-fold rotational symmetry, pass the period in degrees as a
 third argument (120 for a C3 molecule, 180 for C2) to store a single period and
-shrink the grid; the tool checks the symmetry against the data before folding.
+shrink the grid. The stored period is the average over all symmetric periods, so
+small numerical asymmetries of the potential are split evenly rather than
+inherited from one arbitrary period; the tool checks the symmetry against the
+data before folding.
 
 Add `--float` to store the energies in 32-bit precision. The file is half the
 size, and the rounding error in the physically relevant region (about 0.01 J/mol)
