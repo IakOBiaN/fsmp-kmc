@@ -13,8 +13,10 @@ from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QFileDialog,
 from . import theme
 from .project import Project, ProjectError, safe_filename
 from .start_page import ASSETS, StartPage
-from .tabs.molecule_tab import MoleculeTab
+from .tabs.create_potential_tab import CreatePotentialTab
+from .tabs.molecule_model_tab import MoleculeModelTab
 from .tabs.placeholder import PlaceholderTab
+from .tabs.potentials_tab import PotentialsTab
 
 MAX_RECENT = 8
 
@@ -104,16 +106,12 @@ class ProjectView(QWidget):
         layout.addLayout(header)
 
         self.tabs = QTabWidget()
-        self.molecule_tab = MoleculeTab(project)
-        self.tabs.addTab(self.molecule_tab, "1  Molecules")
-        self.tabs.addTab(PlaceholderTab(
-            "Potentials",
-            "Create pair potentials or open existing files\n"
-            "and attach them to the project.",
-            ["open and inspect binary v2 forcefields",
-             "pack ASCII grids into the binary format",
-             "generate potentials for the project molecule (ASE, later)"]),
-            "2  Potentials")
+        self.model_tab = MoleculeModelTab(project)
+        self.tabs.addTab(self.model_tab, "1  Molecule model")
+        self.create_tab = CreatePotentialTab(project)
+        self.tabs.addTab(self.create_tab, "2  Create potential")
+        self.potentials_tab = PotentialsTab(project)
+        self.tabs.addTab(self.potentials_tab, "3  Potentials")
         self.tabs.addTab(PlaceholderTab(
             "Unit cell",
             "Build a rough unit cell from the project molecule\n"
@@ -121,7 +119,7 @@ class ProjectView(QWidget):
             ["place molecules in a starting cell",
              "run the 'calculate' optimizer and watch the progress",
              "inspect the optimized cell and energy"]),
-            "3  Unit cell")
+            "4  Unit cell")
         self.tabs.addTab(PlaceholderTab(
             "Simulation cell",
             "Configure the elongated simulation cell built\n"
@@ -129,15 +127,26 @@ class ProjectView(QWidget):
             ["unit cells along x and y, free space fraction",
              "fields, temperatures and chemical potential settings",
              "preview of the full cell layout"]),
-            "4  Simulation cell")
+            "5  Simulation cell")
         self.tabs.addTab(PlaceholderTab(
             "Run",
             "Run the engine and follow the simulation.",
             ["generate the parameter file and launch fsmp",
              "live plots of the statistics output",
              "collect and compare results"]),
-            "5  Run")
+            "6  Run")
         layout.addWidget(self.tabs, 1)
+        self.tabs.currentChanged.connect(self._tab_changed)
+        # the project model can change on tab 1; downstream tabs must re-read it
+        self.model_tab.projectModelChanged.connect(self.create_tab.refresh)
+
+    def _tab_changed(self, index: int) -> None:
+        # tabs read shared project state, so refresh on activation
+        widget = self.tabs.widget(index)
+        if widget is self.create_tab:
+            self.create_tab.refresh()
+        elif widget is self.potentials_tab:
+            self.potentials_tab.refresh()
 
 
 class MainWindow(QMainWindow):
@@ -231,7 +240,11 @@ class MainWindow(QMainWindow):
             self.project_view.deleteLater()
         self.project = project
         self.project_view = ProjectView(project)
-        self.project_view.molecule_tab.statusMessage.connect(
+        self.project_view.model_tab.statusMessage.connect(
+            self.statusBar().showMessage)
+        self.project_view.create_tab.statusMessage.connect(
+            self.statusBar().showMessage)
+        self.project_view.potentials_tab.statusMessage.connect(
             self.statusBar().showMessage)
         self.stack.addWidget(self.project_view)
         self.stack.setCurrentWidget(self.project_view)

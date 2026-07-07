@@ -193,6 +193,33 @@ QToolTip {{
     padding: 4px 8px;
 }}
 
+QGroupBox {{
+    border: 1px solid {BORDER};
+    border-radius: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    background: transparent;
+}}
+QGroupBox::title {{
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 4px;
+    color: {TEXT_DIM};
+    font-weight: 600;
+}}
+
+QPlainTextEdit {{
+    background: {BG_PANEL};
+    border: 1px solid {BORDER};
+    border-radius: 6px;
+    color: {TEXT};
+    font-family: "Cascadia Mono", "Consolas";
+    font-size: 9.5pt;
+    selection-background-color: {ACCENT};
+    selection-color: #06201e;
+}}
+
 QFrame[panel="true"] {{
     background: {BG_PANEL};
     border: 1px solid {BORDER};

@@ -1,8 +1,7 @@
-"""Atomistic molecule editor (subtab of "Molecule model").
+"""Site model editor (subtab of "Molecule model").
 
-Build, edit, load and save an atomistic geometry; "Use in project" makes it
-the project model. A project holds exactly one model, atomistic or site.
-"""
+Place Lennard-Jones centers and point charges as circles, edit their
+parameters, and attach the model to the project."""
 
 from pathlib import Path
 
@@ -13,21 +12,28 @@ from PySide6.QtWidgets import (QAbstractItemView, QButtonGroup, QComboBox,
                                QSplitter, QTableView, QToolButton,
                                QVBoxLayout, QWidget)
 
-from ..atom_table import AtomTableModel
-from ..canvas import Mode, MoleculeCanvas
-from ..elements import COMMON, normalize_symbol
-from ..molecule import Atom, Molecule
+from ..canvas import Mode, SiteCanvas
 from ..project import Project
+from ..site_table import SiteTableModel
+from ..sitemodel import SUFFIX, Site, SiteModel
+
+# add-tool templates: label -> (default charge, is LJ)
+TEMPLATES = {
+    "LJ center": ("LJ", 0.0, True),
+    "+ charge": ("q+", 1.0, False),
+    "− charge": ("q-", -1.0, False),
+}
+_DEFAULT_LJ = (3.4, 50.0)  # sigma (Å), epsilon (K) for a fresh LJ center
 
 
-class MoleculeTab(QWidget):
+class SiteTab(QWidget):
     statusMessage = Signal(str)
     projectModelChanged = Signal()
 
     def __init__(self, project: Project, parent=None):
         super().__init__(parent)
         self.project = project
-        self.model = AtomTableModel(self)
+        self.model = SiteTableModel(self)
         self.model.changed.connect(self._on_model_changed)
         self._dirty = False
         self._current_name: str | None = None
@@ -39,15 +45,15 @@ class MoleculeTab(QWidget):
         splitter = QSplitter(Qt.Horizontal)
         root.addWidget(splitter, 1)
 
-        self.canvas = MoleculeCanvas(self.model)
+        self.canvas = SiteCanvas(self.model)
         self.canvas.cursorMoved.connect(
             lambda x, y: self.statusMessage.emit(f"x = {x:.2f} Å,  y = {y:.2f} Å"))
-        self.canvas.addRequested.connect(self._add_atom_from_canvas)
+        self.canvas.addRequested.connect(self._add_site_from_canvas)
         splitter.addWidget(self.canvas)
         splitter.addWidget(self._build_side_panel())
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 0)
-        splitter.setSizes([900, 380])
+        splitter.setSizes([880, 400])
 
         self._set_mode(Mode.SELECT)
         self.refresh_project_model()
@@ -59,9 +65,9 @@ class MoleculeTab(QWidget):
         bar = QHBoxLayout()
         bar.setSpacing(6)
 
-        for text, slot in (("New", self.new_molecule),
-                           ("Open…", self.open_molecule),
-                           ("Save as…", self.save_molecule)):
+        for text, slot in (("New", self.new_model),
+                           ("Open…", self.open_model),
+                           ("Save as…", self.save_model)):
             b = QPushButton(text)
             b.clicked.connect(slot)
             bar.addWidget(b)
@@ -70,9 +76,9 @@ class MoleculeTab(QWidget):
 
         self.mode_group = QButtonGroup(self)
         self.mode_buttons = {}
-        for mode, text, tip in ((Mode.SELECT, "Select", "Select and drag atoms"),
-                                (Mode.ADD, "Add atom", "Click on empty space to add an atom"),
-                                (Mode.DELETE, "Delete", "Click an atom to delete it")):
+        for mode, text, tip in ((Mode.SELECT, "Select", "Select and drag sites"),
+                                (Mode.ADD, "Add site", "Click empty space to add a site"),
+                                (Mode.DELETE, "Delete", "Click a site to delete it")):
             b = QToolButton()
             b.setText(text)
             b.setToolTip(tip)
@@ -82,23 +88,21 @@ class MoleculeTab(QWidget):
             self.mode_buttons[mode] = b
             bar.addWidget(b)
 
-        self.element_box = QComboBox()
-        self.element_box.setEditable(True)
-        self.element_box.addItems(COMMON)
-        self.element_box.setToolTip("Element for new atoms (type any symbol)")
-        self.element_box.setFixedWidth(72)
-        bar.addWidget(self.element_box)
+        self.type_box = QComboBox()
+        self.type_box.addItems(TEMPLATES.keys())
+        self.type_box.setToolTip("What to place in 'Add site' mode")
+        bar.addWidget(self.type_box)
 
         bar.addSpacing(16)
         reset = QPushButton("Fit view")
-        reset.clicked.connect(self.canvas_reset)
+        reset.clicked.connect(lambda: self.canvas.reset_view())
         bar.addWidget(reset)
 
         bar.addStretch(1)
 
         attach = QPushButton("Use in project")
         attach.setProperty("primary", True)
-        attach.setToolTip("Save this molecule as the project molecule")
+        attach.setToolTip("Save this site model as the project model")
         attach.clicked.connect(self.use_in_project)
         bar.addWidget(attach)
         return bar
@@ -108,7 +112,7 @@ class MoleculeTab(QWidget):
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(8, 0, 0, 0)
 
-        caption = QLabel("Atoms")
+        caption = QLabel("Sites")
         caption.setProperty("dim", True)
         layout.addWidget(caption)
 
@@ -147,9 +151,9 @@ class MoleculeTab(QWidget):
         frame_layout.addWidget(self.slot_label)
         slot_row = QHBoxLayout()
         self.slot_open = QPushButton("Open in editor")
-        self.slot_open.clicked.connect(self._open_project_molecule)
+        self.slot_open.clicked.connect(self._open_project_model)
         self.slot_clear = QPushButton("Remove")
-        self.slot_clear.clicked.connect(self._clear_project_molecule)
+        self.slot_clear.clicked.connect(self._clear_project_model)
         slot_row.addWidget(self.slot_open)
         slot_row.addWidget(self.slot_clear)
         slot_row.addStretch(1)
@@ -164,36 +168,38 @@ class MoleculeTab(QWidget):
         self._update_info()
 
     def _update_info(self) -> None:
-        mol = self.model.molecule
-        formula = mol.formula() or "empty"
-        self.info.setText(f"{formula}   ·   {len(mol.atoms)} atoms")
+        sm = self.model.site_model
+        text = sm.summary()
+        if sm.sites:
+            text += f"   ·   total charge {sm.total_charge():+.4f} e"
+        self.info.setText(text)
 
     def _confirm_discard(self) -> bool:
-        if not self._dirty or not self.model.molecule.atoms:
+        if not self._dirty or not self.model.site_model.sites:
             return True
         answer = QMessageBox.question(
             self, "Unsaved changes",
-            "The current molecule has unsaved changes. Discard them?")
+            "The current site model has unsaved changes. Discard them?")
         return answer == QMessageBox.Yes
 
     def _set_mode(self, mode: Mode) -> None:
         self.mode_buttons[mode].setChecked(True)
         self.canvas.set_mode(mode)
 
-    def _picked_element(self) -> str:
-        symbol = normalize_symbol(self.element_box.currentText())
-        return symbol if symbol else "C"
-
-    def canvas_reset(self) -> None:
-        self.canvas.reset_view()
-
     # -- editing actions ---------------------------------------------------
 
-    def _add_atom_from_canvas(self, x: float, y: float) -> None:
-        self.canvas.add_atom_at(self._picked_element(), x, y)
+    def _template_site(self, x: float, y: float) -> Site:
+        label, q, is_lj = TEMPLATES[self.type_box.currentText()]
+        if is_lj:
+            sigma, eps = _DEFAULT_LJ
+            return Site(label, x, y, 0.0, 0.0, eps, sigma)
+        return Site(label, x, y, 0.0, q, 0.0, 0.0)
+
+    def _add_site_from_canvas(self, x: float, y: float) -> None:
+        self.model.add_site(self._template_site(x, y))
 
     def _add_row(self) -> None:
-        self.model.add_atom(Atom(self._picked_element(), 0.0, 0.0))
+        self.model.add_site(self._template_site(0.0, 0.0))
 
     def _remove_selected_rows(self) -> None:
         rows = [i.row() for i in self.table.selectionModel().selectedRows()]
@@ -202,55 +208,56 @@ class MoleculeTab(QWidget):
     # -- file actions ------------------------------------------------------
 
     def _last_dir(self) -> str:
-        return QSettings().value("molecule/last_dir", str(Path.home()))
+        return QSettings().value("site/last_dir", str(Path.home()))
 
     def _remember_dir(self, path: str) -> None:
-        QSettings().setValue("molecule/last_dir", str(Path(path).parent))
+        QSettings().setValue("site/last_dir", str(Path(path).parent))
 
-    def new_molecule(self) -> None:
+    def new_model(self) -> None:
         if not self._confirm_discard():
             return
-        self.model.set_molecule(Molecule())
+        self.model.set_site_model(SiteModel())
         self._current_name = None
         self._dirty = False
-        self.statusMessage.emit("New molecule")
+        self.statusMessage.emit("New site model")
 
-    def open_molecule(self) -> None:
+    def open_model(self) -> None:
         if not self._confirm_discard():
             return
         path, _ = QFileDialog.getOpenFileName(
-            self, "Open molecule", self._last_dir(), "XYZ files (*.xyz);;All files (*)")
+            self, "Open site model", self._last_dir(),
+            f"Site models (*{SUFFIX});;All files (*)")
         if not path:
             return
         self._load_file(path)
 
     def _load_file(self, path: str, name: str | None = None) -> None:
         try:
-            mol = Molecule.load_xyz(path)
+            sm = SiteModel.load(path)
         except (OSError, ValueError) as e:
-            QMessageBox.warning(self, "Cannot open molecule", f"{path}\n\n{e}")
+            QMessageBox.warning(self, "Cannot open site model", f"{path}\n\n{e}")
             return
-        self.model.set_molecule(mol)
+        self.model.set_site_model(sm)
         self._current_name = name if name is not None else Path(path).stem
         self._dirty = False
         self._remember_dir(path)
         self.canvas.reset_view()
         self.statusMessage.emit(f"Opened {path}")
 
-    def save_molecule(self) -> None:
-        if not self.model.molecule.atoms:
-            QMessageBox.information(self, "Nothing to save", "The molecule is empty.")
+    def save_model(self) -> None:
+        if not self.model.site_model.sites:
+            QMessageBox.information(self, "Nothing to save", "The model is empty.")
             return
         suggestion = str(Path(self._last_dir())
-                         / f"{self._current_name or self.model.molecule.formula()}.xyz")
+                         / f"{self._current_name or 'sites'}{SUFFIX}")
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save molecule", suggestion, "XYZ files (*.xyz)")
+            self, "Save site model", suggestion, f"Site models (*{SUFFIX})")
         if not path:
             return
         try:
-            self.model.molecule.save_xyz(path)
+            self.model.site_model.save(path)
         except OSError as e:
-            QMessageBox.warning(self, "Cannot save molecule", str(e))
+            QMessageBox.warning(self, "Cannot save site model", str(e))
             return
         self._current_name = Path(path).stem
         self._dirty = False
@@ -262,31 +269,31 @@ class MoleculeTab(QWidget):
     def refresh_project_model(self) -> None:
         entry = self.project.model
         if entry is None:
-            self.slot_label.setText("Not set yet. Build a molecule and press "
+            self.slot_label.setText("Not set yet. Build a site model and press "
                                     "'Use in project'.")
             self.slot_open.setEnabled(False)
             self.slot_clear.setEnabled(False)
-        elif entry["kind"] == "atomistic":
-            self.slot_label.setText(f"{entry['name']}   ·   atomistic   ·   "
+        elif entry["kind"] == "site":
+            self.slot_label.setText(f"{entry['name']}   ·   site   ·   "
                                     f"{entry['file']}")
             self.slot_open.setEnabled(True)
             self.slot_clear.setEnabled(True)
         else:
-            self.slot_label.setText(f"{entry['name']}   ·   site model. Using "
-                                    "an atomistic model here will replace it.")
+            self.slot_label.setText(f"{entry['name']}   ·   atomistic model. "
+                                    "Using a site model here will replace it.")
             self.slot_open.setEnabled(False)
             self.slot_clear.setEnabled(True)
 
     def use_in_project(self) -> None:
-        mol = self.model.molecule
-        if not mol.atoms:
-            QMessageBox.information(self, "Empty molecule",
-                                    "Add some atoms before using the molecule "
-                                    "in the project.")
+        sm = self.model.site_model
+        if not sm.sites:
+            QMessageBox.information(self, "Empty model",
+                                    "Add some sites before using the model in "
+                                    "the project.")
             return
-        default = self._current_name or mol.formula()
-        name, ok = QInputDialog.getText(self, "Use molecule in project",
-                                        "Molecule name:", text=default)
+        default = self._current_name or "sites"
+        name, ok = QInputDialog.getText(self, "Use site model in project",
+                                        "Model name:", text=default)
         if not ok or not name.strip():
             return
         name = name.strip()
@@ -298,22 +305,22 @@ class MoleculeTab(QWidget):
                 f"The project {kind} '{old['name']}' will be replaced. Continue?")
             if answer != QMessageBox.Yes:
                 return
-        self.project.set_atomistic(name, mol)
+        self.project.set_site_model(name, sm)
         self._current_name = name
         self._dirty = False
         self.refresh_project_model()
         self.projectModelChanged.emit()
         self.statusMessage.emit(f"'{name}' is now the project model")
 
-    def _open_project_molecule(self) -> None:
+    def _open_project_model(self) -> None:
         entry = self.project.model
-        if entry is None or entry["kind"] != "atomistic":
+        if entry is None or entry["kind"] != "site":
             return
         if not self._confirm_discard():
             return
         self._load_file(str(self.project.model_path(entry)), name=entry["name"])
 
-    def _clear_project_molecule(self) -> None:
+    def _clear_project_model(self) -> None:
         entry = self.project.model
         if entry is None:
             return

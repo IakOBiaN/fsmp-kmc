@@ -33,10 +33,15 @@ class Project:
         return self.manifest.get("name", self.root.name)
 
     @property
-    def molecule(self) -> dict | None:
-        """The project molecule ({"name", "file"}) or None. A project holds
-        exactly one molecule."""
-        return self.manifest.get("molecule")
+    def model(self) -> dict | None:
+        """The project molecule model, or None. A project holds exactly one.
+        {"kind": "atomistic"|"site", "name", "file"}."""
+        return self.manifest.get("model")
+
+    @property
+    def model_kind(self) -> str | None:
+        m = self.model
+        return m["kind"] if m else None
 
     @classmethod
     def create(cls, root: str | Path, name: str) -> "Project":
@@ -48,8 +53,9 @@ class Project:
             "format": FORMAT,
             "name": name,
             "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "molecule": None,
-            "potentials": [],
+            "model": None,
+            "charges": None,
+            "potential": None,
             "unit_cell": None,
             "simulation_cell": None,
             "simulation": None,
@@ -76,33 +82,80 @@ class Project:
         path = self.root / MANIFEST
         path.write_text(json.dumps(self.manifest, indent=2) + "\n", encoding="utf-8")
 
-    # -- the project molecule ----------------------------------------------
+    # -- the project molecule model ----------------------------------------
 
-    def molecule_path(self, entry: dict | None = None) -> Path:
-        entry = entry if entry is not None else self.molecule
+    def model_path(self, entry: dict | None = None) -> Path:
+        entry = entry if entry is not None else self.model
         return self.root / entry["file"]
 
-    def set_molecule(self, name: str, molecule) -> dict:
-        """Save the molecule and make it the project molecule, replacing
-        the previous one (and its file) if any."""
+    def _set_model(self, kind: str, name: str, suffix: str, save_fn) -> dict:
+        """Replace the project model (of either kind), writing its file and
+        deleting the previous one; invalidates stored charges."""
         (self.root / "molecules").mkdir(exist_ok=True)
-        rel = f"molecules/{safe_filename(name)}.xyz"
-        molecule.save_xyz(self.root / rel)
-        old = self.molecule
+        rel = f"molecules/{safe_filename(name)}{suffix}"
+        save_fn(self.root / rel)
+        old = self.model
         if old is not None and old["file"] != rel:
             old_path = self.root / old["file"]
             if old_path.is_file():
                 old_path.unlink()
-        self.manifest["molecule"] = {"name": name, "file": rel}
+        self.manifest["model"] = {"kind": kind, "name": name, "file": rel}
+        self.manifest["charges"] = None
         self.save()
-        return self.manifest["molecule"]
+        return self.manifest["model"]
 
-    def clear_molecule(self) -> None:
-        entry = self.molecule
+    def set_atomistic(self, name: str, molecule) -> dict:
+        return self._set_model("atomistic", name, ".xyz", molecule.save_xyz)
+
+    def set_site_model(self, name: str, site_model) -> dict:
+        return self._set_model("site", name, ".site", site_model.save)
+
+    def clear_model(self) -> None:
+        entry = self.model
         if entry is None:
             return
-        path = self.molecule_path(entry)
+        path = self.model_path(entry)
         if path.is_file():
             path.unlink()
-        self.manifest["molecule"] = None
+        self.manifest["model"] = None
+        self.manifest["charges"] = None
+        self.save()
+
+    # -- partial charges of the project molecule -----------------------------
+
+    @property
+    def charges(self) -> dict | None:
+        """{"method", "values"} or None; invalidated whenever the project
+        molecule changes."""
+        return self.manifest.get("charges")
+
+    def set_charges(self, method: str, values: list[float]) -> None:
+        self.manifest["charges"] = {"method": method, "values": list(values)}
+        self.save()
+
+    # -- the project potential ----------------------------------------------
+
+    @property
+    def potential(self) -> dict | None:
+        """{"name", "path"} or None. The file is referenced, not copied:
+        forcefields are often hundreds of megabytes."""
+        return self.manifest.get("potential")
+
+    def potential_path(self) -> Path:
+        entry = self.potential
+        p = Path(entry["path"])
+        return p if p.is_absolute() else self.root / p
+
+    def set_potential(self, name: str, path: str | Path) -> dict:
+        p = Path(path).resolve()
+        try:
+            stored = p.relative_to(self.root.resolve()).as_posix()
+        except ValueError:
+            stored = str(p)
+        self.manifest["potential"] = {"name": name, "path": stored}
+        self.save()
+        return self.manifest["potential"]
+
+    def clear_potential(self) -> None:
+        self.manifest["potential"] = None
         self.save()
