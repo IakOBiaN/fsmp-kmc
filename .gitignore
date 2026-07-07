@@ -45,3 +45,9 @@ tests/build/
 
 # Papers and documents
 *.docx
+
+# GUI: Python virtual environment and caches
+gui/.venv/
+__pycache__/
+*.pyc
+*.egg-info/

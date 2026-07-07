@@ -418,6 +418,21 @@ double optimizer_tiling_energy(vector <double> &params, vector <state> &coordina
 // only translate the lattice as a whole, so they are never perturbed.
 //
 // Deterministic when compiled with -DFSMP_RANDOM_SEED=<n>.
+
+// Stage 0 helper: rescale every length parameter (cell sides, intermolecular
+// distances) by a common factor s relative to the starting values and return
+// the energy of the rescaled cell.
+static double scaled_cell_energy(vector <double> &params, const vector <double> &start,
+                                 const vector<int> &dof_scale, double s,
+                                 vector <state> &coordinates, double &Lx, double &Ly, double beta)
+{
+  for (size_t i = 0; i < dof_scale.size(); i++)
+  {
+    params[dof_scale[i]] = start[dof_scale[i]] * s;
+  }
+  return optimizer_tiling_energy(params, coordinates, Lx, Ly, beta);
+}
+
 void generate_structure(vector <double> &params, vector <state> &coordinates, double &Lx, double &Ly)
 {
   double temp_E_INF = E_INF;
@@ -446,14 +461,60 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   const int  stall_limit = 300;        // consecutive rejections before halving the steps
   const long iter_cap = 2000000;       // safety net
 
-  double energy = optimizer_tiling_energy(params, coordinates, Lx, Ly, beta);
+  cout << endl << "Unit cell optimization: " << n_dof << " degrees of freedom" << endl;
+
+  // --- Stage 0: uniform scaling of the whole cell ---------------------------
+  // One common factor rescales the cell sides and all intermolecular distances
+  // (the first-molecule offset too: it only shifts the lattice). A start with
+  // hard-core overlaps is first grown until the overlaps disappear, then a 1D
+  // pattern search (deterministic, no randomness) finds the optimal overall
+  // size. Only after that the per-parameter refinement below takes over.
+  vector<int> dof_scale = dof_len;
+  dof_scale.push_back(3);
+  vector<double> start = params;
+  double s = 1.0;
+  double energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
   if (HC_radius)
   {
-    cerr << "ERROR: the starting unit cell has overlapping molecules (hard core). "
-         << "Fix the initial guess in the configuration." << endl;
-    exit(1);
+    cout << "The starting cell has hard-core overlaps; growing it" << endl;
+    bool separated = false;
+    for (int i = 0; i < 64 && !separated; i++)
+    {
+      s *= 1.1;
+      energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
+      separated = !HC_radius;
+    }
+    if (!separated)
+    {
+      cerr << "ERROR: molecules still overlap after growing the cell hundreds-fold; "
+           << "the unit_cell geometry is degenerate (coinciding molecules?)." << endl;
+      exit(1);
+    }
   }
-  cout << endl << "Unit cell optimization: " << n_dof << " degrees of freedom" << endl;
+  double h = 0.05;                     // step of the pattern search on the scale factor
+  long scale_evals = 0;
+  while (h > 0.001 && scale_evals < 10000)
+  {
+    double e_up = scaled_cell_energy(params, start, dof_scale, s + h, coordinates, Lx, Ly, beta);
+    bool up_ok = !HC_radius && e_up < energy;
+    double e_dn = 0;
+    bool dn_ok = false;
+    if (s - h > 0.01)
+    {
+      e_dn = scaled_cell_energy(params, start, dof_scale, s - h, coordinates, Lx, Ly, beta);
+      dn_ok = !HC_radius && e_dn < energy;
+    }
+    scale_evals += 2;
+    if (up_ok && (!dn_ok || e_up <= e_dn)) { s += h; energy = e_up; }
+    else if (dn_ok)                        { s -= h; energy = e_dn; }
+    else                                   { h /= 2.0; }
+  }
+  energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
+  HC_radius = false;
+  cout << "Cell scaling: factor " << s << ", energy " << energy / 1000.0 / nPart_in_central_cell
+       << " kJ/mol per molecule" << endl;
+
+  // --- Stage 1: adaptive random descent over the individual parameters ------
   cout << "Density: " << nPart_in_central_cell * (1.0e+26) / (Lx * Ly) / N_a << "\t"
        << " Energy: " << energy / 1000.0 / nPart_in_central_cell << endl;
   write_xyz_file(unit_cell_name, N, density, Lx, Ly, temperature, coordinates, 0, 1, true);

@@ -1,0 +1,36 @@
+# Regression test: the unit-cell optimizer from a start with hard-core
+# overlaps. The distorted HCP cell of optimize_small.txt is shrunk to 60%
+# (nearest molecules at 6.84 A < min_dist 7.6 A), so stage 0 must first grow
+# the cell out of the overlap, find the optimal size, and stage 1 must then
+# land in the same optimum as the regular test.
+temp_from = 300
+temp_to = 300
+temp_step = 10
+um_from = 0.0
+um_to = 0.0
+um_step = 5000.0
+temperature_in_transition_zone = 900
+lambdam = 0.0
+nSteps = 2
+nStepsEq = 1
+constant_pressure = false
+constant_pressure_value = 0
+kMC = true
+potential = data/TMA_simple_2020_s4.v2.bin
+structure = calculate
+sigma_mode = manual
+sigma = 11.052
+unit_cell = 2  6.96 11.88  0 0 84  6.84 57.0 96
+uc_in_x = 22
+uc_in_y = 6
+free_space = 0.24
+total_molecule_directions = 3
+angle_1 = 120
+angle_2 = 240
+delta = 2.0
+delta_angle = 60.0
+widom_test_index = false
+unit_cell_name = 0_optimize_overlap.xyz
+xyz_name = 1_optimize_overlap.xyz
+statistics_name = 2_optimize_overlap.dat
+seed = 12345

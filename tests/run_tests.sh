@@ -8,6 +8,8 @@
 #    potential is not present (it is a separate download, see README).
 # 4. The unit-cell optimizer ("calculate") on the small committed grid,
 #    seeded for determinism; pins the converged energy.
+# 5. The same optimization started from a cell with hard-core overlaps: the
+#    scaling stage must grow it out of the overlap and reach the same optimum.
 #
 # The engine is built once with -ffp-contract=off so the optimizer trajectory
 # (and its pin) is reproducible across compilers.
@@ -24,17 +26,17 @@ mkdir -p build
 # files to keep the output names canonical
 rm -f 0_*.xyz 1_*.xyz 2_*.dat
 
-echo "== [1/4] pack_forcefield round-trip on a synthetic grid =="
+echo "== [1/5] pack_forcefield round-trip on a synthetic grid =="
 "$CXX" -O2 -Wall -Wextra ../tools/pack_forcefield.cpp -o build/pack
 python3 test_pack_roundtrip.py build/pack build
 
 "$CXX" -O2 -ffp-contract=off ../fsmp.cpp -o build/fsmp
 
-echo "== [2/4] engine on the small committed grid =="
+echo "== [2/5] engine on the small committed grid =="
 ./build/fsmp hcp_small.txt > build/hcp_small.log
 python3 check_energy.py build/hcp_small.log -61.7449 0.001
 
-echo "== [3/4] engine on the full TMA simple potential =="
+echo "== [3/5] engine on the full TMA simple potential =="
 if [ -f ../forcefields/TMA_simple_2020.v2.bin ]; then
     ./build/fsmp hcp_full.txt > build/hcp_full.log
     python3 check_energy.py build/hcp_full.log -62.8605 0.001
@@ -42,8 +44,12 @@ else
     echo "SKIP: forcefields/TMA_simple_2020.v2.bin not present"
 fi
 
-echo "== [4/4] unit-cell optimizer on the small committed grid =="
+echo "== [4/5] unit-cell optimizer on the small committed grid =="
 ./build/fsmp optimize_small.txt > build/optimize_small.log
-python3 check_energy.py build/optimize_small.log -62.2278 0.05 "Final energy per molecule:"
+python3 check_energy.py build/optimize_small.log -62.2276 0.05 "Final energy per molecule:"
+
+echo "== [5/5] unit-cell optimizer from an overlapping start =="
+./build/fsmp optimize_overlap.txt > build/optimize_overlap.log
+python3 check_energy.py build/optimize_overlap.log -62.2276 0.05 "Final energy per molecule:"
 
 echo "ALL TESTS PASSED"

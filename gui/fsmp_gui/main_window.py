@@ -1,0 +1,252 @@
+"""Main window: start page <-> project view with the workflow tabs."""
+
+from pathlib import Path
+
+from PySide6.QtCore import QSettings, QStandardPaths, Qt
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QFileDialog,
+                               QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+                               QMainWindow, QMessageBox, QPushButton,
+                               QStackedWidget, QTabWidget, QVBoxLayout,
+                               QWidget)
+
+from . import theme
+from .project import Project, ProjectError, safe_filename
+from .start_page import ASSETS, StartPage
+from .tabs.molecule_tab import MoleculeTab
+from .tabs.placeholder import PlaceholderTab
+
+MAX_RECENT = 8
+
+
+class NewProjectDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("New project")
+        self.setMinimumWidth(520)
+
+        grid = QGridLayout()
+        grid.addWidget(QLabel("Name"), 0, 0)
+        self.name_edit = QLineEdit()
+        self.name_edit.setPlaceholderText("my-monolayer")
+        grid.addWidget(self.name_edit, 0, 1, 1, 2)
+
+        grid.addWidget(QLabel("Location"), 1, 0)
+        documents = QStandardPaths.writableLocation(QStandardPaths.DocumentsLocation)
+        self.location_edit = QLineEdit(documents)
+        grid.addWidget(self.location_edit, 1, 1)
+        browse = QPushButton("Browse…")
+        browse.clicked.connect(self._browse)
+        grid.addWidget(browse, 1, 2)
+
+        self.preview = QLabel(" ")
+        self.preview.setProperty("dim", True)
+
+        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(grid)
+        layout.addWidget(self.preview)
+        layout.addWidget(self.buttons)
+
+        self.name_edit.textChanged.connect(self._validate)
+        self.location_edit.textChanged.connect(self._validate)
+        self._validate()
+
+    def _browse(self) -> None:
+        path = QFileDialog.getExistingDirectory(self, "Project location",
+                                                self.location_edit.text())
+        if path:
+            self.location_edit.setText(path)
+
+    def target_path(self) -> Path | None:
+        name = self.name_edit.text().strip()
+        location = self.location_edit.text().strip()
+        if not name or not location:
+            return None
+        return Path(location) / safe_filename(name)
+
+    def _validate(self) -> None:
+        target = self.target_path()
+        ok = False
+        if target is None:
+            self.preview.setText("Enter a project name and location")
+        elif target.exists() and any(target.iterdir()):
+            self.preview.setText(f"Folder already exists and is not empty: {target}")
+        elif not target.parent.is_dir():
+            self.preview.setText(f"Location does not exist: {target.parent}")
+        else:
+            self.preview.setText(f"The project will be created in  {target}")
+            ok = True
+        self.buttons.button(QDialogButtonBox.Ok).setEnabled(ok)
+
+
+class ProjectView(QWidget):
+    def __init__(self, project: Project, parent=None):
+        super().__init__(parent)
+        self.project = project
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 8, 12, 8)
+
+        header = QHBoxLayout()
+        name = QLabel(project.name)
+        name.setProperty("gold", True)
+        name.setStyleSheet(f"font-size: 13pt; font-weight: 600; color: {theme.GOLD};"
+                           "background: transparent;")
+        header.addWidget(name)
+        path = QLabel(str(project.root))
+        path.setProperty("dim", True)
+        header.addWidget(path)
+        header.addStretch(1)
+        layout.addLayout(header)
+
+        self.tabs = QTabWidget()
+        self.molecule_tab = MoleculeTab(project)
+        self.tabs.addTab(self.molecule_tab, "1  Molecules")
+        self.tabs.addTab(PlaceholderTab(
+            "Potentials",
+            "Create pair potentials or open existing files\n"
+            "and attach them to the project.",
+            ["open and inspect binary v2 forcefields",
+             "pack ASCII grids into the binary format",
+             "generate potentials for the project molecule (ASE, later)"]),
+            "2  Potentials")
+        self.tabs.addTab(PlaceholderTab(
+            "Unit cell",
+            "Build a rough unit cell from the project molecule\n"
+            "and optimize it with the engine.",
+            ["place molecules in a starting cell",
+             "run the 'calculate' optimizer and watch the progress",
+             "inspect the optimized cell and energy"]),
+            "3  Unit cell")
+        self.tabs.addTab(PlaceholderTab(
+            "Simulation cell",
+            "Configure the elongated simulation cell built\n"
+            "from the optimized unit cell.",
+            ["unit cells along x and y, free space fraction",
+             "fields, temperatures and chemical potential settings",
+             "preview of the full cell layout"]),
+            "4  Simulation cell")
+        self.tabs.addTab(PlaceholderTab(
+            "Run",
+            "Run the engine and follow the simulation.",
+            ["generate the parameter file and launch fsmp",
+             "live plots of the statistics output",
+             "collect and compare results"]),
+            "5  Run")
+        layout.addWidget(self.tabs, 1)
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("FSMP-kMC Studio")
+        self.setWindowIcon(QIcon(str(ASSETS / "logo-mark.svg")))
+        self.project: Project | None = None
+        self.project_view: ProjectView | None = None
+
+        self.stack = QStackedWidget()
+        self.start_page = StartPage()
+        self.start_page.newProjectRequested.connect(self.new_project)
+        self.start_page.openProjectRequested.connect(self.open_project)
+        self.start_page.recentProjectRequested.connect(self.open_project_at)
+        self.stack.addWidget(self.start_page)
+        self.setCentralWidget(self.stack)
+
+        self._build_menu()
+        self.statusBar().showMessage("Ready")
+        self._refresh_recent()
+
+    def _build_menu(self) -> None:
+        file_menu = self.menuBar().addMenu("&File")
+        for text, shortcut, slot in (
+                ("&New project…", "Ctrl+N", self.new_project),
+                ("&Open project…", "Ctrl+O", self.open_project)):
+            action = QAction(text, self)
+            action.setShortcut(shortcut)
+            action.triggered.connect(slot)
+            file_menu.addAction(action)
+        file_menu.addSeparator()
+        self.close_action = QAction("&Close project", self)
+        self.close_action.setShortcut("Ctrl+W")
+        self.close_action.setEnabled(False)
+        self.close_action.triggered.connect(self.close_project)
+        file_menu.addAction(self.close_action)
+        file_menu.addSeparator()
+        quit_action = QAction("E&xit", self)
+        quit_action.setShortcut("Ctrl+Q")
+        quit_action.triggered.connect(self.close)
+        file_menu.addAction(quit_action)
+
+    # -- recent projects ---------------------------------------------------
+
+    def _recent(self) -> list[str]:
+        value = QSettings().value("recent_projects", [])
+        if isinstance(value, str):
+            value = [value]
+        return list(value or [])
+
+    def _add_recent(self, path: str) -> None:
+        recent = [p for p in self._recent() if p != path]
+        recent.insert(0, path)
+        QSettings().setValue("recent_projects", recent[:MAX_RECENT])
+        self._refresh_recent()
+
+    def _refresh_recent(self) -> None:
+        self.start_page.set_recent(self._recent())
+
+    # -- project lifecycle -------------------------------------------------
+
+    def new_project(self) -> None:
+        dialog = NewProjectDialog(self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+        target = dialog.target_path()
+        try:
+            project = Project.create(target, dialog.name_edit.text().strip())
+        except (ProjectError, OSError) as e:
+            QMessageBox.warning(self, "Cannot create project", str(e))
+            return
+        self._show_project(project)
+
+    def open_project(self) -> None:
+        path = QFileDialog.getExistingDirectory(self, "Open project folder")
+        if path:
+            self.open_project_at(path)
+
+    def open_project_at(self, path: str) -> None:
+        try:
+            project = Project.open(path)
+        except (ProjectError, OSError) as e:
+            QMessageBox.warning(self, "Cannot open project", str(e))
+            return
+        self._show_project(project)
+
+    def _show_project(self, project: Project) -> None:
+        if self.project_view is not None:
+            self.stack.removeWidget(self.project_view)
+            self.project_view.deleteLater()
+        self.project = project
+        self.project_view = ProjectView(project)
+        self.project_view.molecule_tab.statusMessage.connect(
+            self.statusBar().showMessage)
+        self.stack.addWidget(self.project_view)
+        self.stack.setCurrentWidget(self.project_view)
+        self.close_action.setEnabled(True)
+        self.setWindowTitle(f"{project.name} — FSMP-kMC Studio")
+        self._add_recent(str(project.root))
+        self.statusBar().showMessage(f"Project: {project.root}")
+
+    def close_project(self) -> None:
+        if self.project_view is not None:
+            self.stack.removeWidget(self.project_view)
+            self.project_view.deleteLater()
+            self.project_view = None
+        self.project = None
+        self.close_action.setEnabled(False)
+        self.setWindowTitle("FSMP-kMC Studio")
+        self.stack.setCurrentWidget(self.start_page)
+        self._refresh_recent()
