@@ -139,6 +139,9 @@ class ProjectView(QWidget):
         self.tabs.currentChanged.connect(self._tab_changed)
         # the project model can change on tab 1; downstream tabs must re-read it
         self.model_tab.projectModelChanged.connect(self.create_tab.refresh)
+        # a freshly generated potential should show up on the Potentials tab
+        self.create_tab.site_page.potentialGenerated.connect(
+            self.potentials_tab.refresh)
 
     def _tab_changed(self, index: int) -> None:
         # tabs read shared project state, so refresh on activation

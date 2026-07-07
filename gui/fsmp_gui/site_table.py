@@ -5,8 +5,8 @@ from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 
 from .sitemodel import Site, SiteModel
 
-COLUMNS = ["Label", "x, Å", "y, Å", "z, Å", "q, e", "ε, K", "σ, Å"]
-_ATTR = ("label", "x", "y", "z", "q", "epsilon", "sigma")
+COLUMNS = ["Label", "x, Å", "y, Å", "z, Å", "q, e", "ε, K", "σ, Å", "r₀, Å"]
+_ATTR = ("label", "x", "y", "z", "q", "epsilon", "sigma", "r0")
 
 
 class SiteTableModel(QAbstractTableModel):
@@ -98,7 +98,7 @@ class SiteTableModel(QAbstractTableModel):
                 num = float(value)
             except (TypeError, ValueError):
                 return False
-            if col in (5, 6) and num < 0:  # epsilon, sigma are non-negative
+            if col in (5, 6, 7) and num < 0:  # epsilon, sigma, r0 non-negative
                 return False
             setattr(s, _ATTR[col], num)
         self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])

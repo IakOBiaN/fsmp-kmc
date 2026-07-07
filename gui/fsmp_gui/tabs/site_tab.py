@@ -9,8 +9,8 @@ from PySide6.QtCore import QSettings, Qt, Signal
 from PySide6.QtWidgets import (QAbstractItemView, QButtonGroup, QComboBox,
                                QFileDialog, QFrame, QHBoxLayout, QHeaderView,
                                QInputDialog, QLabel, QMessageBox, QPushButton,
-                               QSplitter, QTableView, QToolButton,
-                               QVBoxLayout, QWidget)
+                               QSplitter, QTableView, QToolButton, QVBoxLayout,
+                               QWidget)
 
 from ..canvas import Mode, SiteCanvas
 from ..project import Project

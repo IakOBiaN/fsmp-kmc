@@ -57,7 +57,7 @@ class TestMolecule(unittest.TestCase):
 
 class TestSiteModel(unittest.TestCase):
     def test_roundtrip(self):
-        model = SiteModel([Site("O", 0.0, 0.0, 0.0, -0.5, 500.0, 3.1),
+        model = SiteModel([Site("O", 0.0, 0.0, 0.0, -0.5, 500.0, 3.1, 2.4),
                            Site("q+", 1.2, 0.0, 0.0, 0.5, 0.0, 0.0)],
                           "test model")
         with tempfile.TemporaryDirectory() as tmp:
@@ -67,10 +67,20 @@ class TestSiteModel(unittest.TestCase):
         self.assertEqual(len(back.sites), 2)
         self.assertEqual(back.sites[0].label, "O")
         self.assertAlmostEqual(back.sites[0].epsilon, 500.0)
+        self.assertAlmostEqual(back.sites[0].r0, 2.4)
         self.assertAlmostEqual(back.total_charge(), 0.0)
         self.assertTrue(back.sites[0].is_lj)
         self.assertFalse(back.sites[1].is_lj)
         self.assertTrue(back.sites[1].is_charge)
+
+    def test_load_without_r0_column(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "old.site"
+            path.write_text("1\nold 7-column file\nO 0 0 0 -0.5 500 3.1\n",
+                            encoding="utf-8")
+            back = SiteModel.load(path)
+        self.assertAlmostEqual(back.sites[0].sigma, 3.1)
+        self.assertAlmostEqual(back.sites[0].r0, 0.0)
 
     def test_load_error(self):
         with tempfile.TemporaryDirectory() as tmp:

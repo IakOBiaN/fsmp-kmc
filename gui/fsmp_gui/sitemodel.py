@@ -5,10 +5,13 @@ Stored in an xyz-like text format (.site), one site per line:
 
     <n_sites>
     <comment / model name>
-    LABEL   x   y   z   q   epsilon   sigma
+    LABEL   x   y   z   q   epsilon   sigma   r0
 
 x, y, z in angstroms; q in elementary charges; epsilon in kelvin (eps/k_B);
-sigma in angstroms. A pure charge has epsilon = 0, a pure LJ center q = 0.
+sigma and r0 in angstroms. r0 is an optional hard core: with r0 > 0 the
+dispersion uses the shifted 12-6 form 4eps[((sig-r0)/(r-r0))^12 - ...], with
+r0 = 0 the plain Lennard-Jones. A pure charge has epsilon = 0, a pure LJ
+center q = 0.
 """
 
 from collections import Counter
@@ -16,7 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 SUFFIX = ".site"
-_HEADER = "LABEL x y z q(e) epsilon(K) sigma(A)"
+_HEADER = "LABEL x y z q(e) epsilon(K) sigma(A) r0(A)"
+_NCOL = 8
 
 
 @dataclass
@@ -28,6 +32,7 @@ class Site:
     q: float = 0.0
     epsilon: float = 0.0
     sigma: float = 0.0
+    r0: float = 0.0
 
     @property
     def is_lj(self) -> bool:
@@ -72,17 +77,19 @@ class SiteModel:
             cols = lines[ln].split()
             if len(cols) < 7:
                 raise ValueError(f"line {ln + 1}: expected "
-                                 "'label x y z q epsilon sigma'")
+                                 "'label x y z q epsilon sigma [r0]'")
             try:
-                x, y, z, q, eps, sig = (float(c) for c in cols[1:7])
+                vals = [float(c) for c in cols[1:_NCOL]]
             except ValueError:
                 raise ValueError(f"line {ln + 1}: bad number")
-            sites.append(Site(cols[0], x, y, z, q, eps, sig))
+            vals += [0.0] * (7 - len(vals))  # r0 optional for older files
+            sites.append(Site(cols[0], *vals[:7]))
         return SiteModel(sites, comment)
 
     def save(self, path: str | Path) -> None:
         lines = [str(len(self.sites)), self.comment or _HEADER]
         for s in self.sites:
             lines.append(f"{s.label:<6} {s.x:13.6f} {s.y:13.6f} {s.z:13.6f} "
-                         f"{s.q:10.5f} {s.epsilon:12.4f} {s.sigma:10.5f}")
+                         f"{s.q:10.5f} {s.epsilon:12.4f} {s.sigma:10.5f} "
+                         f"{s.r0:10.5f}")
         Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")
