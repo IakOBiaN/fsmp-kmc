@@ -116,12 +116,16 @@ class ItemCanvas(GridView):
 
     def rebuild(self) -> None:
         self._syncing = True
-        self.scene().clear()
+        self.scene().clear()          # deletes every item, decorations included
+        self._reset_decorations()     # so drop their now-dangling references
         self._items = [self.make_item(row) for row in range(self.model.rowCount())]
         for item in self._items:
             self.scene().addItem(item)
         self._syncing = False
         self.decorate()
+
+    def _reset_decorations(self) -> None:
+        """Forget decoration items after scene().clear() deleted them."""
 
     def _model_edited(self, top_left, bottom_right, roles=None) -> None:
         if self._syncing:
@@ -198,9 +202,14 @@ class AtomItem(CircleItem):
 
 
 class MoleculeCanvas(ItemCanvas):
+    _BOND_PEN = QPen(QColor("#5b6f70"), 0.16, Qt.SolidLine, Qt.RoundCap)
+
     def __init__(self, model: AtomTableModel, parent=None, read_only=False):
         self._bonds: list[QGraphicsLineItem] = []
         super().__init__(model, parent, read_only)
+
+    def _reset_decorations(self):
+        self._bonds = []
 
     def make_item(self, row):
         return AtomItem(self, row)
@@ -216,11 +225,8 @@ class MoleculeCanvas(ItemCanvas):
         return [(a.x, a.y) for a in self.model.molecule.atoms]
 
     def decorate(self):
-        for line in self._bonds:
-            self.scene().removeItem(line)
-        self._bonds = []
         atoms = self.model.molecule.atoms
-        pen = QPen(QColor("#5b6f70"), 0.16, Qt.SolidLine, Qt.RoundCap)
+        segments = []
         for i in range(len(atoms)):
             for j in range(i + 1, len(atoms)):
                 a, b = atoms[i], atoms[j]
@@ -228,11 +234,19 @@ class MoleculeCanvas(ItemCanvas):
                 limit = BOND_TOLERANCE * (covalent_radius(a.element)
                                           + covalent_radius(b.element))
                 if 1e-6 < d < limit:
-                    line = QGraphicsLineItem(a.x, a.y, b.x, b.y)
-                    line.setPen(pen)
-                    line.setZValue(0)
-                    self.scene().addItem(line)
-                    self._bonds.append(line)
+                    segments.append((a.x, a.y, b.x, b.y))
+        # reuse the existing line items; only add/remove when the bond count
+        # changes, so dragging just repositions lines (no scene mutation)
+        while len(self._bonds) < len(segments):
+            line = QGraphicsLineItem()
+            line.setPen(self._BOND_PEN)
+            line.setZValue(0)
+            self.scene().addItem(line)
+            self._bonds.append(line)
+        while len(self._bonds) > len(segments):
+            self.scene().removeItem(self._bonds.pop())
+        for line, seg in zip(self._bonds, segments):
+            line.setLine(*seg)
 
     def add_atom_at(self, element: str, x: float, y: float) -> None:
         self.model.add_atom(Atom(element, x, y))

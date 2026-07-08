@@ -15,7 +15,13 @@ class GridView(QGraphicsView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setScene(QGraphicsScene(self))
+        scene = QGraphicsScene(self)
+        # Editor items (bonds) are added and removed while an atom is dragged,
+        # i.e. from inside the scene's own event delivery. The default BSP
+        # index is not reentrant against that and crashes; with a handful of
+        # items a linear scan (NoIndex) is free and safe.
+        scene.setItemIndexMethod(QGraphicsScene.NoIndex)
+        self.setScene(scene)
         self.scene().setSceneRect(-60, -60, 120, 120)
         self.setRenderHint(QPainter.Antialiasing)
         self.setDragMode(QGraphicsView.RubberBandDrag)
