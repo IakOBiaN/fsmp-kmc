@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 
+from fsmp_gui.forcefield import ForcefieldGrid
 from fsmp_gui.generate import CAP_JMOL, GridSpec, _fold, _prepare, _slab
 from fsmp_gui.sitemodel import SiteModel
 
@@ -56,6 +57,19 @@ class TestGenerator(unittest.TestCase):
             # tolerance is the reference grid's own float32 / ASCII quantization
             self.assertLessEqual(abs(got - want), 0.1 + abs(want) * 3e-6,
                                  msg=f"cell {(i, j, k)}: {got} vs {want}")
+
+
+class TestForcefieldGrid(unittest.TestCase):
+    @unittest.skipUnless(REFERENCE.is_file(), "reference grid not present")
+    def test_energy_lookup(self):
+        grid = ForcefieldGrid.open(REFERENCE)
+        # r=17.6 is distance index 500; angles are read at the folded resolution
+        self.assertAlmostEqual(grid.energy_at(17.6, 0, 60), -616.835, places=2)
+        self.assertAlmostEqual(grid.energy_at(17.6, 60, 0), -473.181, places=2)
+        # angles fold by the 120 deg symmetry: 60 == 180 == 300
+        self.assertEqual(grid.energy_at(17.6, 0, 60), grid.energy_at(17.6, 0, 180))
+        self.assertIsNone(grid.energy_at(7.0, 0, 0))          # below the hard core
+        self.assertEqual(grid.energy_at(40.0, 0, 0), 0.0)     # beyond the cutoff
 
 
 if __name__ == "__main__":

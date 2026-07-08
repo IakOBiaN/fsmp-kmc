@@ -142,18 +142,6 @@ class TestProject(unittest.TestCase):
         self.assertEqual(safe_filename('a b/c:d*e'), "a_b_c_d_e")
         self.assertEqual(safe_filename("  "), "unnamed")
 
-    def test_charges_lifecycle(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            project = Project.create(Path(tmp) / "proj", "p")
-            project.set_atomistic("m", Molecule([Atom("C", 0, 0), Atom("O", 1, 0)]))
-            project.set_charges("Gasteiger", [0.1, -0.1])
-            again = Project.open(project.root)
-            self.assertEqual(again.charges["method"], "Gasteiger")
-            self.assertEqual(again.charges["values"], [0.1, -0.1])
-            # replacing the molecule invalidates the stored charges
-            again.set_atomistic("m", Molecule([Atom("C", 0, 0)]))
-            self.assertIsNone(again.charges)
-
     def test_potential_slot(self):
         with tempfile.TemporaryDirectory() as tmp:
             project = Project.create(Path(tmp) / "proj", "p")

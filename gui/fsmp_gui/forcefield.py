@@ -1,4 +1,4 @@
-"""Reader for the v2 binary forcefield header.
+"""Reader for the v2 binary forcefield: header plus on-demand value lookup.
 
 The layout mirrors tools/pack_forcefield.cpp: 64 bytes, little-endian:
 magic "FSMP", u32 version, u32 dtype (0 double / 1 float), u32 n_dist,
@@ -8,6 +8,8 @@ u32 n_ang, f64 min_dist, f64 dr, f64 da, f64 fold (360 = none), zero pad.
 import struct
 from dataclasses import dataclass
 from pathlib import Path
+
+import numpy as np
 
 HEADER_BYTES = 64
 MAGIC = b"FSMP"
@@ -83,3 +85,38 @@ def read_header(path: str | Path) -> ForcefieldInfo:
         raise ForcefieldError(f"file size mismatch: {file_size} bytes on disk, "
                               f"the header implies {expected}")
     return info
+
+
+class ForcefieldGrid:
+    """Memory-mapped access to the energy grid for value browsing.
+
+    energy_at(r, a1, a2) mirrors the engine's lookup (energies_and_forces_
+    numerical.h): the molecule orientations are reduced into the stored angular
+    range (the folded symmetry period), then the nearest grid point is read.
+    Returns J/mol, None below the hard core, 0 beyond the cutoff.
+    """
+
+    def __init__(self, info: ForcefieldInfo):
+        self.info = info
+        dt = np.float32 if info.dtype == "float" else np.float64
+        self._data = np.memmap(info.path, dtype=dt, mode="r", offset=HEADER_BYTES,
+                               shape=(info.n_dist, info.n_ang, info.n_ang))
+
+    @classmethod
+    def open(cls, path: str | Path) -> "ForcefieldGrid":
+        return cls(read_header(path))
+
+    def _reduce_angle(self, a: float) -> float:
+        period = 360.0 if self.info.fold >= 359.999 else self.info.fold
+        return a % period
+
+    def energy_at(self, r: float, a1_deg: float, a2_deg: float) -> float | None:
+        info = self.info
+        if r < info.min_dist:
+            return None                      # hard core
+        if r > info.r_max:
+            return 0.0                       # beyond the cutoff
+        i = min(round((r - info.min_dist) / info.dr), info.n_dist - 1)
+        j = min(round(self._reduce_angle(a1_deg) / info.da), info.n_ang - 1)
+        k = min(round(self._reduce_angle(a2_deg) / info.da), info.n_ang - 1)
+        return float(self._data[i, j, k])

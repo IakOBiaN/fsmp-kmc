@@ -54,7 +54,6 @@ class Project:
             "name": name,
             "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "model": None,
-            "charges": None,
             "potential": None,
             "unit_cell": None,
             "simulation_cell": None,
@@ -90,7 +89,7 @@ class Project:
 
     def _set_model(self, kind: str, name: str, suffix: str, save_fn) -> dict:
         """Replace the project model (of either kind), writing its file and
-        deleting the previous one; invalidates stored charges."""
+        deleting the previous one."""
         (self.root / "molecules").mkdir(exist_ok=True)
         rel = f"molecules/{safe_filename(name)}{suffix}"
         save_fn(self.root / rel)
@@ -100,7 +99,6 @@ class Project:
             if old_path.is_file():
                 old_path.unlink()
         self.manifest["model"] = {"kind": kind, "name": name, "file": rel}
-        self.manifest["charges"] = None
         self.save()
         return self.manifest["model"]
 
@@ -118,19 +116,6 @@ class Project:
         if path.is_file():
             path.unlink()
         self.manifest["model"] = None
-        self.manifest["charges"] = None
-        self.save()
-
-    # -- partial charges of the project molecule -----------------------------
-
-    @property
-    def charges(self) -> dict | None:
-        """{"method", "values"} or None; invalidated whenever the project
-        molecule changes."""
-        return self.manifest.get("charges")
-
-    def set_charges(self, method: str, values: list[float]) -> None:
-        self.manifest["charges"] = {"method": method, "values": list(values)}
         self.save()
 
     # -- the project potential ----------------------------------------------
