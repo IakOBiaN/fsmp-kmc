@@ -37,6 +37,7 @@
 
 # Local experiments / scratch verification (not part of the project)
 experiments/
+gui/
 
 # Regression tests: build artifacts are ignored, the small committed grid is
 # exempt from the global *.bin ignore above
