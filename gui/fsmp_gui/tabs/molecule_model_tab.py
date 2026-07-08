@@ -25,6 +25,7 @@ class MoleculeModelTab(QWidget):
         self.site_tab = SiteTab(project)
         self.subtabs.addTab(self.atomistic_tab, "Atomistic model")
         self.subtabs.addTab(self.site_tab, "Site model")
+        self.subtabs.setCurrentWidget(self.site_tab)  # charge models are the focus
         layout.addWidget(self.subtabs)
 
         for tab in (self.atomistic_tab, self.site_tab):

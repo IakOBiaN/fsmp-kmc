@@ -11,12 +11,14 @@ from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QFileDialog,
                                QWidget)
 
 from . import theme
+from .glyph import model_glyph
 from .project import Project, ProjectError, safe_filename
 from .start_page import ASSETS, StartPage
 from .tabs.create_potential_tab import CreatePotentialTab
 from .tabs.molecule_model_tab import MoleculeModelTab
 from .tabs.placeholder import PlaceholderTab
 from .tabs.potentials_tab import PotentialsTab
+from .tabs.unit_cell_tab import UnitCellTab
 
 MAX_RECENT = 8
 
@@ -112,14 +114,8 @@ class ProjectView(QWidget):
         self.tabs.addTab(self.create_tab, "2  Create potential")
         self.potentials_tab = PotentialsTab(project)
         self.tabs.addTab(self.potentials_tab, "3  Potentials")
-        self.tabs.addTab(PlaceholderTab(
-            "Unit cell",
-            "Build a rough unit cell from the project molecule\n"
-            "and optimize it with the engine.",
-            ["place molecules in a starting cell",
-             "run the 'calculate' optimizer and watch the progress",
-             "inspect the optimized cell and energy"]),
-            "4  Unit cell")
+        self.unit_cell_tab = UnitCellTab(project)
+        self.tabs.addTab(self.unit_cell_tab, "4  Unit cell")
         self.tabs.addTab(PlaceholderTab(
             "Simulation cell",
             "Configure the elongated simulation cell built\n"
@@ -139,6 +135,8 @@ class ProjectView(QWidget):
         self.tabs.currentChanged.connect(self._tab_changed)
         # the project model can change on tab 1; downstream tabs must re-read it
         self.model_tab.projectModelChanged.connect(self.create_tab.refresh)
+        self.model_tab.projectModelChanged.connect(
+            lambda: self.unit_cell_tab.canvas.set_glyph(model_glyph(project)))
         # a freshly generated potential should show up on the Potentials tab
         self.create_tab.site_page.potentialGenerated.connect(
             self.potentials_tab.refresh)
@@ -150,6 +148,8 @@ class ProjectView(QWidget):
             self.create_tab.refresh()
         elif widget is self.potentials_tab:
             self.potentials_tab.refresh()
+        elif widget is self.unit_cell_tab:
+            self.unit_cell_tab.refresh()
 
 
 class MainWindow(QMainWindow):

@@ -12,12 +12,9 @@ from PySide6.QtWidgets import (QDoubleSpinBox, QFileDialog, QGroupBox,
                                QHBoxLayout, QLabel, QMessageBox, QPushButton,
                                QVBoxLayout, QWidget)
 
-from ..canvas import site_color
-from ..elements import covalent_radius, element_color
 from ..forcefield import ForcefieldError, ForcefieldGrid, read_header
-from ..molecule import Molecule
+from ..glyph import model_glyph
 from ..project import Project
-from ..sitemodel import SiteModel
 from ..potential_viewer import TwoMoleculeView
 from .pack_dialog import PackDialog
 
@@ -115,7 +112,7 @@ class PotentialsTab(QWidget):
                     self.pot_label.setText(f"<b>{entry['name']}</b>   ·   {path}<br>"
                                            f"bad file: {e}")
 
-        self.view.set_glyph(self._build_glyph())
+        self.view.set_glyph(model_glyph(self.project))
         self._configure_spins()
         self._update_view()
 
@@ -132,24 +129,6 @@ class PotentialsTab(QWidget):
             self.t2_spin.setValue(60.0)
         for s in (self.r_spin, self.t1_spin, self.t2_spin):
             s.blockSignals(False)
-
-    def _build_glyph(self):
-        entry = self.project.model
-        if entry is None:
-            return None
-        try:
-            path = self.project.model_path(entry)
-            if entry["kind"] == "atomistic":
-                mol = Molecule.load_xyz(path)
-                return [(a.x, a.y, element_color(a.element),
-                         min(max(0.4 * covalent_radius(a.element) + 0.15, 0.3), 0.8))
-                        for a in mol.atoms]
-            sm = SiteModel.load(path)
-            return [(s.x, s.y, site_color(s.q).name(),
-                     0.32 if s.sigma <= 0 else min(max(0.2 * s.sigma + 0.1, 0.32), 0.9))
-                    for s in sm.sites]
-        except (OSError, ValueError):
-            return None
 
     def _update_view(self) -> None:
         r = self.r_spin.value()

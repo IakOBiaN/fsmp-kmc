@@ -85,7 +85,7 @@ class AtomisticPage(QWidget):
         return panel
 
     def refresh(self) -> None:
-        entry = self.project.model
+        entry = self.project.atomistic
         try:
             mol = Molecule.load_xyz(self.project.model_path(entry))
         except (OSError, ValueError) as e:
@@ -100,7 +100,6 @@ class AtomisticPage(QWidget):
     def showEvent(self, event):
         super().showEvent(event)
         self.canvas.reset_view()
-
 
 
 class GenerateWorker(QThread):
@@ -238,7 +237,7 @@ class SitePage(QWidget):
         return box
 
     def refresh(self) -> None:
-        entry = self.project.model
+        entry = self.project.site
         try:
             sm = SiteModel.load(self.project.model_path(entry))
         except (OSError, ValueError) as e:
@@ -274,7 +273,7 @@ class SitePage(QWidget):
         if spec.r_max <= spec.r_min or spec.n_dist < 2:
             QMessageBox.warning(self, "Bad grid", "Check the r range and step.")
             return
-        entry = self.project.model
+        entry = self.project.site
         out = self.project.root / f"{safe_filename(entry['name'])}.v2.bin"
         if out.exists():
             if QMessageBox.question(self, "Overwrite", f"{out.name} exists. "
@@ -351,12 +350,14 @@ class CreatePotentialTab(QWidget):
         self.refresh()
 
     def refresh(self) -> None:
-        kind = self.project.model_kind
-        if kind == "atomistic":
-            self.atomistic_page.refresh()
-            self.stack.setCurrentWidget(self.atomistic_page)
-        elif kind == "site":
+        # the site model drives generation; a lone atomistic model falls back
+        # to the (planned) ANI-2x page
+        kind = self.project.generation_kind
+        if kind == "site":
             self.site_page.refresh()
             self.stack.setCurrentWidget(self.site_page)
+        elif kind == "atomistic":
+            self.atomistic_page.refresh()
+            self.stack.setCurrentWidget(self.atomistic_page)
         else:
             self.stack.setCurrentWidget(self.empty_page)

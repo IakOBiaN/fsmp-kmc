@@ -139,7 +139,7 @@ class SiteTab(QWidget):
         layout.addWidget(self.info)
 
         layout.addSpacing(10)
-        caption2 = QLabel("Project model")
+        caption2 = QLabel("Site model in project  (potential)")
         caption2.setProperty("dim", True)
         layout.addWidget(caption2)
 
@@ -267,21 +267,15 @@ class SiteTab(QWidget):
     # -- project integration -----------------------------------------------
 
     def refresh_project_model(self) -> None:
-        entry = self.project.model
+        entry = self.project.site
         if entry is None:
             self.slot_label.setText("Not set yet. Build a site model and press "
-                                    "'Use in project'.")
+                                    "'Use in project'. Used to build the potential.")
             self.slot_open.setEnabled(False)
             self.slot_clear.setEnabled(False)
-        elif entry["kind"] == "site":
-            self.slot_label.setText(f"{entry['name']}   ·   site   ·   "
-                                    f"{entry['file']}")
-            self.slot_open.setEnabled(True)
-            self.slot_clear.setEnabled(True)
         else:
-            self.slot_label.setText(f"{entry['name']}   ·   atomistic model. "
-                                    "Using a site model here will replace it.")
-            self.slot_open.setEnabled(False)
+            self.slot_label.setText(f"{entry['name']}   ·   {entry['file']}")
+            self.slot_open.setEnabled(True)
             self.slot_clear.setEnabled(True)
 
     def use_in_project(self) -> None:
@@ -297,40 +291,38 @@ class SiteTab(QWidget):
         if not ok or not name.strip():
             return
         name = name.strip()
-        old = self.project.model
-        if old is not None:
-            kind = "atomistic model" if old["kind"] == "atomistic" else "site model"
-            answer = QMessageBox.question(
-                self, "Replace project model",
-                f"The project {kind} '{old['name']}' will be replaced. Continue?")
-            if answer != QMessageBox.Yes:
-                return
-        self.project.set_site_model(name, sm)
+        old = self.project.site
+        if old is not None and QMessageBox.question(
+                self, "Replace site model",
+                f"The site model '{old['name']}' will be replaced. Continue?"
+                ) != QMessageBox.Yes:
+            return
+        self.project.set_site(name, sm)
         self._current_name = name
         self._dirty = False
         self.refresh_project_model()
         self.projectModelChanged.emit()
-        self.statusMessage.emit(f"'{name}' is now the project model")
+        self.statusMessage.emit(f"'{name}' is now the site model")
 
     def _open_project_model(self) -> None:
-        entry = self.project.model
-        if entry is None or entry["kind"] != "site":
+        entry = self.project.site
+        if entry is None:
             return
         if not self._confirm_discard():
             return
         self._load_file(str(self.project.model_path(entry)), name=entry["name"])
 
     def _clear_project_model(self) -> None:
-        entry = self.project.model
+        entry = self.project.site
         if entry is None:
             return
         answer = QMessageBox.question(
-            self, "Remove project model",
+            self, "Remove site model",
             f"Remove '{entry['name']}' from the project?\n"
             "The file inside the project folder will be deleted.")
         if answer != QMessageBox.Yes:
             return
-        self.project.clear_model()
+        self.project.clear_site()
         self.refresh_project_model()
         self.projectModelChanged.emit()
-        self.statusMessage.emit("Project model removed")
+        self.statusMessage.emit("Site model removed")

@@ -95,37 +95,45 @@ class TestProject(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "proj"
             project = Project.create(root, "test project")
-            self.assertIsNone(project.model)
+            self.assertIsNone(project.atomistic)
             project.set_atomistic("benzene", Molecule([Atom("C", 0, 0)]))
 
             again = Project.open(root)
             self.assertEqual(again.name, "test project")
-            self.assertEqual(again.model["name"], "benzene")
-            self.assertEqual(again.model_kind, "atomistic")
-            self.assertTrue(again.model_path().is_file())
+            self.assertEqual(again.atomistic["name"], "benzene")
+            self.assertEqual(again.generation_kind, "atomistic")
+            self.assertTrue(again.model_path(again.atomistic).is_file())
 
-            again.clear_model()
-            self.assertIsNone(again.model)
+            again.clear_atomistic()
+            self.assertIsNone(again.atomistic)
             self.assertFalse((root / "molecules" / "benzene.xyz").exists())
 
-    def test_set_site_model(self):
+    def test_two_models_coexist(self):
         with tempfile.TemporaryDirectory() as tmp:
             project = Project.create(Path(tmp) / "proj", "p")
-            project.set_site_model("sites", SiteModel([Site("LJ", 0, 0)]))
-            self.assertEqual(project.model_kind, "site")
-            self.assertTrue(project.model_path().name.endswith(".site"))
+            project.set_atomistic("benzene", Molecule([Atom("C", 0, 0)]))
+            project.set_site("sites", SiteModel([Site("LJ", 0, 0)]))
             again = Project.open(project.root)
-            self.assertEqual(again.model_kind, "site")
+            # both slots are independent and both are kept
+            self.assertEqual(again.atomistic["name"], "benzene")
+            self.assertEqual(again.site["name"], "sites")
+            self.assertEqual(again.generation_kind, "site")   # site wins
+            self.assertTrue(again.model_path(again.atomistic).is_file())
+            self.assertTrue(again.model_path(again.site).name.endswith(".site"))
+            # clearing one leaves the other
+            again.clear_site()
+            self.assertIsNone(again.site)
+            self.assertIsNotNone(again.atomistic)
+            self.assertEqual(again.generation_kind, "atomistic")
 
-    def test_switch_model_kind_deletes_old_file(self):
+    def test_replace_within_slot_deletes_old_file(self):
         with tempfile.TemporaryDirectory() as tmp:
             project = Project.create(Path(tmp) / "proj", "p")
-            project.set_atomistic("first", Molecule([Atom("C", 0, 0)]))
-            old_path = project.model_path()
-            project.set_site_model("second", SiteModel([Site("LJ", 0, 0)]))
+            project.set_site("first", SiteModel([Site("LJ", 0, 0)]))
+            old_path = project.model_path(project.site)
+            project.set_site("second", SiteModel([Site("LJ", 0, 0)]))
             self.assertFalse(old_path.exists())
-            self.assertEqual(project.model_kind, "site")
-            self.assertTrue(project.model_path().is_file())
+            self.assertEqual(project.site["name"], "second")
 
     def test_open_rejects_non_project(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -141,6 +149,18 @@ class TestProject(unittest.TestCase):
     def test_safe_filename(self):
         self.assertEqual(safe_filename('a b/c:d*e'), "a_b_c_d_e")
         self.assertEqual(safe_filename("  "), "unnamed")
+
+    def test_unit_cell_slot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Project.create(Path(tmp) / "proj", "p")
+            self.assertIsNone(project.unit_cell)
+            project.set_unit_cell(11.1, 19.2, [{"x": 0, "y": 0, "phi": 0},
+                                               {"x": 5.5, "y": 9.6, "phi": 90}])
+            again = Project.open(project.root)
+            self.assertAlmostEqual(again.unit_cell["cell_x"], 11.1)
+            self.assertEqual(len(again.unit_cell["molecules"]), 2)
+            again.clear_unit_cell()
+            self.assertIsNone(again.unit_cell)
 
     def test_potential_slot(self):
         with tempfile.TemporaryDirectory() as tmp:
