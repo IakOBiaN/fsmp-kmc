@@ -70,9 +70,30 @@ void generate_structure(vector <double> &params, string structure_name, vector <
   unit_cell_params.push_back(0);
   unit_cell_params.push_back(0);
   unit_cell_params.push_back(90);
-  unit_cell_params.push_back(11.089); 
-  unit_cell_params.push_back(59.967); 
+  unit_cell_params.push_back(11.089);
+  unit_cell_params.push_back(59.967);
   unit_cell_params.push_back(90);
+}
+  // Chicken-wire (honeycomb) cell for the simplified 2020 model, optimized with
+  // configs/tma_acid_cw_optimize.txt (seed 12345): E = -49.98 kJ/mol, density
+  // 1.064 umol/m2 at T = 0. Metastable: run with restrict_relocation = true.
+  if (structure_name == "TMA_CW_simple_2020")
+{
+  unit_cell_params.push_back(4);
+  unit_cell_params.push_back(18.9835);
+  unit_cell_params.push_back(32.8801);
+  unit_cell_params.push_back(0);
+  unit_cell_params.push_back(0);
+  unit_cell_params.push_back(29.9998);
+  unit_cell_params.push_back(10.9602);
+  unit_cell_params.push_back(29.9997);
+  unit_cell_params.push_back(89.9999);
+  unit_cell_params.push_back(10.96);
+  unit_cell_params.push_back(90.0001);
+  unit_cell_params.push_back(30.0003);
+  unit_cell_params.push_back(10.9602);
+  unit_cell_params.push_back(150.001);
+  unit_cell_params.push_back(90.0001);
 }
   //old optimization
 	if (structure_name == "TMA_fCW_qB3LYP_PBE_Dreiding_Dhb5.4")

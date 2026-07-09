@@ -10,7 +10,8 @@
 // seed (fixes the random sequence for reproducible runs; otherwise the wall
 // clock or the FSMP_RANDOM_SEED compile flag is used), constant_pressure_value
 // (default 0), unit_cell (required with structure = calculate, forbidden
-// otherwise).
+// otherwise), restrict_relocation (default false; forbid relocation-type moves
+// from targeting the undamped crystal zone, see the key handler below).
 
 #include <set>
 
@@ -111,6 +112,12 @@ void read_parameters(const char * path)
 		else if (key == "constant_pressure")              { constant_pressure = param_bool(file, lineno, key, value); }
 		else if (key == "constant_pressure_value")        { constant_pressure_value = param_double(file, lineno, key, value); }
 		else if (key == "kMC")                            { kMC = param_bool(file, lineno, key, value); }
+		// Restrict the relocation (teleport) moves to the region where the damping
+		// field is already active (lambda < 1). Molecules then exchange with the gas
+		// only through the interface, so pores of a metastable crystal (chicken-wire,
+		// flower phases) cannot be filled by direct insertion into the bulk. Local
+		// displacement/rotation moves are not affected.
+		else if (key == "restrict_relocation")            { restrict_relocation = param_bool(file, lineno, key, value); }
 		else if (key == "uc_in_x")                        { uc_in_x = param_int(file, lineno, key, value); }
 		else if (key == "uc_in_y")                        { uc_in_y = param_int(file, lineno, key, value); }
 		else if (key == "free_space")                     { free_space = param_double(file, lineno, key, value); }

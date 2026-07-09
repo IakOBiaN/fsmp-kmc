@@ -40,14 +40,19 @@ int Metropolis_iteration(int &nPart, double &Lx, double &Ly, double &beta, vecto
     }
     else
     {
-      if (center_of_mass_x > Lx / 2.0)
+      // Relocation-type step: same target restriction as in the kMC move
+      // (see Rosenbluth_iteration.h and restrict_relocation in read_parameters.h)
+      do
       {
-        new_coordinates.x = RanGen.Random() * Lx / 2.0;
-      }
-      else
-      {
-        new_coordinates.x = (1.0 + RanGen.Random()) * Lx / 2.0;
-      }
+        if (center_of_mass_x > Lx / 2.0)
+        {
+          new_coordinates.x = RanGen.Random() * Lx / 2.0;
+        }
+        else
+        {
+          new_coordinates.x = (1.0 + RanGen.Random()) * Lx / 2.0;
+        }
+      } while (restrict_relocation && damping_field(new_coordinates.x, Lx) >= 1.0);
     	new_coordinates.y = Ly * RanGen.Random();
     	new_coordinates.phi = 360.0*RanGen.Random();
     	new_coordinates.sin_phi = sin(new_coordinates.phi/180.0*PI);

@@ -1,0 +1,71 @@
+# FSMP-kMC parameters: TMA monolayer, chicken-wire (honeycomb) structure,
+# simplified 2020 model. Run from the repository root:
+#   ./fsmp.out configs/tma_acid_cw.txt
+# Paths are relative to the working directory; output is written there too.
+#
+# The chicken-wire polymorph is metastable in this model (the stable phase is
+# HCP), so restrict_relocation below is essential: without it the kMC
+# relocation moves insert gas molecules directly into the hexagon pores and
+# the structure decays within a short run.
+
+# Crystal temperature loop, K
+temp_from = 300
+temp_to = 301
+temp_step = 10
+
+# External field strength loop, J/mol (single point at u_m = 0)
+um_from = -1000.0
+um_to = -100000.0
+um_step = 5000.0
+
+# Temperature in the transition zone, K
+temperature_in_transition_zone = 900
+lambdam = 0.0
+
+# Length of the MC run: total Monte Carlo steps and steps for relaxation
+nSteps = 500000
+nStepsEq = 250000
+
+constant_pressure = false
+constant_pressure_value = 0
+kMC = true
+
+# Keep the metastable chicken-wire framework intact: relocation-type moves may
+# only target the damped zone (lambda < 1), so the crystal bulk exchanges
+# molecules with the gas through the interface alone and the pores stay empty
+restrict_relocation = true
+
+# Numerical potential (binary v2; see forcefields/readme.txt)
+potential = forcefields/TMA_simple_2020.v2.bin
+
+# Initial structure: chicken-wire cell optimized for the simplified 2020 model
+structure = TMA_CW_simple_2020
+
+# Reference area for the chemical potential (sigma in A)
+sigma_mode = manual
+sigma = 11.052
+
+# Unit cells along x and y (4 molecules per cell -> 440 molecules), and the
+# fraction of free (gas) space in the cell
+uc_in_x = 22
+uc_in_y = 5
+free_space = 0.34
+
+# Visualization: molecule drawing directions
+total_molecule_directions = 3
+angle_1 = 120
+angle_2 = 240
+
+# MC move sizes: maximal shift (A) and rotation (deg)
+delta = 2.0
+delta_angle = 60.0
+
+widom_test_index = false
+
+# Output files (xyz animation of the cell optimization, xyz trajectory)
+unit_cell_name = 0_calculate_animation.xyz
+xyz_name = 1_xyz_for_calculations_TMA_cw.xyz
+statistics_name = 2_my_statistics_cw.dat
+
+# Optional: statistics_name = my_statistics.dat  (default is built from the structure)
+# Optional: seed = 12345  (fixes the random sequence for a reproducible run)

@@ -64,15 +64,24 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 	results new_EP;
 	results old_EP_Part;
 	results new_EP_Part;
-	// Move or Rotate a molecule
-	if (center_of_mass_x > Lx / 2.0)
+	// Move or Rotate a molecule.
+	// With restrict_relocation the target is resampled until it leaves the
+	// lambda = 1 zone: the crystal bulk can then only exchange molecules with
+	// the gas through the interface (see the key in read_parameters.h). The
+	// proposal stays uniform over the allowed area; note that the flux-based
+	// mu_ex_kMC estimate keeps the full-cell normalization and becomes a
+	// diagnostic only - the gas-density route to mu is unaffected.
+	do
 	{
-		new_coordinates.x = RanGen.Random() * Lx / 2.0;
-	}
-	else
-	{
-		new_coordinates.x = (1.0 + RanGen.Random()) * Lx / 2.0;
-	}
+		if (center_of_mass_x > Lx / 2.0)
+		{
+			new_coordinates.x = RanGen.Random() * Lx / 2.0;
+		}
+		else
+		{
+			new_coordinates.x = (1.0 + RanGen.Random()) * Lx / 2.0;
+		}
+	} while (restrict_relocation && damping_field(new_coordinates.x, Lx) >= 1.0);
 	new_coordinates.y = Ly * RanGen.Random();
 	new_coordinates.phi = 360.0*RanGen.Random();
 	new_coordinates.sin_phi = sin(new_coordinates.phi/180.0*PI);

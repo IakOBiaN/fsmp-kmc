@@ -20,6 +20,7 @@ int nStepsEq = 0;                                      // MCS for relaxation
 bool constant_pressure = false;
 double constant_pressure_value = 0;
 bool kMC = true;
+bool restrict_relocation = false;                       // forbid kMC relocations into the lambda = 1 zone
 string p_name;                                         // numerical potential (binary v2)
 string structure_name;                                 // named structure or "calculate"
 string sigma_mode;                                     // reference area: manual | min_dist | molecule_area

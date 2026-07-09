@@ -24,6 +24,8 @@ constant_pressure = false
 constant_pressure_value = 0
 kMC = true
 
+restrict_relocation = true
+
 # Numerical potential (binary v2; see forcefields/readme.txt)
 potential = forcefields/TMA_simple_2020.v2.bin
 
@@ -56,6 +58,7 @@ widom_test_index = false
 # Output files (xyz animation of the cell optimization, xyz trajectory)
 unit_cell_name = 0_calculate_animation.xyz
 xyz_name = 1_xyz_for_calculations_TMA_hcp.xyz
+statistics_name = 2_my_statistics_hcp.dat
 
 # Optional: statistics_name = my_statistics.dat  (default is built from the structure)
 # Optional: seed = 12345  (fixes the random sequence for a reproducible run)
