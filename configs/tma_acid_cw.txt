@@ -51,10 +51,8 @@ uc_in_x = 22
 uc_in_y = 5
 free_space = 0.34
 
-# Visualization: molecule drawing directions
-total_molecule_directions = 3
-angle_1 = 120
-angle_2 = 240
+# Atomistic molecule model (xyz) used for all visualizations
+molecule_model = models/trimesic_acid.xyz
 
 # MC move sizes: maximal shift (A) and rotation (deg)
 delta = 2.0

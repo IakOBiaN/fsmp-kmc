@@ -11,7 +11,9 @@
 // clock or the FSMP_RANDOM_SEED compile flag is used), constant_pressure_value
 // (default 0), unit_cell (required with structure = calculate, forbidden
 // otherwise), restrict_relocation (default false; forbid relocation-type moves
-// from targeting the undamped crystal zone, see the key handler below).
+// from targeting the undamped crystal zone, see the key handler below),
+// optimize_only (default false; only with structure = calculate: stop right
+// after the unit cell optimization, skipping the Monte Carlo run).
 
 #include <set>
 
@@ -118,12 +120,20 @@ void read_parameters(const char * path)
 		// flower phases) cannot be filled by direct insertion into the bulk. Local
 		// displacement/rotation moves are not affected.
 		else if (key == "restrict_relocation")            { restrict_relocation = param_bool(file, lineno, key, value); }
+		// Stop after the unit cell optimization: the optimizer writes its xyz
+		// animation and prints the optimized cell, then the program exits without
+		// entering the Monte Carlo loop. Only meaningful with structure = calculate.
+		else if (key == "optimize_only")                  { optimize_only = param_bool(file, lineno, key, value); }
 		else if (key == "uc_in_x")                        { uc_in_x = param_int(file, lineno, key, value); }
 		else if (key == "uc_in_y")                        { uc_in_y = param_int(file, lineno, key, value); }
 		else if (key == "free_space")                     { free_space = param_double(file, lineno, key, value); }
-		else if (key == "total_molecule_directions")      { total_molecule_directions = param_int(file, lineno, key, value); }
-		else if (key == "angle_1")                        { angle_1 = param_double(file, lineno, key, value); }
-		else if (key == "angle_2")                        { angle_2 = param_double(file, lineno, key, value); }
+		else if (key == "molecule_model")                 { molecule_model_file = value; }
+		// The ray-based visualization was replaced by atomistic models: molecules
+		// are now drawn with the xyz model given by the molecule_model key.
+		else if (key == "total_molecule_directions" || key == "angle_1" || key == "angle_2")
+		{
+			param_error(file, lineno, "key \"" + key + "\" was removed: point molecule_model at an xyz model instead (see models/)");
+		}
 		else if (key == "delta")                          { delta = param_double(file, lineno, key, value); }
 		else if (key == "delta_angle")                    { delta_angle = param_double(file, lineno, key, value); }
 		else if (key == "widom_test_index")               { widom_test_index = param_bool(file, lineno, key, value); }
@@ -149,7 +159,7 @@ void read_parameters(const char * path)
 		"potential", "structure", "sigma_mode", "temp_from", "temp_to", "temp_step",
 		"um_from", "um_to", "um_step", "temperature_in_transition_zone", "lambdam",
 		"nSteps", "nStepsEq", "constant_pressure", "kMC", "uc_in_x", "uc_in_y",
-		"free_space", "total_molecule_directions", "angle_1", "angle_2",
+		"free_space", "molecule_model",
 		"delta", "delta_angle", "widom_test_index", "unit_cell_name", "xyz_name" };
 	string missing;
 	for (size_t i = 0; i < sizeof(required) / sizeof(required[0]); i++)
@@ -180,6 +190,12 @@ void read_parameters(const char * path)
 	{
 		cerr << "ERROR: " << file << ": the unit_cell key is only used with structure = calculate "
 		     << "(a named structure carries its own cell)" << endl;
+		exit(1);
+	}
+	if (optimize_only && structure_name != "calculate")
+	{
+		cerr << "ERROR: " << file << ": optimize_only = true requires structure = calculate "
+		     << "(a named structure has nothing to optimize)" << endl;
 		exit(1);
 	}
 	cout << "Parameters read from " << file << endl;

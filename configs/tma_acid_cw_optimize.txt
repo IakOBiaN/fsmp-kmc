@@ -25,6 +25,10 @@ constant_pressure_value = 0
 kMC = true
 restrict_relocation = true
 
+# Optional: optimize_only = true stops right after the unit cell optimization
+# (the "Final params" block and the xyz animation), skipping the MC run.
+# optimize_only = true
+
 potential = forcefields/TMA_simple_2020.v2.bin
 
 # Rough honeycomb cell: 4 molecules, NN distance 11.04 A (HON density
@@ -39,9 +43,8 @@ uc_in_x = 4
 uc_in_y = 2
 free_space = 0.24
 
-total_molecule_directions = 3
-angle_1 = 120
-angle_2 = 240
+# Atomistic molecule model (xyz) used for all visualizations
+molecule_model = models/trimesic_acid.xyz
 
 delta = 2.0
 delta_angle = 60.0

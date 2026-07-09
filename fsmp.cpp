@@ -21,14 +21,14 @@ bool constant_pressure = false;
 double constant_pressure_value = 0;
 bool kMC = true;
 bool restrict_relocation = false;                       // forbid kMC relocations into the lambda = 1 zone
+bool optimize_only = false;                             // stop after the unit cell optimization (structure = calculate)
 string p_name;                                         // numerical potential (binary v2)
 string structure_name;                                 // named structure or "calculate"
 string sigma_mode;                                     // reference area: manual | min_dist | molecule_area
 double sigma_manual = 0;                               // sigma in A (used with sigma_mode = manual)
 int uc_in_x = 0, uc_in_y = 0;                          // unit cells along x and y
 double free_space = 0;                                 // fraction of free space in the elongated cell
-int total_molecule_directions = 0;                     // visualization
-double angle_1 = 0, angle_2 = 0;                       // visualization
+string molecule_model_file;                            // atomistic model for visualization (xyz, see models/)
 double delta = 0;                                      // maximal MC shift, A
 double delta_angle = 0;                                // maximal MC rotation, deg
 bool widom_test_index = false;
