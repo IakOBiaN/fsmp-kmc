@@ -1,49 +1,33 @@
+// Append one frame to an xyz file. Every molecule is drawn with the atomistic
+// model from the parameter file (the molecule_model key), rotated by the
+// molecule orientation phi and translated to the molecule center. The molecule
+// is kept whole: atoms of a molecule sitting near the box edge may stick
+// slightly outside instead of being wrapped atom by atom.
+//
+// The output is extended xyz: besides the element and the position, every atom
+// carries the fields acting on its molecule, so a viewer (e.g. OVITO "Color
+// coding") can show where each field is active. "lambda" is the damping field
+// coefficient (1 in the crystal, lambdam^2 in the gas; damping_coeff stores
+// its square root), "u_ext" is the external potential in kJ/mol.
 void write_xyz_file (string name, int &nPart, double & /*density*/, double &Lx, double &Ly, double & /*temperature*/, vector <state> &coordinates, int /*frame*/, double /*distance*/, bool init)
 {
 	if (init) {ofstream fileOutput(name.c_str(), ios_base::trunc);fileOutput.close();}
 	ofstream fileOutput(name.c_str(), ios_base::app);
-	fileOutput << nPart*4 << endl;
-	fileOutput << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\"" << endl;
-	double dn2 = 3.536/2.0;
+	fileOutput << nPart * (int)molecule_model.size() << endl;
+	fileOutput << "Lattice=\"" << Lx << " 0 0 0 " << Ly << " 0 0 0 1\" "
+	           << "Properties=species:S:1:pos:R:3:lambda:R:1:u_ext:R:1" << endl;
 
 	for(int i = 0; i < nPart; i++)
 		{
-			string element = "N ";
-			if (abs(coordinates[i].ex_field_coeff.energy) < 1e-5) {element = "N ";}
-			else if (abs(coordinates[i].ex_field_coeff.energy) < abs(u_m)*0.98) {element = "O ";}
-			else {element = "C ";}
-
-			double dop = coordinates[i].x + dn2 * coordinates[i].cos_phi;
-			if (dop > Lx) {dop -= Lx;}
-			if (dop < 0)  {dop += Lx;}
-			double xxx = dop;
-			dop = coordinates[i].y + dn2 * coordinates[i].sin_phi;
-			if (dop > Ly) {dop -= Ly;}
-			if (dop < 0)  {dop += Ly;}
-			double yyy = dop;
-			fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
-
-			dop = coordinates[i].x + dn2 * (dop_cos_angles[0] * coordinates[i].cos_phi + dop_sin_angles[0] * coordinates[i].sin_phi);
-			if (dop > Lx) {dop -= Lx;}
-			if (dop < 0)  {dop += Lx;}
-			xxx = dop;
-			dop = coordinates[i].y + dn2 * (dop_cos_angles[0] * coordinates[i].sin_phi - dop_sin_angles[0] * coordinates[i].cos_phi);
-			if (dop > Ly) {dop -= Ly;}
-			if (dop < 0)  {dop += Ly;}
-			yyy = dop;
-			fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
-
-			dop = coordinates[i].x + dn2 * (dop_cos_angles[total_molecule_directions - 2] * coordinates[i].cos_phi + dop_sin_angles[total_molecule_directions - 2] * coordinates[i].sin_phi);
-			if (dop > Lx) {dop -= Lx;}
-			if (dop < 0)  {dop += Lx;}
-			xxx = dop;
-			dop = coordinates[i].y + dn2 * (dop_cos_angles[total_molecule_directions - 2] * coordinates[i].sin_phi - dop_sin_angles[total_molecule_directions - 2] * coordinates[i].cos_phi);
-			if (dop > Ly) {dop -= Ly;}
-			if (dop < 0)  {dop += Ly;}
-			yyy = dop;
-			fileOutput << element << xxx << " " << yyy << " " << 0 << endl;
-
-			fileOutput << "H " << coordinates[i].x << " " << coordinates[i].y << " " << 0 << endl;
+			double lambda = coordinates[i].damping_coeff * coordinates[i].damping_coeff;
+			double u_ext = coordinates[i].ex_field_coeff.energy / 1000.0;
+			for (size_t a = 0; a < molecule_model.size(); a++)
+			{
+				double x = coordinates[i].x + molecule_model[a].x * coordinates[i].cos_phi - molecule_model[a].y * coordinates[i].sin_phi;
+				double y = coordinates[i].y + molecule_model[a].x * coordinates[i].sin_phi + molecule_model[a].y * coordinates[i].cos_phi;
+				fileOutput << molecule_model[a].element << " " << x << " " << y << " " << molecule_model[a].z
+				           << " " << lambda << " " << u_ext << endl;
+			}
 		}
 	fileOutput.close();
 }

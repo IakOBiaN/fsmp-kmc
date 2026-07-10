@@ -78,7 +78,7 @@ double Rosenbluth_iteration(double &Lx, double &Ly, int &nPart, vector <state> &
 	new_coordinates.sin_phi = sin(new_coordinates.phi/180.0*PI);
 	new_coordinates.cos_phi = cos(new_coordinates.phi/180.0*PI);
   new_coordinates.damping_coeff = damping_field(new_coordinates.x, Lx); // Lambda^1/2
-  new_coordinates.ex_field_coeff = external_field(new_coordinates.x, Lx); // u_ext
+  new_coordinates.ex_field_coeff = external_field_and_mask(new_coordinates.x, new_coordinates.y, Lx); // u_ext + mask
   new_coordinates.stat_weight = weights_for_central_cell (new_coordinates.x, Lx);
 
 for (int l = 0; l < nPart; l++)

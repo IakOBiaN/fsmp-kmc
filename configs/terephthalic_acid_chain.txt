@@ -44,10 +44,8 @@ uc_in_x = 26
 uc_in_y = 8
 free_space = 0.24
 
-# Visualization: molecule drawing directions (2 for TPA)
-total_molecule_directions = 2
-angle_1 = 180
-angle_2 = 240
+# Atomistic molecule model (xyz) used for all visualizations
+molecule_model = models/terephthalic_acid.xyz
 
 # MC move sizes: maximal shift (A) and rotation (deg)
 delta = 2.0

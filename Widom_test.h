@@ -11,7 +11,7 @@ void Widom_test(int &nPart, vector <state> &coordinates, double &Lx, double &Ly,
   test_particle.sin_phi = sin(test_particle.phi/180.0*PI);
   test_particle.cos_phi = cos(test_particle.phi/180.0*PI);
 	test_particle.damping_coeff = damping_field(test_particle.x, Lx); // Lambda^1/2
-	test_particle.ex_field_coeff = external_field(test_particle.x, Lx); // u_ext
+	test_particle.ex_field_coeff = external_field_and_mask(test_particle.x, test_particle.y, Lx); // u_ext + mask
 	test_particle.stat_weight = weights_for_central_cell(test_particle.x, Lx);
 	for (int l = 0; l < nPart; l++){test_particle_energy = test_particle_energy +  energies_and_forces(test_particle, coordinates[l], Lx, Ly, beta, false).energy;}
 	test_particle_energy = test_particle_energy + test_particle.ex_field_coeff.energy;

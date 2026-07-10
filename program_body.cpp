@@ -85,8 +85,6 @@ double ACCEPTANCE_RATIO_m[2] = {0, 0};								// 0 - not accepted steps of move,
 int BALANCE_STEPS;													// steps for balance statistics
 double density, gas_density, transition_zone_density;				// Actual density of the layer in mkMol per m^2
 double lambda0 = sqrt(temperature / temperature_in_transition_zone);
-double dop_sin_angles[2] = {sin(angle_1 / 180.0 * PI), sin(angle_2 / 180.0 * PI)};
-double dop_cos_angles[2] = {cos(angle_1 / 180.0 * PI), cos(angle_2 / 180.0 * PI)};
 
 bool HC_radius = false;                         					// Are we inside hard core radius (min_dist)?
 bool findTrialPart = true;                      					// Condition for additional calculation of trialPart in kMC
@@ -119,8 +117,10 @@ int frame = 0; // For visualization purpose
 #include "molecule_area.h"
 #include "PBC2D.h"
 #include "fields.h"
+#include "stabilization_mask.h"
 #include "interpolation.h"
 #include "energies_and_forces_numerical.h"
+#include "molecule_model.h"
 #include "write_xyz_file.h"
 #include "PotentialEnergy.h"
 #include "Metropolis_iteration.h"
@@ -146,12 +146,20 @@ int main(int argc, char ** argv)
 	temperature = temp_from;
 	u_m = um_from;
 	lambda0 = sqrt(temperature / temperature_in_transition_zone);
-	dop_sin_angles[0] = sin(angle_1 / 180.0 * PI);
-	dop_sin_angles[1] = sin(angle_2 / 180.0 * PI);
-	dop_cos_angles[0] = cos(angle_1 / 180.0 * PI);
-	dop_cos_angles[1] = cos(angle_2 / 180.0 * PI);
 	potential_name = p_name.c_str();
 	if (param_seed_given) { RanGen.RandomInit(param_seed); }
+
+	// The atomistic molecule model used for all xyz visualizations
+	read_molecule_model(molecule_model_file);
+
+	// The stabilization mask is damped by lambda(x) and must vanish in the gas
+	// phase, otherwise the ideal-gas route to the chemical potential breaks
+	if (stabilization_mask && lambda0 >= 1.0 && lambdam >= 1.0)
+	{
+		cerr << "ERROR: stabilization_mask = true requires a damping field (lambda < 1 somewhere): "
+		     << "set temperature_in_transition_zone above the temperature or lambdam below 1" << endl;
+		return 1;
+	}
 
   complex_names();
 
@@ -219,6 +227,13 @@ int main(int argc, char ** argv)
   {
     calculate_unit_cell_params();
     generate_structure(unit_cell_params, coordinates, Lx, Ly);
+    // The optimized cell has been reported and its animation written to
+    // unit_cell_name; with optimize_only there is nothing left to do.
+    if (optimize_only)
+    {
+      cout << endl << "optimize_only = true: stopping after the unit cell optimization." << endl;
+      return 0;
+    }
   }
   int nPart = unit_cell_params[0] * uc_in_x * uc_in_y;
 
@@ -244,10 +259,14 @@ int main(int argc, char ** argv)
 
 	fileOutput << "////////////////////////////////////////////////////////////////////////////////////////////" << endl << endl;
 
-	fileOutput << "lambda_m" << "\t"<< "lambda0" << "\t" << "u_m, kJ/mol" << "\t"<< "T, K" << "\t" << "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t"// << "Energy SD" << "\t"
-	<< "Total pressure, mN/m" << "\t" << "Excess pressure, mN/m" << "\t" << "Excess pressure along x-direction" << "\t" << "Excess pressure along y-direction" << "\t"
-	<< "Pressure change over gas-solid interface" << "\t" << "Analytical pressure in the crystal (Pg + dP)" << "\t"
-	<< "Gas density, mikromol/m2" << "\t" << "RTlog(rho)" << "\t" << "Residual Chemical Potential by Widom's method, kJ/mol" << "\t" << "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom's test), kJ/mol" << "\t" << "kMC's excess chemical potential in the gas phase" << endl;
+	// Columns are grouped by importance: the run conditions, the crystal state,
+	// the chemical potential block, the gas phase with the analytical pressure,
+	// and only then the strongly fluctuating virial pressures.
+	fileOutput << "T, K" << "\t" << "u_m, kJ/mol" << "\t" << "lambda0" << "\t" << "lambda_m" << "\t"
+	<< "Density, mkmol/m2" << "\t" << "Lx, A" << "\t" << "Ly, A" << "\t" << "Energy, kJ/mol" << "\t"
+	<< "Excess chemical potential (ideal gas + u_m), kJ/mol" << "\t" << "Excess chemical potential (kMC, gas phase), kJ/mol" << "\t" << "Ideal excess part RTln(rho_gas*sigma2), kJ/mol" << "\t" << "Residual chemical potential (Widom), kJ/mol" << "\t" << "Excess chemical potential (ideal gas + Widom), kJ/mol" << "\t"
+	<< "Gas density, mkmol/m2" << "\t" << "Analytical pressure in the crystal (Pg + dP), mN/m" << "\t" << "Pressure change over gas-solid interface (dP), mN/m" << "\t"
+	<< "Virial total pressure, mN/m" << "\t" << "Virial excess pressure, mN/m" << "\t" << "Virial excess pressure along x, mN/m" << "\t" << "Virial excess pressure along y, mN/m" << endl;
 	fileOutput.close();
 
 bool u_m_loop_flag = true;
@@ -521,12 +540,13 @@ um_step = abs(um_step);
 	cout << endl;
 	cout << "Pressure change over gas-solid interface (dP): " << delta_p_over_interface << " mN/m" << " Analytical pressure in the crystal (Pg + dP): " << R*temperature*gas_density/1000.0 + delta_p_over_interface << endl;
 
+	double mu_id_gas = log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0;   // ideal excess part, kJ/mol
 	ofstream fileOutput(name_of_file_for_statistics.str().c_str(), ios_base::app);
-	fileOutput  << lambdam << "\t" << lambda0 << "\t" << u_m/1000.0 << "\t" << temperature << "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)// << "\t" << energy_error
-	<< "\t" << (R*temperature*(1.0e+23)*(density*Lx*Ly*N_a/4.0/1.0e+26)/((Lx/4.0)*Ly)/N_a) + (press_X + press_Y)/2.0 << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y// << "\t" << pressure_error << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y
-	<< "\t" << delta_p_over_interface << "\t" << R*temperature*gas_density/1000.0 + delta_p_over_interface
-	<< "\t" << gas_density << "\t" << log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0 << "\t" << mu_res_widom << "\t" << log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0 + u_m/1000.0 << "\t" << log(gas_density*N_a*1.0e-24*sigma_2)/beta/1000.0 + mu_res_widom
-  << "\t" << mu_ex_kMC << endl;
+	fileOutput  << temperature << "\t" << u_m/1000.0 << "\t" << lambda0 << "\t" << lambdam
+	<< "\t" << density << "\t" << Lx << "\t" << Ly << "\t" << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)
+	<< "\t" << mu_id_gas + u_m/1000.0 << "\t" << mu_ex_kMC << "\t" << mu_id_gas << "\t" << mu_res_widom << "\t" << mu_id_gas + mu_res_widom
+	<< "\t" << gas_density << "\t" << R*temperature*gas_density/1000.0 + delta_p_over_interface << "\t" << delta_p_over_interface
+	<< "\t" << R*temperature*density/1000.0 + (press_X + press_Y)/2.0 << "\t" << (press_X + press_Y)/2.0 << "\t" << press_X << "\t" << press_Y << endl;
 	fileOutput.close();
 
 

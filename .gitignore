@@ -51,3 +51,7 @@ gui/.venv/
 __pycache__/
 *.pyc
 *.egg-info/
+
+# Atomistic molecule models are sources, exempt from the global *.xyz ignore
+# (that rule targets the trajectory outputs)
+!models/*.xyz

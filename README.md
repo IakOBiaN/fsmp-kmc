@@ -137,6 +137,8 @@ runs against the published reference energy.
 | `Weighted_averages.h`, `block_error.h`, `bootstrap_error.h` | Time averaging and error estimation. |
 | `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
 | `random/` | SFMT / Mersenne Twister random number generator (by Agner Fog). |
+| `models/` | Atomistic molecule models (xyz) used to draw molecules in all visual output; a configuration picks one with the `molecule_model` key. |
+| `molecule_model.h` | Loader of the molecule model. |
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `logo/` | Project logo and GitHub preview artwork in SVG format. |
 | `tools/` | `pack_forcefield.cpp`: converts an ASCII potential into the compact binary grid the run time reads. |

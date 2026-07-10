@@ -8,8 +8,8 @@ temp_to = 301
 temp_step = 10
 
 # External field strength loop, J/mol
-um_from = 0.0
-um_to = -100000.0
+um_from = -10000.0
+um_to = -35000.0
 um_step = 5000.0
 
 # Temperature in the transition zone, K
@@ -42,10 +42,8 @@ uc_in_x = 22
 uc_in_y = 6
 free_space = 0.24
 
-# Visualization: molecule drawing directions
-total_molecule_directions = 3
-angle_1 = 120
-angle_2 = 240
+# Atomistic molecule model (xyz) used for all visualizations
+molecule_model = models/trimesic_acid.xyz
 
 # MC move sizes: maximal shift (A) and rotation (deg)
 delta = 2.0
@@ -56,6 +54,7 @@ widom_test_index = false
 # Output files (xyz animation of the cell optimization, xyz trajectory)
 unit_cell_name = 0_calculate_animation.xyz
 xyz_name = 1_xyz_for_calculations_TMA_hcp.xyz
+statistics_name = 2_my_statistics_hcp.dat
 
 # Optional: statistics_name = my_statistics.dat  (default is built from the structure)
 # Optional: seed = 12345  (fixes the random sequence for a reproducible run)
