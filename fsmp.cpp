@@ -20,8 +20,11 @@ int nStepsEq = 0;                                      // MCS for relaxation
 bool constant_pressure = false;
 double constant_pressure_value = 0;
 bool kMC = true;
-bool restrict_relocation = false;                       // forbid kMC relocations into the lambda = 1 zone
 bool optimize_only = false;                             // stop after the unit cell optimization (structure = calculate)
+bool stabilization_mask = false;                        // lattice-well mask keeping metastable structures intact
+double mask_free_radius = 3.0;                          // A; no penalty within this distance of a lattice site
+double mask_ramp_width = 2.0;                           // A; smooth rise of the penalty
+double mask_penalty = 25000.0;                          // J/mol; penalty plateau far from the sites
 string p_name;                                         // numerical potential (binary v2)
 string structure_name;                                 // named structure or "calculate"
 string sigma_mode;                                     // reference area: manual | min_dist | molecule_area

@@ -51,8 +51,16 @@ void generate_elongated_cell(vector <double> &params, vector <state> &coordinate
   for (int i = 0; i < molecules; i++)
   {
     coordinates[i].x += shift_of_structure;
+  }
+
+  // The first unit cell of the final coordinates defines the site lattice of
+  // the stabilization mask (no-op unless stabilization_mask = true)
+  mask_build(params, coordinates);
+
+  for (int i = 0; i < molecules; i++)
+  {
     coordinates[i].damping_coeff = damping_field(coordinates[i].x, Lx); // Lambda^1/2
-    coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx); // u_ext
+    coordinates[i].ex_field_coeff = external_field_and_mask(coordinates[i].x, coordinates[i].y, Lx); // u_ext + mask
     coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx);
   }
 
@@ -76,7 +84,7 @@ void generate_structure(vector <double> &params, string structure_name, vector <
 }
   // Chicken-wire (honeycomb) cell for the simplified 2020 model, optimized with
   // configs/tma_acid_cw_optimize.txt (seed 12345): E = -49.98 kJ/mol, density
-  // 1.064 umol/m2 at T = 0. Metastable: run with restrict_relocation = true.
+  // 1.064 umol/m2 at T = 0. Metastable: run with stabilization_mask = true.
   if (structure_name == "TMA_CW_simple_2020")
 {
   unit_cell_params.push_back(4);

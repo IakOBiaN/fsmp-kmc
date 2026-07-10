@@ -117,6 +117,7 @@ int frame = 0; // For visualization purpose
 #include "molecule_area.h"
 #include "PBC2D.h"
 #include "fields.h"
+#include "stabilization_mask.h"
 #include "interpolation.h"
 #include "energies_and_forces_numerical.h"
 #include "molecule_model.h"
@@ -151,11 +152,11 @@ int main(int argc, char ** argv)
 	// The atomistic molecule model used for all xyz visualizations
 	read_molecule_model(molecule_model_file);
 
-	// restrict_relocation resamples relocation targets until lambda < 1, so a
-	// region with an active damping field must exist somewhere in the cell
-	if (restrict_relocation && lambda0 >= 1.0 && lambdam >= 1.0)
+	// The stabilization mask is damped by lambda(x) and must vanish in the gas
+	// phase, otherwise the ideal-gas route to the chemical potential breaks
+	if (stabilization_mask && lambda0 >= 1.0 && lambdam >= 1.0)
 	{
-		cerr << "ERROR: restrict_relocation = true requires a damping field (lambda < 1 somewhere): "
+		cerr << "ERROR: stabilization_mask = true requires a damping field (lambda < 1 somewhere): "
 		     << "set temperature_in_transition_zone above the temperature or lambdam below 1" << endl;
 		return 1;
 	}
@@ -510,11 +511,7 @@ um_step = abs(um_step);
 //	double mu_res_widom = log(N_test/(e_test))/beta/1000.0; // Residual chemical potential calculated by WTPI
 	double mu_res_widom = 0;
 	if (widom_test_index){mu_res_widom = log(N_test/(e_test))/beta/1000.0;} // Residual chemical potential calculated by WTPI
-	// The flux normalization assumes relocation targets uniform over the cell;
-	// with restrict_relocation they cover only the damped zone, which is 11/16
-	// of the area (the lambda = 1 zone ends at ksi = 5 of 16, see fields.h)
-	double relocation_area_x = restrict_relocation ? Lx * (11.0 / 16.0) : Lx;
-	double mu_ex_kMC = (log(sum_iterations/relocation_area_x/Ly) - log(Pt) + log(sigma_2 * 100))/beta/1000.0;
+	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(sigma_2 * 100))/beta/1000.0;
 
 /////////// Block Error Calculation ////////////
 	//double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)/Pt;

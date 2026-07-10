@@ -52,6 +52,8 @@ void pressure_balance_ratio(double Energy, double press_X, double press_Y, doubl
 		 Lx_new = Ly_new/Ly_Lx_ratio;
 		}
 
+		// The stabilization mask sites follow the crystal coordinates
+		mask_rescale(Lx_new/Lx, Ly_new/Ly);
 		for(int i = 0; i < nPart; i++)
 			 {
 				 // Coordinates of the molecules change proportionally to
@@ -59,7 +61,7 @@ void pressure_balance_ratio(double Energy, double press_X, double press_Y, doubl
 				 coordinates[i].x = (Lx_new/Lx)*coordinates[i].x;
 				 coordinates[i].y = (Ly_new/Ly)*coordinates[i].y;
 				 coordinates[i].damping_coeff = damping_field(coordinates[i].x, Lx_new); // Lambda^1/2
-				 coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx_new); // u_ext
+				 coordinates[i].ex_field_coeff = external_field_and_mask(coordinates[i].x, coordinates[i].y, Lx_new); // u_ext + mask
 				 coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx_new);
 			 }
 		Lx = Lx_new;
@@ -91,6 +93,8 @@ void pressure_balance_ratio_analytical(double Energy, double press_X, double del
 		 Ly_new = Lx_new*Ly_Lx_ratio;
 		}
 
+		// The stabilization mask sites follow the crystal coordinates
+		mask_rescale(Lx_new/Lx, Ly_new/Ly);
 		for(int i = 0; i < nPart; i++)
 			 {
 				 // Coordinates of the molecules change proportionally to
@@ -98,7 +102,7 @@ void pressure_balance_ratio_analytical(double Energy, double press_X, double del
 				 coordinates[i].x = (Lx_new/Lx)*coordinates[i].x;
 				 coordinates[i].y = (Ly_new/Ly)*coordinates[i].y;
 				 coordinates[i].damping_coeff = damping_field(coordinates[i].x, Lx_new); // Lambda^1/2
-				 coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx_new); // u_ext
+				 coordinates[i].ex_field_coeff = external_field_and_mask(coordinates[i].x, coordinates[i].y, Lx_new); // u_ext + mask
 				 coordinates[i].stat_weight = weights_for_central_cell (coordinates[i].x, Lx_new);
 			 }
 		Lx = Lx_new;
@@ -124,7 +128,7 @@ void um_tunning_to_constant_pressure(double Energy, double &u_m, double delta_p_
 		{
 			u_m += d_um;
 		}
-		for(int i = 0; i < nPart; i++){coordinates[i].ex_field_coeff = external_field(coordinates[i].x, Lx);}
+		for(int i = 0; i < nPart; i++){coordinates[i].ex_field_coeff = external_field_and_mask(coordinates[i].x, coordinates[i].y, Lx);}
 
 
        // Recalculate energies after compressing or expanding the box

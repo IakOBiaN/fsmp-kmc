@@ -10,10 +10,11 @@
 // seed (fixes the random sequence for reproducible runs; otherwise the wall
 // clock or the FSMP_RANDOM_SEED compile flag is used), constant_pressure_value
 // (default 0), unit_cell (required with structure = calculate, forbidden
-// otherwise), restrict_relocation (default false; forbid relocation-type moves
-// from targeting the undamped crystal zone, see the key handler below),
-// optimize_only (default false; only with structure = calculate: stop right
-// after the unit cell optimization, skipping the Monte Carlo run).
+// otherwise), optimize_only (default false; only with structure = calculate:
+// stop right after the unit cell optimization, skipping the Monte Carlo run),
+// stabilization_mask with mask_free_radius, mask_ramp_width, mask_penalty
+// (default false; a lattice of free wells built from the initial structure
+// that keeps a metastable polymorph intact, see the key handler below).
 
 #include <set>
 
@@ -114,12 +115,17 @@ void read_parameters(const char * path)
 		else if (key == "constant_pressure")              { constant_pressure = param_bool(file, lineno, key, value); }
 		else if (key == "constant_pressure_value")        { constant_pressure_value = param_double(file, lineno, key, value); }
 		else if (key == "kMC")                            { kMC = param_bool(file, lineno, key, value); }
-		// Restrict the relocation (teleport) moves to the region where the damping
-		// field is already active (lambda < 1). Molecules then exchange with the gas
-		// only through the interface, so pores of a metastable crystal (chicken-wire,
-		// flower phases) cannot be filled by direct insertion into the bulk. Local
-		// displacement/rotation moves are not affected.
-		else if (key == "restrict_relocation")            { restrict_relocation = param_bool(file, lineno, key, value); }
+		// Stabilization mask: a periodic lattice of free wells built automatically
+		// from the initial structure (see stabilization_mask.h). Leaving the
+		// mask_free_radius neighborhood of a lattice site costs up to mask_penalty
+		// (J/mol) over a smooth ramp of mask_ramp_width (A). Damped by lambda(x),
+		// so the ideal gas phase is unaffected. Keeps metastable porous polymorphs
+		// (chicken-wire, flower phases) from decaying: pores cannot hold guest
+		// molecules and off-lattice phases cannot nucleate at the interface.
+		else if (key == "stabilization_mask")             { stabilization_mask = param_bool(file, lineno, key, value); }
+		else if (key == "mask_free_radius")               { mask_free_radius = param_double(file, lineno, key, value); }
+		else if (key == "mask_ramp_width")                { mask_ramp_width = param_double(file, lineno, key, value); }
+		else if (key == "mask_penalty")                   { mask_penalty = param_double(file, lineno, key, value); }
 		// Stop after the unit cell optimization: the optimizer writes its xyz
 		// animation and prints the optimized cell, then the program exits without
 		// entering the Monte Carlo loop. Only meaningful with structure = calculate.
@@ -179,6 +185,19 @@ void read_parameters(const char * path)
 	if (sigma_mode != "manual" && seen.count("sigma"))
 	{
 		cerr << "ERROR: " << file << ": the sigma key is only used with sigma_mode = manual" << endl;
+		exit(1);
+	}
+	if (!stabilization_mask &&
+	    (seen.count("mask_free_radius") || seen.count("mask_ramp_width") || seen.count("mask_penalty")))
+	{
+		cerr << "ERROR: " << file << ": mask_free_radius, mask_ramp_width and mask_penalty "
+		     << "are only used with stabilization_mask = true" << endl;
+		exit(1);
+	}
+	if (stabilization_mask && (mask_free_radius <= 0 || mask_ramp_width <= 0 || mask_penalty <= 0))
+	{
+		cerr << "ERROR: " << file << ": mask_free_radius, mask_ramp_width and mask_penalty "
+		     << "must be positive" << endl;
 		exit(1);
 	}
 	if (structure_name == "calculate" && !seen.count("unit_cell"))

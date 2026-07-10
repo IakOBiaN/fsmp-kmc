@@ -4,9 +4,9 @@
 # Paths are relative to the working directory; output is written there too.
 #
 # The chicken-wire polymorph is metastable in this model (the stable phase is
-# HCP), so restrict_relocation below is essential: without it the kMC
-# relocation moves insert gas molecules directly into the hexagon pores and
-# the structure decays within a short run.
+# HCP), so the stabilization mask below is essential: without it gas molecules
+# fill the hexagon pores and denser phases nucleate at the interface, and the
+# structure decays.
 
 # Crystal temperature loop, K
 temp_from = 300
@@ -15,8 +15,8 @@ temp_step = 10
 
 # External field strength loop, J/mol (single point at u_m = 0)
 um_from = -1000.0
-um_to = -100000.0
-um_step = 5000.0
+um_to = -21000.0
+um_step = 2000.0
 
 # Temperature in the transition zone, K
 temperature_in_transition_zone = 900
@@ -30,10 +30,16 @@ constant_pressure = false
 constant_pressure_value = 0
 kMC = true
 
-# Keep the metastable chicken-wire framework intact: relocation-type moves may
-# only target the damped zone (lambda < 1), so the crystal bulk exchanges
-# molecules with the gas through the interface alone and the pores stay empty
-restrict_relocation = true
+# Keep the metastable chicken-wire framework intact: a periodic lattice of
+# free wells built from the initial structure. Off-site positions (pore
+# centers, HCP arrangements at the interface) cost up to mask_penalty; the
+# penalty is damped by lambda(x) and vanishes in the ideal gas phase.
+stabilization_mask = true
+# Optional tuning (defaults shown): no penalty within mask_free_radius (A) of
+# a lattice site, smooth rise over mask_ramp_width (A) up to mask_penalty (J/mol)
+# mask_free_radius = 3.0
+# mask_ramp_width = 2.0
+# mask_penalty = 25000.0
 
 # Numerical potential (binary v2; see forcefields/readme.txt)
 potential = forcefields/TMA_simple_2020.v2.bin
@@ -49,7 +55,7 @@ sigma = 11.052
 # fraction of free (gas) space in the cell
 uc_in_x = 22
 uc_in_y = 5
-free_space = 0.34
+free_space = 0.24
 
 # Atomistic molecule model (xyz) used for all visualizations
 molecule_model = models/trimesic_acid.xyz
