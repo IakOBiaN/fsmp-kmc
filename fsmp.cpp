@@ -44,8 +44,8 @@ void complex_names()
 {
 	if (statistics_name.empty())
 	{
-		name_of_file_for_statistics << "2_statistics_" << structure_name << "_" << "Xuc" << uc_in_x
-		                            << "_" << "Yuc" << uc_in_y << "_" << "FreeSp" << free_space << ".dat";
+		// unique_output_name in main shifts the name if the file already exists
+		name_of_file_for_statistics << "2_statistics_" << structure_name << ".dat";
 	}
 	else
 	{
