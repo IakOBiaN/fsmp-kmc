@@ -249,6 +249,8 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage)
         self.project_view.potentials_tab.statusMessage.connect(
             self.statusBar().showMessage)
+        self.project_view.unit_cell_tab.statusMessage.connect(
+            self.statusBar().showMessage)
         self.stack.addWidget(self.project_view)
         self.stack.setCurrentWidget(self.project_view)
         self.close_action.setEnabled(True)

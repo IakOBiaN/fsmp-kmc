@@ -1,6 +1,7 @@
 """Tab 4 "Unit cell": lay out molecule copies in a rectangular cell, resize
-the cell and move the copies. Optimization (via the engine) comes later; this
-tab only builds and stores the rough cell.
+the cell and move the copies. The Optimize button hands the rough cell to
+the engine (structure = calculate, optimize_only) and plays its animation
+back live until the optimized cell lands in the editor.
 
 Every copy is an instance of the project molecule model; the cell stores each
 copy's position and orientation.
@@ -13,6 +14,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QButtonGroup, QDoubleSpinBox,
                                QToolButton, QVBoxLayout, QWidget)
 
 from ..canvas import Mode
+from ..engine import EngineError, prepare_run
 from ..glyph import model_glyph
 from ..placement_table import Placement, PlacementTableModel
 from ..project import Project
@@ -28,6 +30,7 @@ class UnitCellTab(QWidget):
         self.model = PlacementTableModel(self)
         self.model.changed.connect(self._on_changed)
         self._dirty = False
+        self._run = None
 
         root = QVBoxLayout(self)
         root.setContentsMargins(12, 12, 12, 12)
@@ -78,12 +81,23 @@ class UnitCellTab(QWidget):
         fit = QPushButton("Fit view")
         fit.clicked.connect(lambda: self.canvas._redraw_fit())
         bar.addWidget(fit)
+
+        bar.addSpacing(12)
+        self.optimize_btn = QPushButton("Optimize")
+        self.optimize_btn.setToolTip("Optimize the cell with the engine "
+                                     "(uses the project potential)")
+        self.optimize_btn.clicked.connect(self._optimize)
+        bar.addWidget(self.optimize_btn)
+        self.stop_btn = QPushButton("Stop")
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.clicked.connect(self._stop_optimize)
+        bar.addWidget(self.stop_btn)
         bar.addStretch(1)
 
-        attach = QPushButton("Use in project")
-        attach.setProperty("primary", True)
-        attach.clicked.connect(self.use_in_project)
-        bar.addWidget(attach)
+        self.attach_btn = QPushButton("Use in project")
+        self.attach_btn.setProperty("primary", True)
+        self.attach_btn.clicked.connect(self.use_in_project)
+        bar.addWidget(self.attach_btn)
         return bar
 
     def _cell_spin(self, value: float) -> QDoubleSpinBox:
@@ -105,6 +119,11 @@ class UnitCellTab(QWidget):
         self.info.setWordWrap(True)
         layout.addWidget(self.info)
 
+        self.opt_status = QLabel(" ")
+        self.opt_status.setWordWrap(True)
+        self.opt_status.setProperty("dim", True)
+        layout.addWidget(self.opt_status)
+
         caption = QLabel("Molecules in the cell")
         caption.setProperty("dim", True)
         layout.addWidget(caption)
@@ -118,12 +137,12 @@ class UnitCellTab(QWidget):
         layout.addWidget(self.table, 1)
 
         row = QHBoxLayout()
-        add = QPushButton("Add molecule")
-        add.clicked.connect(self._add_center)
-        rem = QPushButton("Remove selected")
-        rem.clicked.connect(self._remove_selected)
-        row.addWidget(add)
-        row.addWidget(rem)
+        self.add_btn = QPushButton("Add molecule")
+        self.add_btn.clicked.connect(self._add_center)
+        self.rem_btn = QPushButton("Remove selected")
+        self.rem_btn.clicked.connect(self._remove_selected)
+        row.addWidget(self.add_btn)
+        row.addWidget(self.rem_btn)
         row.addStretch(1)
         layout.addLayout(row)
 
@@ -181,10 +200,12 @@ class UnitCellTab(QWidget):
 
     def _update_info(self) -> None:
         n = len(self.model.placements)
-        area = self.cell_x.value() * self.cell_y.value()
-        density = (n / area * 100.0) if area else 0.0  # molecules per nm^2
+        area = self.cell_x.value() * self.cell_y.value()   # A^2
+        # the engine's density unit: micromoles per square meter
+        density = (n / area * 1.0e26 / 6.02214076e23) if area else 0.0
         self.info.setText(f"{n} molecules   ·   cell {self.cell_x.value():.2f} × "
-                          f"{self.cell_y.value():.2f} Å   ·   {density:.3f} nm⁻²")
+                          f"{self.cell_y.value():.2f} Å   ·   "
+                          f"density {density:.4f} µmol/m²")
 
     def _set_mode(self, mode: Mode) -> None:
         self.mode_buttons[mode].setChecked(True)
@@ -199,6 +220,77 @@ class UnitCellTab(QWidget):
     def _remove_selected(self) -> None:
         rows = [i.row() for i in self.table.selectionModel().selectedRows()]
         self.model.remove_rows(rows)
+
+    # -- optimization via the engine -----------------------------------------
+
+    def _optimize(self) -> None:
+        if self._run is not None:
+            return
+        if not self.model.placements:
+            QMessageBox.information(self, "Empty cell", "Add at least one molecule.")
+            return
+        try:
+            run = prepare_run(self.project, self.cell_x.value(),
+                              self.cell_y.value(),
+                              [(p.x, p.y, p.phi) for p in self.model.placements],
+                              self)
+        except (EngineError, OSError, ValueError) as e:
+            QMessageBox.warning(self, "Cannot optimize", str(e))
+            return
+        self._run = run
+        self._set_running(True)
+        self.opt_status.setText("Optimizing…")
+        run.frameReady.connect(self._apply_cell)
+        run.progress.connect(self._on_opt_line)
+        run.finished.connect(self._on_opt_finished)
+        run.start()
+
+    def _stop_optimize(self) -> None:
+        if self._run is not None:
+            self._run.stop()
+
+    def _set_running(self, running: bool) -> None:
+        self.stop_btn.setEnabled(running)
+        for w in (self.optimize_btn, self.attach_btn, self.cell_x, self.cell_y,
+                  self.canvas, self.table, self.add_btn, self.rem_btn,
+                  self.slot_load, self.slot_clear,
+                  *self.mode_buttons.values()):
+            w.setEnabled(not running)
+
+    def _apply_cell(self, cell_x: float, cell_y: float, placements: list) -> None:
+        for spin, v in ((self.cell_x, cell_x), (self.cell_y, cell_y)):
+            spin.blockSignals(True)
+            spin.setValue(v)
+            spin.blockSignals(False)
+        self.canvas.cell_x, self.canvas.cell_y = cell_x, cell_y
+        self.model.set_placements([Placement(round(x, 4), round(y, 4),
+                                             round(phi, 2))
+                                   for x, y, phi in placements])
+
+    def _on_opt_line(self, line: str) -> None:
+        if line.startswith("Density:"):
+            # the density half of the line is already tracked live by the
+            # info label; keep the running energy here
+            self.opt_status.setText(
+                f"E = {line.split('Energy:')[1].strip()} kJ/mol")
+        elif line.startswith(("Cell scaling:", "Steps halved",
+                              "Unit cell optimization:", "The starting cell")):
+            self.opt_status.setText(line)
+
+    def _on_opt_finished(self, ok: bool, result, message: str) -> None:
+        self._run = None
+        self._set_running(False)
+        self._refresh_slot()
+        if ok:
+            self._apply_cell(*result)
+            self.opt_status.setText(f"Optimized: {message}")
+            self.statusMessage.emit(f"Unit cell optimized: {message}")
+        else:
+            self.opt_status.setText(f"Optimization {message}"
+                                    if message == "stopped"
+                                    else "Optimization failed")
+            if message != "stopped":
+                QMessageBox.warning(self, "Optimization failed", message)
 
     # -- project integration -----------------------------------------------
 

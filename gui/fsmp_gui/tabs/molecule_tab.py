@@ -1,7 +1,7 @@
 """Atomistic molecule editor (subtab of "Molecule model").
 
 Build, edit, load and save an atomistic geometry; "Use in project" makes it
-the project model. A project holds exactly one model, atomistic or site.
+the project's atomistic model (used for visualization).
 """
 
 from pathlib import Path
@@ -51,7 +51,18 @@ class MoleculeTab(QWidget):
 
         self._set_mode(Mode.SELECT)
         self.refresh_project_model()
+        # the attached model goes straight into the editor
+        entry = project.atomistic
+        if entry is not None:
+            self._load_file(str(project.model_path(entry)), name=entry["name"])
         self._update_info()
+        self._fit_on_show = True
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self._fit_on_show:   # the pre-show fit had no real viewport size
+            self.canvas.reset_view()
+            self._fit_on_show = False
 
     # -- construction ------------------------------------------------------
 
