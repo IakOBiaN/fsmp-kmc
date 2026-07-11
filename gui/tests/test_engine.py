@@ -156,7 +156,9 @@ class TestEndToEnd(Helpers):
         n = int(lines[0].split()[0])
         rows = [ln.split() for ln in lines[2:2 + n]]
         offsets = [(float(r[1]), float(r[2])) for r in rows]
-        with tempfile.TemporaryDirectory() as td:
+        # ignore_cleanup_errors: on Windows, wsl can hold the directory
+        # handle for a moment after the engine exits
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as td:
             run = Path(td)
             model = [str(n), "test"] + [f"{r[0]} {r[1]} {r[2]} 0.0"
                                         for r in rows]

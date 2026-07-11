@@ -178,3 +178,16 @@ class Project:
     def clear_unit_cell(self) -> None:
         self.manifest["unit_cell"] = None
         self.save()
+
+    # -- the elongated simulation cell ----------------------------------------
+
+    @property
+    def simulation_cell(self) -> dict | None:
+        """Settings of the elongated cell (uc_in_x, uc_in_y, free_space,
+        lambdam, temperature_in_transition_zone, preview values) or None."""
+        return self.manifest.get("simulation_cell")
+
+    def set_simulation_cell(self, settings: dict) -> dict:
+        self.manifest["simulation_cell"] = dict(settings)
+        self.save()
+        return self.manifest["simulation_cell"]

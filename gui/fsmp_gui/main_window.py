@@ -18,6 +18,7 @@ from .tabs.create_potential_tab import CreatePotentialTab
 from .tabs.molecule_model_tab import MoleculeModelTab
 from .tabs.placeholder import PlaceholderTab
 from .tabs.potentials_tab import PotentialsTab
+from .tabs.simulation_cell_tab import SimulationCellTab
 from .tabs.unit_cell_tab import UnitCellTab
 
 MAX_RECENT = 8
@@ -116,14 +117,8 @@ class ProjectView(QWidget):
         self.tabs.addTab(self.potentials_tab, "3  Potentials")
         self.unit_cell_tab = UnitCellTab(project)
         self.tabs.addTab(self.unit_cell_tab, "4  Unit cell")
-        self.tabs.addTab(PlaceholderTab(
-            "Simulation cell",
-            "Configure the elongated simulation cell built\n"
-            "from the optimized unit cell.",
-            ["unit cells along x and y, free space fraction",
-             "fields, temperatures and chemical potential settings",
-             "preview of the full cell layout"]),
-            "5  Simulation cell")
+        self.sim_cell_tab = SimulationCellTab(project)
+        self.tabs.addTab(self.sim_cell_tab, "5  Simulation cell")
         self.tabs.addTab(PlaceholderTab(
             "Run",
             "Run the engine and follow the simulation.",
@@ -150,6 +145,8 @@ class ProjectView(QWidget):
             self.potentials_tab.refresh()
         elif widget is self.unit_cell_tab:
             self.unit_cell_tab.refresh()
+        elif widget is self.sim_cell_tab:
+            self.sim_cell_tab.refresh()
 
 
 class MainWindow(QMainWindow):
@@ -250,6 +247,8 @@ class MainWindow(QMainWindow):
         self.project_view.potentials_tab.statusMessage.connect(
             self.statusBar().showMessage)
         self.project_view.unit_cell_tab.statusMessage.connect(
+            self.statusBar().showMessage)
+        self.project_view.sim_cell_tab.statusMessage.connect(
             self.statusBar().showMessage)
         self.stack.addWidget(self.project_view)
         self.stack.setCurrentWidget(self.project_view)

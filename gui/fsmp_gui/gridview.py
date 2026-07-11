@@ -12,6 +12,9 @@ from . import theme
 
 class GridView(QGraphicsView):
     cursorMoved = Signal(float, float)
+    MIN_SCALE = 4     # px per angstrom; SimCellCanvas relaxes this
+    MAX_SCALE = 400
+    SHOW_GRID = True  # overview canvases turn the angstrom grid off
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,22 +36,27 @@ class GridView(QGraphicsView):
 
     def drawBackground(self, painter, rect):
         super().drawBackground(painter, rect)
+        if not self.SHOW_GRID:
+            return
         minor = QPen(QColor(theme.BORDER), 0)
         minor.setCosmetic(True)
         major = QPen(QColor(theme.BORDER).lighter(135), 0)
         major.setCosmetic(True)
+        # zoomed far out, a 1 A grid would be a solid wall of lines
+        scale = abs(self.transform().m11())
+        step = 1 if scale >= 3 else 5 if scale >= 0.8 else 25
         x0, x1 = math.floor(rect.left()), math.ceil(rect.right())
         y0, y1 = math.floor(rect.top()), math.ceil(rect.bottom())
-        x = x0
+        x = x0 - x0 % step
         while x <= x1:
-            painter.setPen(major if x % 5 == 0 else minor)
+            painter.setPen(major if x % (5 * step) == 0 else minor)
             painter.drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()))
-            x += 1
-        y = y0
+            x += step
+        y = y0 - y0 % step
         while y <= y1:
-            painter.setPen(major if y % 5 == 0 else minor)
+            painter.setPen(major if y % (5 * step) == 0 else minor)
             painter.drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y))
-            y += 1
+            y += step
         axes = QPen(QColor(theme.TEXT_DIM), 0)
         axes.setCosmetic(True)
         painter.setPen(axes)
@@ -63,7 +71,7 @@ class GridView(QGraphicsView):
     def wheelEvent(self, event):
         factor = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
         current = abs(self.transform().m11())
-        if 4 < current * factor < 400:
+        if self.MIN_SCALE < current * factor < self.MAX_SCALE:
             self.scale(factor, factor)
 
     def fit_points(self, points: list[tuple[float, float]], pad: float = 2.0):
@@ -74,8 +82,13 @@ class GridView(QGraphicsView):
                           QPointF(max(xs) + pad, max(ys) + pad))
         else:
             rect = QRectF(-6, -6, 12, 12)
+        # the scene rect bounds scrolling; grow it with the content, otherwise
+        # centerOn clamps and large scenes (the simulation cell) end up clipped
+        self.scene().setSceneRect(
+            rect.adjusted(-rect.width() / 2 - 30, -rect.height() / 2 - 30,
+                          rect.width() / 2 + 30, rect.height() / 2 + 30))
         scale = min(self.viewport().width() / max(rect.width(), 1e-6),
                     self.viewport().height() / max(rect.height(), 1e-6))
-        scale = min(max(scale, 4), 120)
+        scale = min(max(scale, self.MIN_SCALE), 120)
         self.setTransform(QTransform.fromScale(scale, -scale))
         self.centerOn(rect.center())
