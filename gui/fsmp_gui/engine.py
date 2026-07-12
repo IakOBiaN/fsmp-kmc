@@ -226,8 +226,8 @@ def final_energy(text: str) -> float | None:
 
 # -- setting up and running ----------------------------------------------------
 
-def _write_model(project: Project, run_dir: Path) -> list:
-    """Write the visualization model for the run (the engine requires one)
+def write_model(project: Project, run_dir: Path) -> list:
+    """Write the visualization model for a run (the engine requires one)
     and return the atom offsets used to decode the animation frames. The
     atomistic model is preferred; a site model is a valid stand-in since
     only the positions matter."""
@@ -264,7 +264,7 @@ def prepare_run(project: Project, cell_x: float, cell_y: float,
 
     run_dir = project.root / RUN_DIR
     run_dir.mkdir(exist_ok=True)
-    offsets = _write_model(project, run_dir)
+    offsets = write_model(project, run_dir)
     try:
         rel = os.path.relpath(potential, run_dir).replace("\\", "/")
     except ValueError:

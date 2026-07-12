@@ -191,3 +191,16 @@ class Project:
         self.manifest["simulation_cell"] = dict(settings)
         self.save()
         return self.manifest["simulation_cell"]
+
+    # -- the run form defaults -------------------------------------------------
+
+    @property
+    def simulation(self) -> dict | None:
+        """The last used Run-tab form values, so a new run starts from the
+        previous settings."""
+        return self.manifest.get("simulation")
+
+    def set_simulation(self, form: dict) -> dict:
+        self.manifest["simulation"] = dict(form)
+        self.save()
+        return self.manifest["simulation"]
