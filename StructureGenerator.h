@@ -502,20 +502,30 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   vector<double> start = params;
   double s = 1.0;
   double energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
-  if (HC_radius)
+  // The forcefield grid caps the repulsion at +-1e4 kcal/mol, so around the
+  // hard core there is a wide zero-gradient plateau. A compressed start
+  // sitting on it blinds the pattern search (shrinking never costs anything
+  // there), so grow until the cell is overlap-free and the energy is far off
+  // the plateau. The bar is a slightly positive per-molecule energy, not
+  // zero: a start whose orientations are purely repulsive never binds by
+  // scaling alone (rotations come with stage 1), but its tail does decay.
+  const double plateau_bar = 500.0;   // J/mol per molecule
+  if (HC_radius || energy / nPart_in_central_cell > plateau_bar)
   {
-    cout << "The starting cell has hard-core overlaps; growing it" << endl;
+    cout << "The starting cell has hard-core overlaps or sits on the capped "
+         << "repulsion; growing it" << endl;
     bool separated = false;
     for (int i = 0; i < 64 && !separated; i++)
     {
       s *= 1.1;
       energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
-      separated = !HC_radius;
+      separated = !HC_radius && energy / nPart_in_central_cell <= plateau_bar;
     }
     if (!separated)
     {
-      cerr << "ERROR: molecules still overlap after growing the cell hundreds-fold; "
-           << "the unit_cell geometry is degenerate (coinciding molecules?)." << endl;
+      cerr << "ERROR: the cell still overlaps or repels after growing it "
+           << "hundreds-fold; the unit_cell geometry is degenerate "
+           << "(coinciding molecules?)." << endl;
       exit(1);
     }
   }

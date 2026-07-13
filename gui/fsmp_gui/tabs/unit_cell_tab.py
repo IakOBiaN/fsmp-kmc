@@ -1,20 +1,25 @@
 """Tab 4 "Unit cell": lay out molecule copies in a rectangular cell, resize
 the cell and move the copies. The Optimize button hands the rough cell to
 the engine (structure = calculate, optimize_only) and plays its animation
-back live until the optimized cell lands in the editor.
+back live until the optimized cell lands in the editor. Cells are exchanged
+with .cell files; the repository cells/ folder holds the reference
+structures from StructureGenerator.h in that format.
 
 Every copy is an instance of the project molecule model; the cell stores each
 copy's position and orientation.
 """
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import (QAbstractItemView, QButtonGroup, QDoubleSpinBox,
-                               QFrame, QHBoxLayout, QHeaderView, QLabel,
-                               QMessageBox, QPushButton, QSplitter, QTableView,
-                               QToolButton, QVBoxLayout, QWidget)
+from pathlib import Path
 
+from PySide6.QtCore import QSettings, Qt, Signal
+from PySide6.QtWidgets import (QAbstractItemView, QButtonGroup, QDoubleSpinBox,
+                               QFileDialog, QFrame, QHBoxLayout, QHeaderView,
+                               QLabel, QMessageBox, QPushButton, QSplitter,
+                               QTableView, QToolButton, QVBoxLayout, QWidget)
+
+from .. import cellfile
 from ..canvas import Mode
-from ..engine import EngineError, prepare_run
+from ..engine import REPO, EngineError, prepare_run
 from ..glyph import model_glyph
 from ..placement_table import Placement, PlacementTableModel
 from ..project import Project
@@ -23,6 +28,7 @@ from ..unit_cell_canvas import UnitCellCanvas
 
 class UnitCellTab(QWidget):
     statusMessage = Signal(str)
+    projectCellChanged = Signal()
 
     def __init__(self, project: Project, parent=None):
         super().__init__(parent)
@@ -54,6 +60,13 @@ class UnitCellTab(QWidget):
     def _build_toolbar(self) -> QHBoxLayout:
         bar = QHBoxLayout()
         bar.setSpacing(6)
+
+        for text, slot in (("Open…", self.open_cell),
+                           ("Save as…", self.save_cell)):
+            b = QPushButton(text)
+            b.clicked.connect(slot)
+            bar.addWidget(b)
+        bar.addSpacing(16)
 
         self.mode_group = QButtonGroup(self)
         self.mode_buttons = {}
@@ -211,6 +224,57 @@ class UnitCellTab(QWidget):
         self.mode_buttons[mode].setChecked(True)
         self.canvas.set_mode(mode)
 
+    # -- cell files ----------------------------------------------------------
+
+    def _cells_dir(self) -> str:
+        stored = QSettings().value("cells/last_dir", "")
+        if stored:
+            return stored
+        bundled = REPO / "cells"
+        return str(bundled if bundled.is_dir() else Path.home())
+
+    def open_cell(self) -> None:
+        if self._dirty and self.model.placements:
+            if QMessageBox.question(self, "Discard changes",
+                                    "Replace the current cell with the file?"
+                                    ) != QMessageBox.Yes:
+                return
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Open unit cell", self._cells_dir(),
+            f"Unit cells (*{cellfile.SUFFIX});;All files (*)")
+        if not path:
+            return
+        try:
+            cell_x, cell_y, placements, _ = cellfile.load_cell(path)
+        except (OSError, ValueError) as e:
+            QMessageBox.warning(self, "Cannot open unit cell", f"{path}\n\n{e}")
+            return
+        QSettings().setValue("cells/last_dir", str(Path(path).parent))
+        self._apply_cell(cell_x, cell_y, placements)
+        self._dirty = True   # differs from the project slot until saved there
+        self._update_info()
+        self.statusMessage.emit(f"Opened {path}")
+
+    def save_cell(self) -> None:
+        if not self.model.placements:
+            QMessageBox.information(self, "Empty cell",
+                                    "Add at least one molecule.")
+            return
+        suggestion = str(Path(self._cells_dir()) / f"unit_cell{cellfile.SUFFIX}")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save unit cell", suggestion,
+            f"Unit cells (*{cellfile.SUFFIX})")
+        if not path:
+            return
+        try:
+            cellfile.save_cell(path, self.cell_x.value(), self.cell_y.value(),
+                               [(p.x, p.y, p.phi) for p in self.model.placements])
+        except OSError as e:
+            QMessageBox.warning(self, "Cannot save unit cell", str(e))
+            return
+        QSettings().setValue("cells/last_dir", str(Path(path).parent))
+        self.statusMessage.emit(f"Saved {path}")
+
     # -- editing -----------------------------------------------------------
 
     def _add_center(self) -> None:
@@ -315,6 +379,7 @@ class UnitCellTab(QWidget):
                                    [p.to_dict() for p in self.model.placements])
         self._dirty = False
         self._refresh_slot()
+        self.projectCellChanged.emit()
         self.statusMessage.emit("Unit cell saved to the project")
 
     def _load_from_project(self, confirm: bool = True) -> None:
@@ -342,4 +407,5 @@ class UnitCellTab(QWidget):
             return
         self.project.clear_unit_cell()
         self._refresh_slot()
+        self.projectCellChanged.emit()
         self.statusMessage.emit("Unit cell removed from the project")

@@ -37,6 +37,11 @@ class TwoMoleculeView(GridView):
         return max((math.hypot(x, y) + rad for x, y, _, rad in self._glyph),
                    default=0.5)
 
+    def base_distance(self) -> float:
+        """A pleasant default separation, used when no potential is attached
+        to provide the real distance range."""
+        return round(max(2.4 * self._extent(), 6.0), 1)
+
     def _draw_molecule(self, cx: float, cy: float, deg: float, label: str) -> None:
         rad = math.radians(deg)
         c, s = math.cos(rad), math.sin(rad)
@@ -74,8 +79,10 @@ class TwoMoleculeView(GridView):
         self._draw_molecule(0.0, 0.0, self._t1, "A")
         self._draw_molecule(self._r, 0.0, self._t2, "B")
         ext = self._extent()
-        self.fit_points([(-ext, -ext), (-ext, ext),
-                         (self._r + ext, ext), (self._r + ext, -ext)], pad=1.0)
+        # the extra room below keeps the A/B labels inside the view
+        self.fit_points([(-ext, -ext - 2.5), (-ext, ext),
+                         (self._r + ext, ext),
+                         (self._r + ext, -ext - 2.5)], pad=1.0)
 
     def showEvent(self, event):
         super().showEvent(event)

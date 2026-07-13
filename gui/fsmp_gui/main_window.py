@@ -130,6 +130,36 @@ class ProjectView(QWidget):
         # a freshly generated potential should show up on the Potentials tab
         self.create_tab.site_page.potentialGenerated.connect(
             self.potentials_tab.refresh)
+        # the workflow is sequential: every project change regates the tabs
+        for signal in (self.model_tab.projectModelChanged,
+                       self.create_tab.site_page.potentialGenerated,
+                       self.potentials_tab.projectPotentialChanged,
+                       self.unit_cell_tab.projectCellChanged,
+                       self.sim_cell_tab.projectCellChanged):
+            signal.connect(self._update_gating)
+        self._update_gating()
+
+    def _update_gating(self) -> None:
+        """Tabs unlock step by step: molecule model -> potential ->
+        unit cell -> simulation cell -> run. Each stage also requires all
+        the previous ones, so removing a piece regates everything after."""
+        conditions = (True,                                       # 1 model
+                      self.project.atomistic is not None,         # 2 create
+                      self.project.atomistic is not None,         # 3 potentials
+                      self.project.potential is not None,         # 4 unit cell
+                      self.project.unit_cell is not None,         # 5 sim cell
+                      self.project.simulation_cell is not None)   # 6 run
+        allowed = True
+        for index, condition in enumerate(conditions):
+            allowed = allowed and condition
+            self.tabs.setTabEnabled(index, allowed)
+        if not self.tabs.isTabEnabled(self.tabs.currentIndex()):
+            # fall back to the last stage that is still available
+            for index in range(self.tabs.count() - 1, -1, -1):
+                if self.tabs.isTabEnabled(index):
+                    self.tabs.setCurrentIndex(index)
+                    break
+        self.model_tab.refresh_gating()
 
     def _tab_changed(self, index: int) -> None:
         # tabs read shared project state, so refresh on activation

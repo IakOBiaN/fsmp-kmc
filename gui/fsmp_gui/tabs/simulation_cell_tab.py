@@ -84,11 +84,12 @@ class SimCellCanvas(GridView):
                 band.setBrush(QBrush(col))
                 band.setZValue(-2)
                 scene.addItem(band)
-        self._text("crystal", lx / 2.0, ly - 1, center=True)
+        self._text("crystal", lx / 2.0, ly + 0.5, center=True, above=True)
         self._text("transition", layout.zone_x(
-            (KSI_PLATEAU + KSI_PLATEAU_END) / 2.0)[1], ly - 1, center=True)
+            (KSI_PLATEAU + KSI_PLATEAU_END) / 2.0)[1], ly + 0.5,
+            center=True, above=True)
         self._text("gas", layout.zone_x(
-            (KSI_GAS + KSI_EDGE) / 2.0)[1], ly - 1, center=True)
+            (KSI_GAS + KSI_EDGE) / 2.0)[1], ly + 0.5, center=True, above=True)
 
         # the cell box and the molecules
         cell = QGraphicsRectItem(0, 0, lx, ly)
@@ -115,6 +116,7 @@ class SimCellCanvas(GridView):
         self._curve(lx, lambda x: lam_y(lam(x)), theme.ACCENT_HOVER)
         self._text("λ(x)", 1, lam_top)
         self._text("1", lx, lam_top, vcenter=True)
+        self._text("0", lx, lam_bot, vcenter=True)
 
         u_lo, u_hi = min(0.0, um), max(0.0, um)
         span = (u_hi - u_lo) or 1.0
@@ -127,6 +129,11 @@ class SimCellCanvas(GridView):
             self._text(f"{um / 1000.0:g} kJ/mol", lx, u_y(um), vcenter=True)
 
         self.fit_points([(-2, u_bot - 2), (lx + 2, ly + 2)], pad=4)
+        # second pass: the zone captions above the box are device-sized,
+        # so convert their pixel height into scene units at the found zoom
+        scale = abs(self.transform().m11())
+        self.fit_points([(-2, u_bot - 2), (lx + 2, ly + 2 + 24.0 / scale)],
+                        pad=4)
 
     # -- drawing helpers -----------------------------------------------------
 
@@ -154,24 +161,25 @@ class SimCellCanvas(GridView):
         self.scene().addItem(item)
 
     def _text(self, s: str, x: float, y: float, center: bool = False,
-              vcenter: bool = False) -> None:
+              vcenter: bool = False, above: bool = False) -> None:
         t = QGraphicsSimpleTextItem(s)
         t.setBrush(QColor(theme.TEXT_DIM))
         # keep labels upright and screen-sized regardless of the y-flip/zoom;
         # the item transform below is applied in device pixels
         t.setFlag(QGraphicsItem.ItemIgnoresTransformations)
         t.setPos(x, y)
-        if center:
-            t.setTransform(QTransform.fromTranslate(
-                -t.boundingRect().width() / 2.0, 0))
-        elif vcenter:   # a tick label, centered on its value line
-            t.setTransform(QTransform.fromTranslate(
-                4, -t.boundingRect().height() / 2.0))
+        rect = t.boundingRect()
+        dx = -rect.width() / 2.0 if center else (4.0 if vcenter else 0.0)
+        dy = -rect.height() if above else (-rect.height() / 2.0 if vcenter
+                                           else 0.0)
+        if dx or dy:
+            t.setTransform(QTransform.fromTranslate(dx, dy))
         self.scene().addItem(t)
 
 
 class SimulationCellTab(QWidget):
     statusMessage = Signal(str)
+    projectCellChanged = Signal()
 
     def __init__(self, project: Project, parent=None):
         super().__init__(parent)
@@ -366,4 +374,5 @@ class SimulationCellTab(QWidget):
             "preview_temp": self.temp.value(), "preview_um": self.um.value()})
         self._dirty = False
         self._refresh_slot()
+        self.projectCellChanged.emit()
         self.statusMessage.emit("Simulation cell saved to the project")

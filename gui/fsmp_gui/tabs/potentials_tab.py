@@ -21,6 +21,7 @@ from .pack_dialog import PackDialog
 
 class PotentialsTab(QWidget):
     statusMessage = Signal(str)
+    projectPotentialChanged = Signal()
 
     def __init__(self, project: Project, parent=None):
         super().__init__(parent)
@@ -125,8 +126,13 @@ class PotentialsTab(QWidget):
             info = self._grid.info
             self.r_spin.setRange(round(info.min_dist, 2), round(info.r_max, 2))
             self.r_spin.setValue(round(min(info.min_dist + 4.0, info.r_max), 2))
-            self.t1_spin.setValue(0.0)
-            self.t2_spin.setValue(60.0)
+        else:
+            # no potential yet: still keep the two molecules apart instead
+            # of stacking A on top of B at r = 0
+            self.r_spin.setRange(0.0, 200.0)
+            self.r_spin.setValue(self.view.base_distance())
+        self.t1_spin.setValue(0.0)
+        self.t2_spin.setValue(60.0)
         for s in (self.r_spin, self.t1_spin, self.t2_spin):
             s.blockSignals(False)
 
@@ -165,6 +171,7 @@ class PotentialsTab(QWidget):
         name = Path(path).name.removesuffix(".v2.bin").removesuffix(".bin")
         self.project.set_potential(name, path)
         self.refresh()
+        self.projectPotentialChanged.emit()
         self.statusMessage.emit(f"Potential '{name}' attached to the project")
 
     def _convert(self) -> None:
@@ -179,9 +186,11 @@ class PotentialsTab(QWidget):
                 name = name.removesuffix(".v2.bin").removesuffix(".bin")
                 self.project.set_potential(name, dialog.output_path)
                 self.refresh()
+                self.projectPotentialChanged.emit()
                 self.statusMessage.emit(f"Potential '{name}' attached to the project")
 
     def _detach(self) -> None:
         self.project.clear_potential()
         self.refresh()
+        self.projectPotentialChanged.emit()
         self.statusMessage.emit("Potential detached (the file is kept)")
