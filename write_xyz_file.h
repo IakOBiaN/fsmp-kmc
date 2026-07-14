@@ -8,7 +8,10 @@
 // carries the fields acting on its molecule, so a viewer (e.g. OVITO "Color
 // coding") can show where each field is active. "lambda" is the damping field
 // coefficient (1 in the crystal, lambdam^2 in the gas; damping_coeff stores
-// its square root), "u_ext" is the external potential in kJ/mol.
+// its square root), "u_ext" is the smooth external potential in kJ/mol. The
+// stabilization-mask penalty is deliberately excluded from u_ext: it acts in
+// the energies, but scattered per-molecule penalties only turn the coloring
+// of moving molecules into noise.
 void write_xyz_file (string name, int &nPart, double & /*density*/, double &Lx, double &Ly, double & /*temperature*/, vector <state> &coordinates, int /*frame*/, double /*distance*/, bool init)
 {
 	if (init) {ofstream fileOutput(name.c_str(), ios_base::trunc);fileOutput.close();}
@@ -20,7 +23,16 @@ void write_xyz_file (string name, int &nPart, double & /*density*/, double &Lx, 
 	for(int i = 0; i < nPart; i++)
 		{
 			double lambda = coordinates[i].damping_coeff * coordinates[i].damping_coeff;
-			double u_ext = coordinates[i].ex_field_coeff.energy / 1000.0;
+			// the stored field slot also carries the damped mask penalty;
+			// subtract it so the column shows the external field alone
+			double u_ext = coordinates[i].ex_field_coeff.energy;
+			if (mask_ready)
+			{
+				double sqrt_lambda = damping_field(coordinates[i].x, Lx);
+				u_ext -= sqrt_lambda * sqrt_lambda
+				         * mask_penalty_at(coordinates[i].x, coordinates[i].y);
+			}
+			u_ext /= 1000.0;
 			for (size_t a = 0; a < molecule_model.size(); a++)
 			{
 				double x = coordinates[i].x + molecule_model[a].x * coordinates[i].cos_phi - molecule_model[a].y * coordinates[i].sin_phi;
