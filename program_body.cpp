@@ -283,7 +283,9 @@ um_step = abs(um_step);
  while (temperature_loop_flag)
  {
 	double beta = 1.0 / (R*temperature);  // Inverse temperature in units of (k_B*T)^-1
-	//lambda0 = sqrt(temperature/temperature_in_transition_zone);
+	// The transition-zone damping follows the current temperature; the stored
+	// per-molecule coefficients are refreshed by PotentialEnergy below.
+	lambda0 = sqrt(temperature/temperature_in_transition_zone);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// SYSTEM COUNTERS //////////////////////////////////////////////////////////////////////

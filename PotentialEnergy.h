@@ -3,10 +3,13 @@ using namespace std;
 void PotentialEnergy(int &nPart, double &Lx, double &Ly, vector <state> &coordinates, double &beta)
 {
 	results en_and_press;
-	// Loop over all distinct particle pairs
+	// Refresh the per-molecule field coefficients before any pair energy is
+	// computed: the damping must be current (lambda0 changes with the
+	// temperature point) and the pair energies below depend on it.
 	for(int mol = 0; mol < nPart; mol++)
 	{
 		coordinates[mol].en_and_pr = en_and_press;
+		coordinates[mol].damping_coeff = damping_field(coordinates[mol].x, Lx); // Lambda^1/2
 		coordinates[mol].stat_weight = weights_for_central_cell (coordinates[mol].x, Lx);
 	}
 	for(int molA = 0; molA < (nPart - 1); molA++)
