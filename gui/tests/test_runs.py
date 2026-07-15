@@ -19,7 +19,7 @@ from fsmp_gui.engine import find_engine
 from fsmp_gui.runs import (DONE, RUNNING, STOPPED, LogWatch, create_run,
                            is_alive, loop_points, loop_values, point_at,
                            read_params, read_statistics, run_parameters,
-                           stop)
+                           stop, waiter_main)
 
 REPO = Path(__file__).resolve().parents[2]
 GRID = REPO / "tests" / "data" / "TMA_simple_2020_s4.v2.bin"
@@ -141,6 +141,25 @@ class TestParameters(unittest.TestCase):
         self.assertIn("constant_pressure_value = 0", params_text)
         self.assertNotIn("seed", params_text)
         self.assertNotIn("sigma =", params_text)
+
+
+class TestWaiter(unittest.TestCase):
+    def test_records_pid_log_and_exit_marker(self):
+        """waiter_main with a python script standing in for the engine."""
+        import os
+        with tempfile.TemporaryDirectory() as td:
+            script = Path(td) / "engine.py"
+            script.write_text("print('engine says hi')")
+            cwd = os.getcwd()
+            os.chdir(td)
+            try:
+                waiter_main(sys.executable, str(script))
+            finally:
+                os.chdir(cwd)
+            log = (Path(td) / "run.log").read_text()
+            self.assertIn("engine says hi", log)
+            self.assertTrue(log.rstrip().endswith("FSMP_EXIT:0"))
+            self.assertGreater(int((Path(td) / "engine.pid").read_text()), 0)
 
 
 def _e2e_project(td):

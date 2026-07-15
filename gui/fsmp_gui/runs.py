@@ -154,6 +154,26 @@ def run_parameters(form: dict, potential: str, unit_cell: str,
 _launched: list = []
 
 
+def waiter_main(engine: str, params: str) -> None:
+    """Body of the frozen app's detached launcher: studio_launcher.py calls
+    this when the executable is re-entered with --run-waiter (a frozen
+    sys.executable is the Studio itself, so launch() cannot hand it the
+    `python -c` wrapper below). Same contract as that wrapper: the engine
+    PID to engine.pid, output to run.log, the exit marker appended, a
+    negative wait() folded to 128+N."""
+    with open(LOG, "w") as log:
+        proc = subprocess.Popen([engine, params], stdout=log,
+                                stderr=subprocess.STDOUT,
+                                stdin=subprocess.DEVNULL,
+                                creationflags=_NO_WINDOW)
+    Path(PIDFILE).write_text(str(proc.pid))
+    code = proc.wait()
+    if code < 0:
+        code = 128 - code
+    with open(LOG, "a") as log:
+        log.write(f"\n{EXIT_MARK}{code}\n")
+
+
 def launch(run_dir: Path, command: list) -> str:
     """Start the engine detached from the GUI. Returns the launcher kind.
     The wrapper writes the engine PID to engine.pid, sends all output to
@@ -166,6 +186,9 @@ def launch(run_dir: Path, command: list) -> str:
         # outer shell that expands $! and $? before our bash ever runs
         args = ["wsl", "--cd", str(run_dir), "-e", "bash", "-c", script]
         kind = "wsl"
+    elif getattr(sys, "frozen", False):
+        args = [sys.executable, "--run-waiter", command[0], PARAMS]
+        kind = "native"
     else:
         # The engine gets CREATE_NO_WINDOW of its own: the wrapper has no
         # console, so a console child would otherwise open a visible one.
