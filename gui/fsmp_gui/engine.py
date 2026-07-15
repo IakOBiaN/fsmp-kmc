@@ -16,6 +16,7 @@ import math
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
@@ -34,23 +35,38 @@ class EngineError(Exception):
     pass
 
 
+def app_root() -> Path:
+    """The folder that holds the engine and the bundled data (models, cells,
+    configs): next to the executable in a frozen release build, the
+    repository root when running from source."""
+    if getattr(sys, "frozen", False):
+        root = Path(sys.executable).resolve().parent
+        # in a macOS bundle the executable sits in Name.app/Contents/MacOS;
+        # the engine and the data folders live next to the bundle
+        if root.name == "MacOS" and root.parent.name == "Contents":
+            return root.parent.parent.parent
+        return root
+    return REPO
+
+
 def find_engine() -> list[str] | None:
     """Command prefix that runs the engine, native first: the FSMP_ENGINE
-    environment variable, a build in the repository root (fsmp.exe from a
-    release or MinGW, fsmp.out from make), then fsmp on PATH. On Windows a
-    Linux build is still reachable through WSL, as a last resort."""
+    environment variable, a build next to the app (fsmp.exe from a release
+    or `make windows`, fsmp.out/fsmp from make), then fsmp on PATH. On
+    Windows a Linux build is still reachable through WSL, as a last resort."""
     override = os.environ.get("FSMP_ENGINE", "")
     if override and Path(override).is_file():
         return [override]
-    exe = REPO / "fsmp.exe"
-    if exe.is_file():
-        return [str(exe)]
-    out = REPO / "fsmp.out"
-    if out.is_file() and os.name != "nt":
-        return [str(out)]
+    root = app_root()
+    names = ("fsmp.exe",) if os.name == "nt" else ("fsmp.out", "fsmp")
+    for name in names:
+        candidate = root / name
+        if candidate.is_file():
+            return [str(candidate)]
     found = shutil.which("fsmp")
     if found:
         return [found]
+    out = root / "fsmp.out"
     if os.name == "nt" and out.is_file() and shutil.which("wsl"):
         drive, tail = os.path.splitdrive(str(out))
         return ["wsl", "/mnt/" + drive[0].lower() + tail.replace("\\", "/")]

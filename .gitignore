@@ -52,6 +52,10 @@ __pycache__/
 *.pyc
 *.egg-info/
 
+# GUI: PyInstaller build output (see gui/studio.spec)
+gui/build/
+gui/dist/
+
 # Atomistic molecule models are sources, exempt from the global *.xyz ignore
 # (that rule targets the trajectory outputs)
 !models/*.xyz

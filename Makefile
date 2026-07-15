@@ -2,6 +2,8 @@
 #
 #   make            build the simulation program (fsmp.out)
 #   make pack       build the forcefield converter (pack.out)
+#   make windows    build native Windows binaries (fsmp.exe, pack.exe);
+#                   needs a MinGW g++ (w64devkit or MSYS2) on PATH
 #   make test       run the regression test suite
 #   make clean      remove built binaries
 #
@@ -13,7 +15,7 @@
 CXX      ?= g++
 CXXFLAGS ?= -O3 -Wall -Wextra
 
-.PHONY: all pack test clean
+.PHONY: all pack windows test clean
 
 all: fsmp.out
 
@@ -24,6 +26,16 @@ pack: pack.out
 
 pack.out: tools/pack_forcefield.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
+
+# -static bakes the MinGW runtime in, so the binaries run on any Windows
+# machine with no extra DLLs (same flags as the release workflow)
+windows: fsmp.exe pack.exe
+
+fsmp.exe: fsmp.cpp program_body.cpp includes.h $(wildcard *.h)
+	$(CXX) $(CXXFLAGS) -static fsmp.cpp -o $@
+
+pack.exe: tools/pack_forcefield.cpp
+	$(CXX) $(CXXFLAGS) -static $< -o $@
 
 test:
 	bash tests/run_tests.sh

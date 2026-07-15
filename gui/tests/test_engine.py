@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from fsmp_gui.engine import (ANIMATION, PARAMETERS, FrameReader,
+from fsmp_gui.engine import (ANIMATION, PARAMETERS, FrameReader, app_root,
                              chain_to_placements, decode_frame, final_energy,
                              final_params, find_engine, parameter_text,
                              placements_to_chain)
@@ -146,6 +146,61 @@ class TestFinalReport(unittest.TestCase):
     def test_absent(self):
         self.assertIsNone(final_params("no report here"))
         self.assertIsNone(final_energy("no report here"))
+
+
+class TestFindEngine(unittest.TestCase):
+    """The resolution order. The frozen-app branch is faked by setting
+    sys.frozen the way PyInstaller does."""
+
+    def setUp(self):
+        self._saved = os.environ.pop("FSMP_ENGINE", None)
+
+    def tearDown(self):
+        if self._saved is not None:
+            os.environ["FSMP_ENGINE"] = self._saved
+
+    def test_env_override_wins(self):
+        with tempfile.TemporaryDirectory() as td:
+            fake = Path(td) / "custom-engine.exe"
+            fake.write_bytes(b"")
+            os.environ["FSMP_ENGINE"] = str(fake)
+            self.assertEqual(find_engine(), [str(fake)])
+
+    def test_missing_override_is_ignored(self):
+        os.environ["FSMP_ENGINE"] = str(Path("nowhere") / "fsmp.exe")
+        command = find_engine()
+        if command is not None:
+            self.assertNotIn("nowhere", command[0])
+
+    def test_frozen_app_looks_next_to_the_executable(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td).resolve()
+            name = "fsmp.exe" if os.name == "nt" else "fsmp"
+            engine = root / name
+            engine.write_bytes(b"")
+            old_exe = sys.executable
+            sys.frozen = True
+            sys.executable = str(root / "FSMP-kMC Studio.exe")
+            try:
+                self.assertEqual(app_root(), root)
+                self.assertEqual(find_engine(), [str(engine)])
+            finally:
+                del sys.frozen
+                sys.executable = old_exe
+
+    def test_mac_bundle_data_sits_next_to_the_app(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td).resolve()
+            macos = root / "FSMP-kMC Studio.app" / "Contents" / "MacOS"
+            macos.mkdir(parents=True)
+            old_exe = sys.executable
+            sys.frozen = True
+            sys.executable = str(macos / "FSMP-kMC Studio")
+            try:
+                self.assertEqual(app_root(), root)
+            finally:
+                del sys.frozen
+                sys.executable = old_exe
 
 
 @unittest.skipUnless(find_engine() and GRID.is_file() and MODEL.is_file(),

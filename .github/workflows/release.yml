@@ -1,14 +1,19 @@
 name: Release
 
+# A tag v* publishes the bundles to a GitHub release. A manual run
+# (workflow_dispatch) is a dry run: it builds the same bundles and keeps
+# them as workflow artifacts, nothing is published.
+
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  windows-release:
+  windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,11 +21,11 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
-          install: mingw-w64-ucrt-x86_64-gcc python zip
+          install: mingw-w64-ucrt-x86_64-gcc python
 
       # -static bakes the MinGW runtime in, so the exe runs on any Windows
       # machine with no extra DLLs
-      - name: Build static Windows binaries
+      - name: Build static engine binaries
         shell: msys2 {0}
         run: |
           g++ -O3 -static -Wall -Wextra fsmp.cpp -o fsmp.exe
@@ -37,19 +42,146 @@ jobs:
           ../fsmp.exe hcp_small.txt > release_smoke.log
           python3 check_energy.py release_smoke.log -61.7449 0.001
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build FSMP-kMC Studio (PyInstaller)
+        run: |
+          pip install ./gui pyinstaller
+          pyinstaller --noconfirm --distpath gui/dist --workpath gui/build gui/studio.spec
+
       - name: Package
-        shell: msys2 {0}
+        shell: bash
         run: |
           d="fsmp-kmc-${{ github.ref_name }}-windows-x86_64"
           mkdir -p "$d/forcefields"
+          cp -r gui/dist/studio/. "$d/"
           cp fsmp.exe pack.exe "$d/"
-          cp -r configs "$d/configs"
+          cp -r configs models cells "$d/"
           cp forcefields/readme.txt "$d/forcefields/"
           cp .github/release_readme.txt "$d/README.txt"
-          zip -r "$d.zip" "$d"
+          7z a "$d.zip" "$d"
 
-      - name: Create the release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundle-windows-x86_64
+          path: fsmp-kmc-*.zip
+
+      - name: Publish to the release
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
           files: fsmp-kmc-*.zip
+          generate_release_notes: true
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build static engine binaries
+        run: |
+          g++ -O3 -static -Wall -Wextra fsmp.cpp -o fsmp
+          g++ -O3 -static -Wall -Wextra tools/pack_forcefield.cpp -o pack
+
+      - name: Run the test suite
+        run: bash tests/run_tests.sh
+
+      - name: Smoke-test the release binary
+        run: |
+          cd tests
+          ../fsmp hcp_small.txt > release_smoke.log
+          python3 check_energy.py release_smoke.log -61.7449 0.001
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # PySide6 needs the Qt runtime libraries even to be imported, which
+      # PyInstaller does while analyzing
+      - name: Qt runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0
+
+      - name: Build FSMP-kMC Studio (PyInstaller)
+        run: |
+          pip install ./gui pyinstaller
+          pyinstaller --noconfirm --distpath gui/dist --workpath gui/build gui/studio.spec
+
+      - name: Package
+        run: |
+          d="fsmp-kmc-${{ github.ref_name }}-linux-x86_64"
+          mkdir -p "$d/forcefields"
+          cp -r gui/dist/studio/. "$d/"
+          cp fsmp pack "$d/"
+          cp -r configs models cells "$d/"
+          cp forcefields/readme.txt "$d/forcefields/"
+          cp .github/release_readme.txt "$d/README.txt"
+          tar czf "$d.tar.gz" "$d"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundle-linux-x86_64
+          path: fsmp-kmc-*.tar.gz
+
+      - name: Publish to the release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fsmp-kmc-*.tar.gz
+          generate_release_notes: true
+
+  # experimental: built and tested only in CI, unsigned (macOS will ask to
+  # confirm the first launch via right-click -> Open)
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build engine binaries
+        run: |
+          clang++ -O3 -Wall -Wextra fsmp.cpp -o fsmp
+          clang++ -O3 -Wall -Wextra tools/pack_forcefield.cpp -o pack
+
+      - name: Run the test suite
+        env:
+          CXX: clang++
+        run: bash tests/run_tests.sh
+
+      - name: Smoke-test the release binary
+        run: |
+          cd tests
+          ../fsmp hcp_small.txt > release_smoke.log
+          python3 check_energy.py release_smoke.log -61.7449 0.001
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build FSMP-kMC Studio (PyInstaller)
+        run: |
+          pip install ./gui pyinstaller
+          pyinstaller --noconfirm --distpath gui/dist --workpath gui/build gui/studio.spec
+
+      - name: Package
+        run: |
+          d="fsmp-kmc-${{ github.ref_name }}-macos-arm64"
+          mkdir -p "$d/forcefields"
+          cp -r "gui/dist/FSMP-kMC Studio.app" "$d/"
+          cp fsmp pack "$d/"
+          cp -r configs models cells "$d/"
+          cp forcefields/readme.txt "$d/forcefields/"
+          cp .github/release_readme.txt "$d/README.txt"
+          tar czf "$d.tar.gz" "$d"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundle-macos-arm64
+          path: fsmp-kmc-*.tar.gz
+
+      - name: Publish to the release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fsmp-kmc-*.tar.gz
           generate_release_notes: true

@@ -8,6 +8,8 @@ CLI of the tool (tools/pack_forcefield.cpp):
 from pathlib import Path
 
 from PySide6.QtCore import QProcess, QSettings
+
+from ..engine import app_root
 from PySide6.QtWidgets import (QCheckBox, QDialog, QFileDialog, QGridLayout,
                                QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                                QPlainTextEdit, QPushButton, QSpinBox,
@@ -18,9 +20,9 @@ def find_default_pack() -> str:
     saved = QSettings().value("pack/exe", "")
     if saved and Path(saved).is_file():
         return saved
-    repo = Path(__file__).resolve().parents[3]
-    for name in ("pack.exe", "pack.out", "tools/pack.exe"):
-        candidate = repo / name
+    root = app_root()
+    for name in ("pack.exe", "pack.out", "pack", "tools/pack.exe"):
+        candidate = root / name
         if candidate.is_file():
             return str(candidate)
     return ""

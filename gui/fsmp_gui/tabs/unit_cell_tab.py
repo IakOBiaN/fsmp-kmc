@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QButtonGroup, QDoubleSpinBox,
 
 from .. import cellfile
 from ..canvas import Mode
-from ..engine import REPO, EngineError, prepare_run
+from ..engine import EngineError, app_root, prepare_run
 from ..glyph import model_glyph
 from ..placement_table import Placement, PlacementTableModel
 from ..project import Project
@@ -230,7 +230,7 @@ class UnitCellTab(QWidget):
         stored = QSettings().value("cells/last_dir", "")
         if stored:
             return stored
-        bundled = REPO / "cells"
+        bundled = app_root() / "cells"
         return str(bundled if bundled.is_dir() else Path.home())
 
     def open_cell(self) -> None:

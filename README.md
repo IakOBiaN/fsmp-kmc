@@ -56,23 +56,32 @@ Or compile directly, which is all the Makefile does:
 clang++ -O3 fsmp.cpp -o fsmp.out
 ```
 
+On Windows, `make windows` builds native static `fsmp.exe` and `pack.exe`;
+it needs a MinGW g++ on `PATH`
+([w64devkit](https://github.com/skeeto/w64devkit) is a portable
+single-archive toolchain; MSYS2 works too).
+
 Paths inside a parameter file are relative to the directory the program is
 started from (the examples expect the repository root), and all output files
 are written there.
 
-### Windows without a compiler
+### Ready-made builds (no compiler, no Python)
 
 Every [release](https://github.com/IakOBiaN/fsmp-kmc/releases/latest) ships a
-ready-made Windows build. Download the `...windows-x86_64.zip`, unpack it, put
-the downloaded potentials into its `forcefields/` folder and run from the
-command prompt:
+self-contained bundle per platform (Windows, Linux, macOS): the FSMP-kMC
+Studio desktop app, the engine and converter binaries, example configs and
+the bundled molecule models and unit cells. Download the archive for your
+system, unpack it, put the downloaded potentials into its `forcefields/`
+folder and start the Studio (`FSMP-kMC Studio.exe` on Windows), or run the
+engine from the command line:
 
 ```
 fsmp.exe configs\tma_acid_hcp.txt
 ```
 
-The GUI uses the same binary: copy `fsmp.exe` (and `pack.exe`) from the
-release into the repository root and it is picked up automatically.
+Working with a release does not require the source code. For development,
+the same layout works inside the repository: `fsmp.exe` or `fsmp.out` in
+the repository root is picked up by the GUI automatically.
 
 ## GUI: FSMP-kMC Studio
 
@@ -80,8 +89,10 @@ A desktop workbench (`gui/`, PySide6) that covers the whole workflow:
 molecule models, potential conversion, unit-cell optimization with a live
 animation, the simulation cell, and production runs that are started
 detached, with live progress, statistics plots and a trajectory viewer.
-It runs natively on Windows, Linux and macOS; the setup is the same
-everywhere:
+Every release ships it as a ready-made app (see
+[Ready-made builds](#ready-made-builds-no-compiler-no-python)); the
+following runs it from source. It runs natively on Windows, Linux and
+macOS; the setup is the same everywhere:
 
 ```bash
 python3 -m venv gui/.venv          # Windows: py -3 -m venv gui\.venv
