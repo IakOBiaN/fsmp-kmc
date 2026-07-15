@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (QCheckBox, QComboBox, QDoubleSpinBox, QFrame,
                                QWidget)
 
 from .. import runs, theme
+from ..engine import find_engine
 from ..plot import PlotWidget
 from ..project import Project
 from ..sitemodel import SiteModel
@@ -329,6 +330,11 @@ class RunTab(QWidget):
         self.prereq.setStyleSheet(f"color: {theme.GOLD};")
         layout.addWidget(self.prereq)
 
+        self.engine_label = QLabel()
+        self.engine_label.setWordWrap(True)
+        self.engine_label.setProperty("dim", True)
+        layout.addWidget(self.engine_label)
+
         name_row = QHBoxLayout()
         name_row.addWidget(QLabel("Run name"))
         self.name_edit = QLineEdit()
@@ -500,6 +506,16 @@ class RunTab(QWidget):
             missing.append("simulation cell (tab 5)")
         if self.project.atomistic is None and self.project.site is None:
             missing.append("molecule model (tab 1)")
+        command = find_engine()
+        if command is None:
+            missing.append("engine (a release fsmp.exe in the repository "
+                           "root, or make)")
+            self.engine_label.setText("")
+        elif command[0] == "wsl":
+            self.engine_label.setText(f"Engine: {command[1]} (through WSL)")
+        else:
+            self.engine_label.setText(f"Engine: {command[0]}")
+        self.engine_label.setVisible(bool(self.engine_label.text()))
         self.prereq.setText("Missing before a run can start: "
                             + ", ".join(missing) if missing else "")
         self.prereq.setVisible(bool(missing))

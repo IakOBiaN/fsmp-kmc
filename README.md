@@ -71,6 +71,37 @@ command prompt:
 fsmp.exe configs\tma_acid_hcp.txt
 ```
 
+The GUI uses the same binary: copy `fsmp.exe` (and `pack.exe`) from the
+release into the repository root and it is picked up automatically.
+
+## GUI: FSMP-kMC Studio
+
+A desktop workbench (`gui/`, PySide6) that covers the whole workflow:
+molecule models, potential conversion, unit-cell optimization with a live
+animation, the simulation cell, and production runs that are started
+detached, with live progress, statistics plots and a trajectory viewer.
+It runs natively on Windows, Linux and macOS; the setup is the same
+everywhere:
+
+```bash
+python3 -m venv gui/.venv          # Windows: py -3 -m venv gui\.venv
+gui/.venv/bin/pip install -e gui   # Windows: gui\.venv\Scripts\pip install -e gui
+gui/.venv/bin/fsmp-gui             # Windows: gui\.venv\Scripts\fsmp-gui
+```
+
+The GUI drives the same engine binary as the command line and resolves it
+in this order:
+
+1. the `FSMP_ENGINE` environment variable (full path to a binary);
+2. `fsmp.exe` or `fsmp.out` in the repository root: a release download or a
+   local build;
+3. `fsmp` on `PATH`;
+4. on Windows only, a repository `fsmp.out` through WSL (legacy fallback).
+
+The Run tab shows which engine it found. Closing the GUI never kills
+running simulations; they are recovered from their run folders on the next
+start.
+
 ## Forcefields
 
 The intermolecular interaction is supplied as a precalculated *numerical

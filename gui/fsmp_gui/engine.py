@@ -35,18 +35,25 @@ class EngineError(Exception):
 
 
 def find_engine() -> list[str] | None:
-    """Command prefix that runs the engine: a native build in the repository
-    root, or the Linux build (make -> fsmp.out) through WSL on Windows."""
+    """Command prefix that runs the engine, native first: the FSMP_ENGINE
+    environment variable, a build in the repository root (fsmp.exe from a
+    release or MinGW, fsmp.out from make), then fsmp on PATH. On Windows a
+    Linux build is still reachable through WSL, as a last resort."""
+    override = os.environ.get("FSMP_ENGINE", "")
+    if override and Path(override).is_file():
+        return [override]
     exe = REPO / "fsmp.exe"
     if exe.is_file():
         return [str(exe)]
     out = REPO / "fsmp.out"
-    if out.is_file():
-        if os.name != "nt":
-            return [str(out)]
-        if shutil.which("wsl"):
-            drive, tail = os.path.splitdrive(str(out))
-            return ["wsl", "/mnt/" + drive[0].lower() + tail.replace("\\", "/")]
+    if out.is_file() and os.name != "nt":
+        return [str(out)]
+    found = shutil.which("fsmp")
+    if found:
+        return [found]
+    if os.name == "nt" and out.is_file() and shutil.which("wsl"):
+        drive, tail = os.path.splitdrive(str(out))
+        return ["wsl", "/mnt/" + drive[0].lower() + tail.replace("\\", "/")]
     return None
 
 
@@ -253,8 +260,9 @@ def prepare_run(project: Project, cell_x: float, cell_y: float,
     (not yet started) run. Raises EngineError when something is missing."""
     command = find_engine()
     if command is None:
-        raise EngineError("engine not found: build fsmp.out in the repository "
-                          "root (make) or put fsmp.exe next to it")
+        raise EngineError("engine not found: put a release fsmp.exe in the "
+                          "repository root, build one (make), or point "
+                          "FSMP_ENGINE at a binary")
     if project.potential is None:
         raise EngineError("attach a potential to the project first "
                           "(Potentials tab)")

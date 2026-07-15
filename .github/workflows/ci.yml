@@ -23,6 +23,16 @@ jobs:
           CXX: ${{ matrix.cxx }}
         run: bash tests/run_tests.sh
 
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regression tests (Apple clang)
+        env:
+          CXX: clang++
+        run: bash tests/run_tests.sh
+
   test-windows:
     runs-on: windows-latest
     steps:

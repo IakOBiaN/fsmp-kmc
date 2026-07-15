@@ -17,6 +17,7 @@ No Qt in this module: everything is testable standalone.
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -148,6 +149,11 @@ def run_parameters(form: dict, potential: str, unit_cell: str,
 
 # -- launching and stopping -----------------------------------------------------
 
+# The detached wrappers stay referenced here: a garbage-collected Popen of a
+# still-running child (which a wrapper is, by design) raises ResourceWarning.
+_launched: list = []
+
+
 def launch(run_dir: Path, command: list) -> str:
     """Start the engine detached from the GUI. Returns the launcher kind.
     The wrapper writes the engine PID to engine.pid, sends all output to
@@ -161,18 +167,27 @@ def launch(run_dir: Path, command: list) -> str:
         args = ["wsl", "--cd", str(run_dir), "-e", "bash", "-c", script]
         kind = "wsl"
     else:
+        # The engine gets CREATE_NO_WINDOW of its own: the wrapper has no
+        # console, so a console child would otherwise open a visible one.
+        # A negative wait() status (POSIX signal death) is folded to the
+        # 128+N shell convention, so state() sees 143 for SIGTERM.
         wrapper = (
-            "import subprocess\n"
-            f"p = subprocess.Popen([{command[0]!r}, {PARAMS!r}],"
-            f" stdout=open({LOG!r}, 'w'), stderr=subprocess.STDOUT)\n"
+            "import os, subprocess\n"
+            "flags = 0x08000000 if os.name == 'nt' else 0\n"
+            f"p = subprocess.Popen({command + [PARAMS]!r},"
+            f" stdout=open({LOG!r}, 'w'), stderr=subprocess.STDOUT,"
+            " creationflags=flags)\n"
             f"open({PIDFILE!r}, 'w').write(str(p.pid))\n"
             "code = p.wait()\n"
+            "if code < 0:\n"
+            "    code = 128 - code\n"
             f"open({LOG!r}, 'a').write('\\n{EXIT_MARK}' + str(code) + '\\n')\n")
         args = [sys.executable, "-c", wrapper]
         kind = "native"
-    subprocess.Popen(args, cwd=str(run_dir), creationflags=_NO_WINDOW,
-                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                     stderr=subprocess.DEVNULL)
+    _launched.append(
+        subprocess.Popen(args, cwd=str(run_dir), creationflags=_NO_WINDOW,
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL))
     return kind
 
 
@@ -199,8 +214,41 @@ def _wsl_kill(pid: int, signal: str) -> int:
                           capture_output=True).returncode
 
 
+_PROCESS_TERMINATE = 0x0001
+_PROCESS_QUERY_LIMITED = 0x1000
+_STILL_ACTIVE = 259
+
+
+def _win_alive(pid: int) -> bool:
+    import ctypes
+    kernel = ctypes.windll.kernel32
+    handle = kernel.OpenProcess(_PROCESS_QUERY_LIMITED, False, pid)
+    if not handle:
+        return False
+    try:
+        code = ctypes.c_ulong()
+        if not kernel.GetExitCodeProcess(handle, ctypes.byref(code)):
+            return False
+        return code.value == _STILL_ACTIVE
+    finally:
+        kernel.CloseHandle(handle)
+
+
+def _win_kill(pid: int, code: int) -> None:
+    """TerminateProcess with the given exit code: Windows has no graceful
+    signal, but the code makes the wrapper's exit marker say why it died."""
+    import ctypes
+    kernel = ctypes.windll.kernel32
+    handle = kernel.OpenProcess(_PROCESS_TERMINATE, False, pid)
+    if handle:
+        kernel.TerminateProcess(handle, code)
+        kernel.CloseHandle(handle)
+
+
 def stop(run_dir: Path) -> None:
-    """Terminate the engine; escalates to SIGKILL if it ignores SIGTERM."""
+    """Terminate the engine. POSIX asks with SIGTERM and escalates to
+    SIGKILL; Windows terminates with exit code 143 so the run reads as
+    stopped, the same as a SIGTERM death."""
     pid = _pid(run_dir)
     if pid is None:
         return
@@ -212,11 +260,18 @@ def stop(run_dir: Path) -> None:
                 return
         _wsl_kill(pid, "-KILL")
     elif os.name == "nt":
-        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"],
-                       creationflags=_NO_WINDOW, capture_output=True)
+        _win_kill(pid, 143)
     else:
         try:
-            os.kill(pid, 15)
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            return
+        for _ in range(6):
+            time.sleep(0.5)
+            if not is_alive(run_dir):
+                return
+        try:
+            os.kill(pid, signal.SIGKILL)
         except OSError:
             pass
 
@@ -228,15 +283,14 @@ def is_alive(run_dir: Path) -> bool:
     if _kind(run_dir) == "wsl":
         return _wsl_kill(pid, "-0") == 0
     if os.name == "nt":
-        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}"],
-                             creationflags=_NO_WINDOW, capture_output=True,
-                             text=True).stdout
-        return str(pid) in out
+        return _win_alive(pid)
     try:
         os.kill(pid, 0)
         return True
-    except OSError:
+    except ProcessLookupError:
         return False
+    except OSError:
+        return True   # exists but owned by another user
 
 
 # -- run state from the log -----------------------------------------------------
