@@ -493,61 +493,111 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
 
   // --- Stage 0: uniform scaling of the whole cell ---------------------------
   // One common factor rescales the cell sides and all intermolecular distances
-  // (the first-molecule offset too: it only shifts the lattice). A start with
-  // hard-core overlaps is first grown until the overlaps disappear, then a 1D
-  // pattern search (deterministic, no randomness) finds the optimal overall
-  // size. Only after that the per-parameter refinement below takes over.
+  // (the first-molecule offset too: it only shifts the lattice). The energy
+  // along this ray is scanned globally from the hard-core edge outwards: a
+  // local search is blind on the two flat plateaus of the landscape (the
+  // capped repulsion around the core and the exact zero beyond the cutoff),
+  // and the scan is cheap. The deepest bound scale wins and is refined by a
+  // deterministic 1D pattern search. When the whole ray is repulsive (bound
+  // states need different molecule orientations - rotations come with stage
+  // 1), the cell starts dense instead, so the stage-1 descent has angular
+  // gradients to work with rather than the flat zero landscape beyond the
+  // cutoff, from which no local move is ever accepted.
   vector<int> dof_scale = dof_len;
   dof_scale.push_back(3);
   vector<double> start = params;
   double s = 1.0;
   double energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
-  // The forcefield grid caps the repulsion at +-1e4 kcal/mol, so around the
-  // hard core there is a wide zero-gradient plateau. A compressed start
-  // sitting on it blinds the pattern search (shrinking never costs anything
-  // there), so grow until the cell is overlap-free and the energy is far off
-  // the plateau. The bar is a slightly positive per-molecule energy, not
-  // zero: a start whose orientations are purely repulsive never binds by
-  // scaling alone (rotations come with stage 1), but its tail does decay.
-  const double plateau_bar = 500.0;   // J/mol per molecule
-  if (HC_radius || energy / nPart_in_central_cell > plateau_bar)
+
+  // the smallest overlap-free scale (pair distances grow linearly with s, so
+  // the hard-core edge is monotone): grow out of an overlap, or walk down to
+  // the edge from a loose start
+  double s_lo = 1.0;
+  if (HC_radius)
   {
-    cout << "The starting cell has hard-core overlaps or sits on the capped "
-         << "repulsion; growing it" << endl;
+    cout << "The starting cell has hard-core overlaps; growing it" << endl;
     bool separated = false;
     for (int i = 0; i < 64 && !separated; i++)
     {
-      s *= 1.1;
-      energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
-      separated = !HC_radius && energy / nPart_in_central_cell <= plateau_bar;
+      s_lo *= 1.1;
+      scaled_cell_energy(params, start, dof_scale, s_lo, coordinates, Lx, Ly, beta);
+      separated = !HC_radius;
     }
     if (!separated)
     {
-      cerr << "ERROR: the cell still overlaps or repels after growing it "
-           << "hundreds-fold; the unit_cell geometry is degenerate "
-           << "(coinciding molecules?)." << endl;
+      cerr << "ERROR: molecules still overlap after growing the cell hundreds-fold; "
+           << "the unit_cell geometry is degenerate (coinciding molecules?)." << endl;
       exit(1);
     }
   }
-  double h = 0.05;                     // step of the pattern search on the scale factor
-  long scale_evals = 0;
-  while (h > 0.001 && scale_evals < 10000)
+  else
   {
-    double e_up = scaled_cell_energy(params, start, dof_scale, s + h, coordinates, Lx, Ly, beta);
-    bool up_ok = !HC_radius && e_up < energy;
-    double e_dn = 0;
-    bool dn_ok = false;
-    if (s - h > 0.01)
+    while (s_lo > 0.02)
     {
-      e_dn = scaled_cell_energy(params, start, dof_scale, s - h, coordinates, Lx, Ly, beta);
-      dn_ok = !HC_radius && e_dn < energy;
+      scaled_cell_energy(params, start, dof_scale, s_lo * 0.9, coordinates, Lx, Ly, beta);
+      if (HC_radius) { break; }
+      s_lo *= 0.9;
     }
-    scale_evals += 2;
-    if (up_ok && (!dn_ok || e_up <= e_dn)) { s += h; energy = e_up; }
-    else if (dn_ok)                        { s -= h; energy = e_dn; }
-    else                                   { h /= 2.0; }
+  }
+
+  // geometric scan of the ray: the deepest bound scale, plus the densest
+  // sane scale (clear of the capped wall) as the fallback start
+  const double dense_bar = 30000.0;   // J/mol per molecule
+  double best_s = -1.0, best_e = 0.0, dense_s = -1.0;
+  s = s_lo;
+  for (int i = 0; i < 120; i++)
+  {
+    energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
+    if (!HC_radius)
+    {
+      if (best_s < 0 || energy < best_e) { best_s = s; best_e = energy; }
+      if (dense_s < 0 && energy / nPart_in_central_cell < dense_bar) { dense_s = s; }
+      if (energy == 0.0) { break; }   // every pair is beyond the cutoff
+    }
+    s *= 1.05;
+  }
+  if (best_e < 0.0)
+  {
+    s = best_s;
+  }
+  else if (dense_s > 0)
+  {
+    s = dense_s;
+    cout << "No bound cell size along the scaling ray (the starting orientations "
+         << "repel at every distance); starting dense for the angular search." << endl;
+  }
+  else
+  {
+    cerr << "ERROR: no workable cell size: the cell is strongly repulsive at "
+         << "every scale (coinciding molecules?)." << endl;
+    exit(1);
   }
   energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
+
+  // local refinement of the scale; pointless on a repulsive ray, where it
+  // would only dilute the cell back towards the zero plateau
+  if (best_e < 0.0)
+  {
+    double h = 0.05;                   // step of the pattern search on the scale factor
+    long scale_evals = 0;
+    while (h > 0.001 && scale_evals < 10000)
+    {
+      double e_up = scaled_cell_energy(params, start, dof_scale, s + h, coordinates, Lx, Ly, beta);
+      bool up_ok = !HC_radius && e_up < energy;
+      double e_dn = 0;
+      bool dn_ok = false;
+      if (s - h > 0.01)
+      {
+        e_dn = scaled_cell_energy(params, start, dof_scale, s - h, coordinates, Lx, Ly, beta);
+        dn_ok = !HC_radius && e_dn < energy;
+      }
+      scale_evals += 2;
+      if (up_ok && (!dn_ok || e_up <= e_dn)) { s += h; energy = e_up; }
+      else if (dn_ok)                        { s -= h; energy = e_dn; }
+      else                                   { h /= 2.0; }
+    }
+    energy = scaled_cell_energy(params, start, dof_scale, s, coordinates, Lx, Ly, beta);
+  }
   HC_radius = false;
   cout << "Cell scaling: factor " << s << ", energy " << energy / 1000.0 / nPart_in_central_cell
        << " kJ/mol per molecule" << endl;
