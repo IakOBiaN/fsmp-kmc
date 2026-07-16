@@ -21,6 +21,13 @@ temperature and pressure. This makes it possible to determine the free energy,
 entropy and chemical potential of dense molecular layers from the equality of
 chemical potentials in the coexisting phases.
 
+<p align="center">
+  <img src="logo/visualization.png" alt="FSMP-kMC workflow" width="840"><br>
+  <em>From DFT geometry and charges, through a precalculated numerical
+  pair-potential grid E(r,&nbsp;&alpha;<sub>i</sub>,&nbsp;&alpha;<sub>j</sub>),
+  to the thermodynamics of the coexisting crystal and gas.</em>
+</p>
+
 ## Method
 
 This code accompanies the following study:
@@ -37,7 +44,8 @@ Monte Carlo (FsMP/kMC)*.
 
 - A C++ compiler (clang++ is recommended).
 - A numerical forcefield (potential) file. See [Forcefields](#forcefields).
-- Python 3 (optional) for the post-processing scripts in `xyz_modification/`.
+- Python 3 with numpy and matplotlib (optional) for the post-processing
+  script in `xyz_modification/`.
 
 ## Building and running
 
@@ -176,16 +184,16 @@ runs against the published reference energy.
 | `StructureGenerator.h` | Generation of the initial molecular structure and unit cell. |
 | `pressure_balance.h` | Mechanical equilibrium and pressure balancing. |
 | `Widom_test.h` | Widom insertion check of the chemical potential. |
-| `Weighted_averages.h`, `block_error.h`, `bootstrap_error.h` | Time averaging and error estimation. |
+| `Weighted_averages.h` | Time averaging of the run statistics. |
 | `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
-| `random/` | SFMT / Mersenne Twister random number generator (by Agner Fog). |
+| `random/` | SFMT random number generator (by Agner Fog). |
 | `models/` | Atomistic molecule models (xyz) used to draw molecules in all visual output; a configuration picks one with the `molecule_model` key. |
 | `molecule_model.h` | Loader of the molecule model. |
 | `forcefields/` | Numerical potential files (downloaded separately). |
-| `logo/` | Project logo and GitHub preview artwork in SVG format. |
+| `logo/` | Project logo, GitHub preview artwork and the graphical abstract. |
 | `tools/` | `pack_forcefield.cpp`: converts an ASCII potential into the compact binary grid the run time reads. |
 | `tests/` | Regression tests and their small data grid (`./tests/run_tests.sh`). |
-| `xyz_modification/` | Python helper scripts for post-processing XYZ trajectories. |
+| `xyz_modification/` | Post-processing: a time-averaged density map from an XYZ trajectory. |
 
 ## Status
 

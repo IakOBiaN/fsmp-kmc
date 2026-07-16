@@ -35,6 +35,8 @@
 # Archives
 *.zip
 
+run.log
+
 # Local experiments / scratch verification (not part of the project)
 experiments/
 

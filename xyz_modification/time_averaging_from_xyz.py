@@ -8,7 +8,7 @@ def distance(atom1, atom2):
 
 #file_names
 xyz_file_name = "statistics_T300_lambda0_0.612372.xyz"
-molecule_file_name = "trimesic_acid.xyz"
+molecule_file_name = "../models/trimesic_acid.xyz"
 
 xy_matrix = []
 random_point_per_bond = 20

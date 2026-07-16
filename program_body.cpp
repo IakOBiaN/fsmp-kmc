@@ -126,7 +126,6 @@ int frame = 0; // For visualization purpose
 #include "Metropolis_iteration.h"
 #include "Rosenbluth_iteration.h"
 #include "pressure_balance.h"
-#include "density_to_Ly.h"
 #include "Weighted_averages.h"
 #include "Widom_test.h"
 #include "center_of_mass.h"
@@ -515,15 +514,11 @@ um_step = abs(um_step);
 	if (widom_test_index){mu_res_widom = log(N_test/(e_test))/beta/1000.0;} // Residual chemical potential calculated by WTPI
 	double mu_ex_kMC = (log(sum_iterations/Lx/Ly) - log(Pt) + log(sigma_2 * 100))/beta/1000.0;
 
-/////////// Block Error Calculation ////////////
-	//double energy_error = block_error_calculation(energy_stat, sum_iterations)/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26)/Pt;
-	//double pressure_error = block_error_calculation(pressure_stat, sum_iterations)*(1.0/(Lx/4.0)/Ly*1.0e+23)/N_a/Pt;
-
 	cout << endl << "u_m: " << u_m << endl;
 	cout << "Crystal Data" << endl;
 	cout << "Density: " << density << " mkmol/m2 " << "Lx of central cell: " << Lx/4.0 << " Ly: " << Ly << endl;
-	cout << "T: " << temperature << "K" << " Energy per molecule: " << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << endl;// << " energy_error: " << energy_error << " kJ/mol" << endl;
-	cout << "Total pressure: " << R*temperature*density/1000.0 + (press_X + press_Y)/2.0 << " mN/m" << endl;// << " pressure_error: " << pressure_error << " mN/m" << endl;
+	cout << "T: " << temperature << "K" << " Energy per molecule: " << Energy/1000.0/(density*Lx*Ly*N_a/4.0/1.0e+26) << " kJ/mol" << endl;
+	cout << "Total pressure: " << R*temperature*density/1000.0 + (press_X + press_Y)/2.0 << " mN/m" << endl;
 	cout << "P_ex_MC: " << (press_X + press_Y)/2.0 << " mN/m" << " P_ex_MC_X: " << press_X << " mN/m" << " P_ex_MC_Y: " << press_Y << " mN/m" << endl;
 //	cout << "Chemical potential in the simulation cell: " << mu_ex + log(density*Lx*Ly*N_a/4.0/1.0e+26)/beta/1000.0 << " kJ/mol" << endl;
 
