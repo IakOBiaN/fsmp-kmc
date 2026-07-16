@@ -16,6 +16,7 @@ jobs:
       - name: Warning-free build gate
         run: |
           ${{ matrix.cxx }} -O2 -Wall -Wextra -Werror -fsyntax-only fsmp.cpp
+          ${{ matrix.cxx }} -O2 -Wall -Wextra -Werror -fsyntax-only -DSFMT_NO_SSE2 fsmp.cpp
           ${{ matrix.cxx }} -O2 -Wall -Wextra -Werror -fsyntax-only tools/pack_forcefield.cpp
 
       - name: Regression tests

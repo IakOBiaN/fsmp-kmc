@@ -191,7 +191,11 @@ void CRandomSFMT::Init2() {
 
    // Initialize mask
    static const uint32_t maskinit[4] = {SFMT_MASK};
+#ifdef SFMT_HAS_SSE2
    mask = _mm_loadu_si128((__m128i*)maskinit);
+#else
+   for (i = 0; i < 4; i++) mask.w[i] = maskinit[i];
+#endif
 
    // Period certification
    // Define period certification vector
@@ -225,6 +229,7 @@ void CRandomSFMT::Init2() {
 
 
 // Subfunction for the sfmt algorithm
+#ifdef SFMT_HAS_SSE2
 static inline __m128i sfmt_recursion(__m128i const &a, __m128i const &b, 
 __m128i const &c, __m128i const &d, __m128i const &mask) {
     __m128i a1, b1, c1, d1, z1, z2;
@@ -239,11 +244,39 @@ __m128i const &c, __m128i const &d, __m128i const &mask) {
     z2 = _mm_xor_si128(z1, z2);
     return z2;
 }
+#else
+// The same recursion in plain arithmetic, bit-identical to the SSE2 one.
+// SFMT_SL2 and SFMT_SR2 shift the whole 128-bit block by bytes; done on
+// two 64-bit halves, assuming little endian (as the reference C code of
+// SFMT does).
+static inline sfmt_vec128 sfmt_recursion(sfmt_vec128 const &a, sfmt_vec128 const &b,
+sfmt_vec128 const &c, sfmt_vec128 const &d, sfmt_vec128 const &mask) {
+    uint64_t alo = (uint64_t)a.w[0] | (uint64_t)a.w[1] << 32;
+    uint64_t ahi = (uint64_t)a.w[2] | (uint64_t)a.w[3] << 32;
+    uint64_t clo = (uint64_t)c.w[0] | (uint64_t)c.w[1] << 32;
+    uint64_t chi = (uint64_t)c.w[2] | (uint64_t)c.w[3] << 32;
+    uint64_t a1hi = ahi << (SFMT_SL2 * 8) | alo >> (64 - SFMT_SL2 * 8);
+    uint64_t a1lo = alo << (SFMT_SL2 * 8);
+    uint64_t c1lo = clo >> (SFMT_SR2 * 8) | chi << (64 - SFMT_SR2 * 8);
+    uint64_t c1hi = chi >> (SFMT_SR2 * 8);
+    const uint32_t a1[4] = {(uint32_t)a1lo, (uint32_t)(a1lo >> 32),
+                            (uint32_t)a1hi, (uint32_t)(a1hi >> 32)};
+    const uint32_t c1[4] = {(uint32_t)c1lo, (uint32_t)(c1lo >> 32),
+                            (uint32_t)c1hi, (uint32_t)(c1hi >> 32)};
+    sfmt_vec128 z;
+    for (int i = 0; i < 4; i++) {
+        uint32_t b1 = (b.w[i] >> SFMT_SR1) & mask.w[i];
+        uint32_t d1 = d.w[i] << SFMT_SL1;
+        z.w[i] = a.w[i] ^ a1[i] ^ b1 ^ c1[i] ^ d1;
+    }
+    return z;
+}
+#endif
 
 void CRandomSFMT::Generate() {
    // Fill state array with new random numbers
    int i;
-   __m128i r, r1, r2;
+   sfmt_vec128 r, r1, r2;
 
    r1 = state[SFMT_N - 2];
    r2 = state[SFMT_N - 1];

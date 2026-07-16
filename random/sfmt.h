@@ -124,8 +124,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SFMT_H
 #define SFMT_H
 
-#include <emmintrin.h>                 // Define SSE2 intrinsics
 #include "randomc.h"                   // Define integer types etc
+
+// On x86 the state is kept in SSE2 registers, as in the original code.
+// On other architectures (e.g. arm64 Macs) the same 128-bit operations
+// run as ordinary 32/64-bit arithmetic in sfmt.cpp: the generated
+// sequence is identical either way, the intrinsics are only faster.
+// SFMT_NO_SSE2 forces the plain branch, so it can be built and tested
+// on x86 too (the CI warning gate does this).
+#if !defined(SFMT_NO_SSE2) && (defined(__SSE2__) || defined(_M_X64) || \
+    (defined(_M_IX86_FP) && _M_IX86_FP >= 2))
+#define SFMT_HAS_SSE2
+#include <emmintrin.h>                 // Define SSE2 intrinsics
+typedef __m128i sfmt_vec128;           // One 128-bit block of the state
+#else
+struct sfmt_vec128 {                   // One 128-bit block of the state,
+   uint32_t w[4];                      // as four words (little endian)
+};
+#endif
 
 // Choose one of the possible Mersenne exponents.
 // Higher values give longer cycle length and use more memory:
@@ -230,8 +246,8 @@ private:
    uint32_t LastInterval;                        // Last interval length for IRandom
    uint32_t RLimit;                              // Rejection limit used by IRandom
    uint32_t UseMother;                           // Combine with Mother-Of-All generator
-   __m128i  mask;                                // AND mask
-   __m128i  state[SFMT_N];                       // State vector for SFMT generator
+   sfmt_vec128 mask;                             // AND mask
+   sfmt_vec128 state[SFMT_N];                    // State vector for SFMT generator
    uint32_t MotherState[5];                      // State vector for Mother-Of-All generator
 };
 
