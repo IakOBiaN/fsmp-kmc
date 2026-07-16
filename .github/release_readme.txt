@@ -2,8 +2,10 @@ FSMP-kMC release bundle
 =======================
 
 FSMP-kMC Studio   the desktop app - start it and work:
-                    Windows:  FSMP-kMC Studio.exe
-                    Linux:    ./FSMP-kMC\ Studio
+                    Windows:  FSMP-kMC Studio.exe (SmartScreen may warn on
+                              the first launch: More info -> Run anyway)
+                    Linux:    ./FSMP-kMC\ Studio (needs glibc 2.35+,
+                              i.e. Ubuntu 22.04 or newer)
                     macOS:    FSMP-kMC Studio.app (unsigned build: the first
                               time use right-click -> Open)
 fsmp.exe / fsmp   the simulation engine, also usable from the command line

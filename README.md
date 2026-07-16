@@ -67,7 +67,10 @@ clang++ -O3 fsmp.cpp -o fsmp.out
 On Windows, `make windows` builds native static `fsmp.exe` and `pack.exe`;
 it needs a MinGW g++ on `PATH`
 ([w64devkit](https://github.com/skeeto/w64devkit) is a portable
-single-archive toolchain; MSYS2 works too).
+single-archive toolchain; MSYS2 works too). With w64devkit unpacked to
+`C:\w64devkit` (or pointed to by `W64DEVKIT`), `build.cmd` wraps it all
+without touching `PATH`: `build` compiles the engine, `build test` runs
+the test suite, `build bundle` assembles the release bundle.
 
 Paths inside a parameter file are relative to the directory the program is
 started from (the examples expect the repository root), and all output files
@@ -87,9 +90,12 @@ engine from the command line:
 fsmp.exe configs\tma_acid_hcp.txt
 ```
 
-Working with a release does not require the source code. The Linux bundle
-runs on Ubuntu 22.04 or newer (glibc 2.35+); the engine binary itself is
-static and runs anywhere. For development, the same layout works inside
+Working with a release does not require the source code. The binaries are
+not code-signed (usual for academic software): on the first launch of a
+downloaded copy Windows SmartScreen may warn about an unrecognized app
+(More info → Run anyway) and macOS requires right-click → Open. The Linux
+bundle runs on Ubuntu 22.04 or newer (glibc 2.35+); the engine binary
+itself is static and runs anywhere. For development, the same layout works inside
 the repository: `fsmp.exe` or `fsmp.out` in the repository root is picked
 up by the GUI automatically.
 
