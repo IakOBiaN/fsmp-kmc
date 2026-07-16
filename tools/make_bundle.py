@@ -15,6 +15,7 @@ this same script, so the local and the published layouts cannot drift.
 import argparse
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -22,6 +23,12 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 EXE = ".exe" if os.name == "nt" else ""
+
+
+def project_version() -> str:
+    match = re.search(r'#define\s+FSMP_VERSION\s+"([^"]+)"',
+                      (REPO / "version.h").read_text(encoding="utf-8"))
+    return match.group(1) if match else "unknown"
 
 
 def platform_tag() -> str:
@@ -60,11 +67,13 @@ def build_engine() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--name", default="local",
-                        help="version part of the bundle name (e.g. v0.5.0)")
+    parser.add_argument("--name", default=None,
+                        help="version part of the bundle name (e.g. v0.5.0);"
+                             " defaults to version.h")
     parser.add_argument("--build-engine", action="store_true",
                         help="compile the engine here with the release flags")
     args = parser.parse_args()
+    name = args.name or ("v" + project_version())
 
     if args.build_engine:
         build_engine()
@@ -77,7 +86,7 @@ def main() -> None:
     run([find_pyinstaller(), "--noconfirm", "--distpath", "gui/dist",
          "--workpath", "gui/build", "gui/studio.spec"])
 
-    bundle = REPO / "dist" / f"fsmp-kmc-{args.name}-{platform_tag()}"
+    bundle = REPO / "dist" / f"fsmp-kmc-{name}-{platform_tag()}"
     if bundle.exists():
         shutil.rmtree(bundle)
     bundle.mkdir(parents=True)

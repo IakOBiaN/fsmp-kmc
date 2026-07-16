@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QFileDialog,
                                QStackedWidget, QTabWidget, QVBoxLayout,
                                QWidget)
 
-from . import theme
+from . import __version__, theme
 from .glyph import model_glyph
 from .project import Project, ProjectError, safe_filename
 from .start_page import ASSETS, StartPage
@@ -179,7 +179,7 @@ class ProjectView(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("FSMP-kMC Studio")
+        self.setWindowTitle(f"FSMP-kMC Studio {__version__}")
         self.setWindowIcon(QIcon(str(ASSETS / "logo-mark.svg")))
         self.project: Project | None = None
         self.project_view: ProjectView | None = None
@@ -293,6 +293,6 @@ class MainWindow(QMainWindow):
             self.project_view = None
         self.project = None
         self.close_action.setEnabled(False)
-        self.setWindowTitle("FSMP-kMC Studio")
+        self.setWindowTitle(f"FSMP-kMC Studio {__version__}")
         self.stack.setCurrentWidget(self.start_page)
         self._refresh_recent()

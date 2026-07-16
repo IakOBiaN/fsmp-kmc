@@ -13,4 +13,5 @@
 #pragma GCC diagnostic pop
 #include <float.h>
 #include <string>
+#include "version.h"
 using namespace std;

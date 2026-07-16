@@ -5,12 +5,13 @@
     python tests\\run_tests.py           (Windows, MinGW g++ on PATH)
 
 1. pack_forcefield round-trip on a synthetic grid (no data needed).
-2. The full engine on the small committed grid in tests/data/.
-3. The full engine on the real TMA simple potential; skipped when the
+2. The engine reports the version baked in from version.h (--version).
+3. The full engine on the small committed grid in tests/data/.
+4. The full engine on the real TMA simple potential; skipped when the
    potential is not present (it is a separate download, see README).
-4. The unit-cell optimizer ("calculate") on the small committed grid,
+5. The unit-cell optimizer ("calculate") on the small committed grid,
    seeded for determinism; pins the converged energy.
-5. The same optimization started from a cell with hard-core overlaps: the
+6. The same optimization started from a cell with hard-core overlaps: the
    scaling stage must grow it out of the overlap and reach the same optimum.
 
 The engine is built once with -ffp-contract=off so the optimizer trajectory
@@ -67,7 +68,7 @@ for pattern in ("0_*.xyz", "1_*.xyz", "2_*.dat"):
     for stray in TESTS.glob(pattern):
         stray.unlink()
 
-print("== [1/5] pack_forcefield round-trip on a synthetic grid ==", flush=True)
+print("== [1/6] pack_forcefield round-trip on a synthetic grid ==", flush=True)
 compile_cpp(TESTS.parent / "tools" / "pack_forcefield.cpp",
             BUILD / ("pack" + EXE), "-Wall", "-Wextra")
 run([sys.executable, "test_pack_roundtrip.py", BUILD / ("pack" + EXE), BUILD])
@@ -75,20 +76,27 @@ run([sys.executable, "test_pack_roundtrip.py", BUILD / ("pack" + EXE), BUILD])
 compile_cpp(TESTS.parent / "fsmp.cpp", BUILD / ("fsmp" + EXE),
             "-ffp-contract=off")
 
-print("== [2/5] engine on the small committed grid ==", flush=True)
+print("== [2/6] the engine reports its version ==", flush=True)
+version = subprocess.run([str(BUILD / ("fsmp" + EXE)), "--version"],
+                         cwd=TESTS, capture_output=True, text=True)
+if version.returncode != 0 or not version.stdout.startswith("FSMP-kMC "):
+    sys.exit(f"--version failed: {version.stdout}{version.stderr}")
+print(version.stdout.strip())
+
+print("== [3/6] engine on the small committed grid ==", flush=True)
 pin(engine("hcp_small.txt", "hcp_small.log"), -61.7449, 0.001)
 
-print("== [3/5] engine on the full TMA simple potential ==", flush=True)
+print("== [4/6] engine on the full TMA simple potential ==", flush=True)
 if (TESTS.parent / "forcefields" / "TMA_simple_2020.v2.bin").is_file():
     pin(engine("hcp_full.txt", "hcp_full.log"), -62.8605, 0.001)
 else:
     print("SKIP: forcefields/TMA_simple_2020.v2.bin not present")
 
-print("== [4/5] unit-cell optimizer on the small committed grid ==", flush=True)
+print("== [5/6] unit-cell optimizer on the small committed grid ==", flush=True)
 pin(engine("optimize_small.txt", "optimize_small.log"), -62.2276, 0.05,
     "Final energy per molecule:")
 
-print("== [5/5] unit-cell optimizer from an overlapping start ==", flush=True)
+print("== [6/6] unit-cell optimizer from an overlapping start ==", flush=True)
 pin(engine("optimize_overlap.txt", "optimize_overlap.log"), -62.2276, 0.05,
     "Final energy per molecule:")
 

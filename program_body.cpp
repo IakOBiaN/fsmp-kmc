@@ -133,9 +133,14 @@ int frame = 0; // For visualization purpose
 
 int main(int argc, char ** argv)
 {
+	if (argc == 2 && string(argv[1]) == "--version")
+	{
+		cout << "FSMP-kMC " << FSMP_VERSION << endl;
+		return 0;
+	}
 	if (argc != 2)
 	{
-		cerr << "usage: " << argv[0] << " <parameters.txt>" << endl;
+		cerr << "usage: " << argv[0] << " <parameters.txt>  (or --version)" << endl;
 		cerr << "See configs/ for ready-to-run parameter files." << endl;
 		return 2;
 	}

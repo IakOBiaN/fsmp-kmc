@@ -12,7 +12,8 @@ import sys
 a = Analysis(
     ["studio_launcher.py"],
     pathex=[],
-    datas=[("fsmp_gui/assets", "fsmp_gui/assets")],
+    # version.h rides along so the frozen app knows the project version
+    datas=[("fsmp_gui/assets", "fsmp_gui/assets"), ("../version.h", ".")],
     excludes=["tkinter"],
 )
 pyz = PYZ(a.pure)

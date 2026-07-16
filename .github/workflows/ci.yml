@@ -11,7 +11,7 @@ jobs:
       matrix:
         cxx: [g++, clang++]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Warning-free build gate
         run: |
@@ -27,7 +27,7 @@ jobs:
   test-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Regression tests (Apple clang)
         env:
@@ -37,7 +37,7 @@ jobs:
   test-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -57,7 +57,7 @@ jobs:
           g++ -O3 -static -Wall -Wextra fsmp.cpp -o fsmp.exe
           g++ -O3 -static -Wall -Wextra tools/pack_forcefield.cpp -o pack.exe
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: fsmp-kmc-windows-x86_64-dev
           path: |

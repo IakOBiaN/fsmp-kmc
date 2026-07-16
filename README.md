@@ -87,9 +87,11 @@ engine from the command line:
 fsmp.exe configs\tma_acid_hcp.txt
 ```
 
-Working with a release does not require the source code. For development,
-the same layout works inside the repository: `fsmp.exe` or `fsmp.out` in
-the repository root is picked up by the GUI automatically.
+Working with a release does not require the source code. The Linux bundle
+runs on Ubuntu 22.04 or newer (glibc 2.35+); the engine binary itself is
+static and runs anywhere. For development, the same layout works inside
+the repository: `fsmp.exe` or `fsmp.out` in the repository root is picked
+up by the GUI automatically.
 
 ## GUI: FSMP-kMC Studio
 
@@ -177,6 +179,7 @@ runs against the published reference energy.
 | `configs/` | Ready-to-run parameter files (see [Building and running](#building-and-running)). |
 | `Makefile` | Build helper: the program, the converter, and the tests. |
 | `includes.h` | Master list of headers pulled into `program_body.cpp`. |
+| `version.h` | The single source of the project version (`--version`, the Studio, bundle names). |
 | `energies_and_forces_numerical.h` | Intermolecular potential evaluated from the precalculated numerical grid (interpolation, tail correction, hard-core cutoff). |
 | `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the binary numerical potential. |
 | `fields.h` | Damping field, external field, and the pressure change across the gas-solid interface. |

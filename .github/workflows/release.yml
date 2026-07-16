@@ -16,10 +16,25 @@ permissions:
   contents: write
 
 jobs:
+  # a tag must match version.h, the single source of the project version
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Tag matches version.h
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            grep -F "\"${GITHUB_REF_NAME#v}\"" version.h \
+              || { echo "version.h does not carry $GITHUB_REF_NAME"; exit 1; }
+          else
+            echo "dry run: no tag to check"
+          fi
+
   windows:
+    needs: version-check
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -45,7 +60,7 @@ jobs:
           ../fsmp.exe hcp_small.txt > release_smoke.log
           python3 check_energy.py release_smoke.log -61.7449 0.001
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -54,22 +69,28 @@ jobs:
           pip install "./gui[build]"
           python tools/make_bundle.py --name ${{ github.ref_name }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: bundle-windows-x86_64
           path: dist/fsmp-kmc-*.zip
 
       - name: Publish to the release
         if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/fsmp-kmc-*.zip
           generate_release_notes: true
 
+  # Pinned to the oldest supported runner on purpose: a PyInstaller build
+  # needs the user's glibc to be at least as new as the builder's, so
+  # building on 22.04 (glibc 2.35) lets the Studio run on Ubuntu 22.04+.
+  # The 22.04 image retires in April 2027; move this job into an
+  # ubuntu:22.04 container before September 2026 (deprecation start).
   linux:
-    runs-on: ubuntu-latest
+    needs: version-check
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build static engine binaries
         run: |
@@ -85,7 +106,7 @@ jobs:
           ../fsmp hcp_small.txt > release_smoke.log
           python3 check_energy.py release_smoke.log -61.7449 0.001
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -99,14 +120,14 @@ jobs:
           pip install "./gui[build]"
           python tools/make_bundle.py --name ${{ github.ref_name }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: bundle-linux-x86_64
           path: dist/fsmp-kmc-*.tar.gz
 
       - name: Publish to the release
         if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/fsmp-kmc-*.tar.gz
           generate_release_notes: true
@@ -114,9 +135,10 @@ jobs:
   # experimental: built and tested only in CI, unsigned (macOS will ask to
   # confirm the first launch via right-click -> Open)
   macos:
+    needs: version-check
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build engine binaries
         run: |
@@ -134,7 +156,7 @@ jobs:
           ../fsmp hcp_small.txt > release_smoke.log
           python3 check_energy.py release_smoke.log -61.7449 0.001
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -143,14 +165,14 @@ jobs:
           pip install "./gui[build]"
           python tools/make_bundle.py --name ${{ github.ref_name }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: bundle-macos-arm64
           path: dist/fsmp-kmc-*.tar.gz
 
       - name: Publish to the release
         if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/fsmp-kmc-*.tar.gz
           generate_release_notes: true
