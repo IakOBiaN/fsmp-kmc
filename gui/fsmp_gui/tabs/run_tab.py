@@ -106,7 +106,7 @@ class RunCard(QFrame):
             self._render()
 
     def verify_alive(self) -> None:
-        """Subprocess check, called on scan only (it costs a wsl call)."""
+        """Process check, done on scan only."""
         if self.watch.exit_code is None:
             self.alive = runs.is_alive(self.run_dir)
             self._render()
@@ -511,8 +511,6 @@ class RunTab(QWidget):
             missing.append("engine (a release fsmp.exe in the repository "
                            "root, or make)")
             self.engine_label.setText("")
-        elif command[0] == "wsl":
-            self.engine_label.setText(f"Engine: {command[1]} (through WSL)")
         else:
             self.engine_label.setText(f"Engine: {command[0]}")
         self.engine_label.setVisible(bool(self.engine_label.text()))

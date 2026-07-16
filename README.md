@@ -122,8 +122,7 @@ in this order:
 1. the `FSMP_ENGINE` environment variable (full path to a binary);
 2. `fsmp.exe` or `fsmp.out` in the repository root: a release download or a
    local build;
-3. `fsmp` on `PATH`;
-4. on Windows only, a repository `fsmp.out` through WSL (legacy fallback).
+3. `fsmp` on `PATH`.
 
 The Run tab shows which engine it found. Closing the GUI never kills
 running simulations; they are recovered from their run folders on the next

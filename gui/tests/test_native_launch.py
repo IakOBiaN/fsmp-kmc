@@ -1,7 +1,7 @@
-"""The native (no WSL) detached launcher on the current platform, with a
-Python stand-in for the engine: the launch/pid/log plumbing, is_alive, stop
-and the exit-code mapping. The real-engine end-to-end runs live in
-test_runs; these tests need no engine binary at all."""
+"""The detached launcher on the current platform, with a Python stand-in
+for the engine: the launch/pid/log plumbing, is_alive, stop and the
+exit-code mapping. The real-engine end-to-end runs live in test_runs;
+these tests need no engine binary at all."""
 
 import json
 import sys

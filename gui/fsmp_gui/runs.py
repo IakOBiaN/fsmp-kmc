@@ -5,7 +5,7 @@
     run.json        label, launcher kind, creation time
     model.xyz       the visualization molecule model
     run.log         engine stdout+stderr; the launcher appends FSMP_EXIT:<code>
-    engine.pid      PID of the engine process (linux PID for a WSL run)
+    engine.pid      PID of the engine process
     statistics.dat  one row per (T, u_m) point
     trajectory.xyz, unit_cell.xyz
 
@@ -38,7 +38,7 @@ CELL_ANIMATION = "unit_cell.xyz"
 EXIT_MARK = "FSMP_EXIT:"
 
 # CREATE_NO_WINDOW alone: combined with DETACHED_PROCESS Windows ignores it
-# and wsl pops up a visible console. Children survive the GUI regardless.
+# and the launcher gets a visible console. Children survive the GUI anyway.
 _NO_WINDOW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 
 
@@ -176,19 +176,12 @@ def waiter_main(engine: str, params: str) -> None:
 
 def launch(run_dir: Path, command: list) -> str:
     """Start the engine detached from the GUI. Returns the launcher kind.
-    The wrapper writes the engine PID to engine.pid, sends all output to
+    The waiter writes the engine PID to engine.pid, sends all output to
     run.log and appends FSMP_EXIT:<code> when the engine finishes."""
-    if command[0] == "wsl":
-        script = (f'"{command[1]}" {PARAMS} > {LOG} 2>&1 & '
-                  f"echo $! > {PIDFILE}; wait $!; "
-                  f"echo {EXIT_MARK}$? >> {LOG}")
-        # -e is essential: without it wsl re-parses the command through an
-        # outer shell that expands $! and $? before our bash ever runs
-        args = ["wsl", "--cd", str(run_dir), "-e", "bash", "-c", script]
-        kind = "wsl"
-    elif getattr(sys, "frozen", False):
+    if getattr(sys, "frozen", False):
+        # a frozen sys.executable is the Studio itself; its launcher
+        # recognizes --run-waiter and calls waiter_main
         args = [sys.executable, "--run-waiter", command[0], PARAMS]
-        kind = "native"
     else:
         # The engine gets CREATE_NO_WINDOW of its own: the wrapper has no
         # console, so a console child would otherwise open a visible one.
@@ -206,12 +199,11 @@ def launch(run_dir: Path, command: list) -> str:
             "    code = 128 - code\n"
             f"open({LOG!r}, 'a').write('\\n{EXIT_MARK}' + str(code) + '\\n')\n")
         args = [sys.executable, "-c", wrapper]
-        kind = "native"
     _launched.append(
         subprocess.Popen(args, cwd=str(run_dir), creationflags=_NO_WINDOW,
                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                          stderr=subprocess.DEVNULL))
-    return kind
+    return "native"
 
 
 def _pid(run_dir: Path) -> int | None:
@@ -221,20 +213,16 @@ def _pid(run_dir: Path) -> int | None:
         return None
 
 
-def _kind(run_dir: Path) -> str:
+def _native(run_dir: Path) -> bool:
+    """True for runs made by this launcher. Runs launched through WSL
+    before the native era carry kind "wsl" and a Linux PID: their state
+    comes from the run files only, and that PID must never be checked or
+    killed in the Windows pid namespace."""
     try:
-        return json.loads((run_dir / META).read_text(encoding="utf-8"))["kind"]
+        meta = json.loads((run_dir / META).read_text(encoding="utf-8"))
+        return meta["kind"] == "native"
     except (OSError, ValueError, KeyError):
-        return "wsl"
-
-
-def _wsl_kill(pid: int, signal: str) -> int:
-    """kill inside WSL, through bash (kill is a shell builtin) and with -e
-    (a bare `wsl cmd` is re-parsed by an outer shell)."""
-    return subprocess.run(["wsl", "-e", "bash", "-c",
-                           f"kill {signal} {pid}"],
-                          creationflags=_NO_WINDOW,
-                          capture_output=True).returncode
+        return False
 
 
 _PROCESS_TERMINATE = 0x0001
@@ -273,16 +261,9 @@ def stop(run_dir: Path) -> None:
     SIGKILL; Windows terminates with exit code 143 so the run reads as
     stopped, the same as a SIGTERM death."""
     pid = _pid(run_dir)
-    if pid is None:
+    if pid is None or not _native(run_dir):
         return
-    if _kind(run_dir) == "wsl":
-        _wsl_kill(pid, "-TERM")
-        for _ in range(6):
-            time.sleep(0.5)
-            if not is_alive(run_dir):
-                return
-        _wsl_kill(pid, "-KILL")
-    elif os.name == "nt":
+    if os.name == "nt":
         _win_kill(pid, 143)
     else:
         try:
@@ -301,10 +282,8 @@ def stop(run_dir: Path) -> None:
 
 def is_alive(run_dir: Path) -> bool:
     pid = _pid(run_dir)
-    if pid is None:
+    if pid is None or not _native(run_dir):
         return False
-    if _kind(run_dir) == "wsl":
-        return _wsl_kill(pid, "-0") == 0
     if os.name == "nt":
         return _win_alive(pid)
     try:
@@ -446,9 +425,8 @@ def create_run(project: Project, label: str, form: dict) -> Path:
                                  for m in uc["molecules"]])
     (run_dir / PARAMS).write_text(run_parameters(form, rel, chain, sim),
                                   encoding="utf-8")
-    kind = "wsl" if command[0] == "wsl" else "native"
     (run_dir / META).write_text(json.dumps({
-        "label": label, "kind": kind,
+        "label": label, "kind": "native",
         "created": datetime.now(timezone.utc).isoformat(timespec="seconds")},
         indent=2), encoding="utf-8")
     launch(run_dir, command)

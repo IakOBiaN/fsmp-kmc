@@ -50,10 +50,9 @@ def app_root() -> Path:
 
 
 def find_engine() -> list[str] | None:
-    """Command prefix that runs the engine, native first: the FSMP_ENGINE
-    environment variable, a build next to the app (fsmp.exe from a release
-    or `make windows`, fsmp.out/fsmp from make), then fsmp on PATH. On
-    Windows a Linux build is still reachable through WSL, as a last resort."""
+    """Command prefix that runs the engine: the FSMP_ENGINE environment
+    variable, a build next to the app (fsmp.exe from a release or
+    `make windows`, fsmp.out/fsmp from make), then fsmp on PATH."""
     override = os.environ.get("FSMP_ENGINE", "")
     if override and Path(override).is_file():
         return [override]
@@ -66,10 +65,6 @@ def find_engine() -> list[str] | None:
     found = shutil.which("fsmp")
     if found:
         return [found]
-    out = root / "fsmp.out"
-    if os.name == "nt" and out.is_file() and shutil.which("wsl"):
-        drive, tail = os.path.splitdrive(str(out))
-        return ["wsl", "/mnt/" + drive[0].lower() + tail.replace("\\", "/")]
     return None
 
 

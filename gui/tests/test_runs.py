@@ -16,10 +16,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fsmp_gui.engine import find_engine
-from fsmp_gui.runs import (DONE, RUNNING, STOPPED, LogWatch, create_run,
-                           is_alive, loop_points, loop_values, point_at,
-                           read_params, read_statistics, run_parameters,
-                           stop, waiter_main)
+from fsmp_gui.runs import (DONE, INTERRUPTED, RUNNING, STOPPED, LogWatch,
+                           create_run, is_alive, loop_points, loop_values,
+                           point_at, read_params, read_statistics,
+                           run_parameters, stop, waiter_main)
 
 REPO = Path(__file__).resolve().parents[2]
 GRID = REPO / "tests" / "data" / "TMA_simple_2020_s4.v2.bin"
@@ -143,6 +143,24 @@ class TestParameters(unittest.TestCase):
         self.assertNotIn("sigma =", params_text)
 
 
+class TestLegacyWslRun(unittest.TestCase):
+    def test_state_comes_from_files_only(self):
+        """A run made through WSL before the native era carries a Linux
+        PID: it must never be probed or killed as a Windows PID."""
+        with tempfile.TemporaryDirectory() as td:
+            run_dir = Path(td)
+            (run_dir / "run.json").write_text('{"label": "old", "kind": "wsl"}')
+            (run_dir / "engine.pid").write_text("12345")
+            (run_dir / "run.log").write_text(
+                "_________INITIAL DATA_________\n5 %\n")
+            self.assertFalse(is_alive(run_dir))
+            stop(run_dir)   # a no-op, not a TerminateProcess on pid 12345
+            watch = LogWatch(run_dir / "run.log")
+            watch.poll()
+            self.assertEqual(watch.state(alive=is_alive(run_dir)),
+                             INTERRUPTED)
+
+
 class TestWaiter(unittest.TestCase):
     def test_records_pid_log_and_exit_marker(self):
         """waiter_main with a python script standing in for the engine."""
@@ -181,7 +199,8 @@ def _e2e_project(td):
 class TestEndToEnd(unittest.TestCase):
     def test_detached_run_completes(self):
 
-        # ignore_cleanup_errors: wsl may hold the handle a moment after exit
+        # ignore_cleanup_errors: the detached waiter can hold the log
+        # handle a moment after the exit marker appears
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as td:
             run_dir = create_run(_e2e_project(td), "e2e-run", FORM)
             watch = LogWatch(run_dir / "run.log")
