@@ -44,8 +44,8 @@ Monte Carlo (FsMP/kMC)*.
 
 - A C++ compiler (clang++ is recommended).
 - A numerical forcefield (potential) file. See [Forcefields](#forcefields).
-- Python 3 with numpy and matplotlib (optional) for the post-processing
-  script in `xyz_modification/`.
+- Python 3 for the regression tests; with numpy and matplotlib it also
+  runs the optional post-processing script in `xyz_modification/`.
 
 ## Building and running
 
@@ -191,8 +191,8 @@ runs against the published reference energy.
 | `molecule_model.h` | Loader of the molecule model. |
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `logo/` | Project logo, GitHub preview artwork and the graphical abstract. |
-| `tools/` | `pack_forcefield.cpp`: converts an ASCII potential into the compact binary grid the run time reads. |
-| `tests/` | Regression tests and their small data grid (`./tests/run_tests.sh`). |
+| `tools/` | `pack_forcefield.cpp` converts an ASCII potential into the compact binary grid; `make_bundle.py` assembles a release bundle (CI and `make bundle`). |
+| `tests/` | Regression tests and their small data grid (`python3 tests/run_tests.py`). |
 | `xyz_modification/` | Post-processing: a time-averaged density map from an XYZ trajectory. |
 
 ## Status

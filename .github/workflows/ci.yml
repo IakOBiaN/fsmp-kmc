@@ -22,7 +22,7 @@ jobs:
       - name: Regression tests
         env:
           CXX: ${{ matrix.cxx }}
-        run: bash tests/run_tests.sh
+        run: python3 tests/run_tests.py
 
   test-macos:
     runs-on: macos-latest
@@ -32,7 +32,7 @@ jobs:
       - name: Regression tests (Apple clang)
         env:
           CXX: clang++
-        run: bash tests/run_tests.sh
+        run: python3 tests/run_tests.py
 
   test-windows:
     runs-on: windows-latest
@@ -46,7 +46,7 @@ jobs:
 
       - name: Regression tests (native Windows, MinGW g++)
         shell: msys2 {0}
-        run: bash tests/run_tests.sh
+        run: python3 tests/run_tests.py
 
       # Fresh development build of the Windows binaries: downloadable from the
       # workflow run page (Actions tab), kept for 90 days. Tagged releases are

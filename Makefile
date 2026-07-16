@@ -4,7 +4,10 @@
 #   make pack       build the forcefield converter (pack.out)
 #   make windows    build native Windows binaries (fsmp.exe, pack.exe);
 #                   needs a MinGW g++ (w64devkit or MSYS2) on PATH
-#   make test       run the regression test suite
+#   make test       run the regression test suite (needs a Python 3; on
+#                   Windows pass PYTHON=python or a full interpreter path)
+#   make bundle     assemble a release-layout bundle in dist/ (Windows;
+#                   elsewhere run tools/make_bundle.py --build-engine)
 #   make clean      remove built binaries
 #
 # Run the program with a parameter file, from the repository root:
@@ -14,8 +17,9 @@
 
 CXX      ?= g++
 CXXFLAGS ?= -O3 -Wall -Wextra
+PYTHON   ?= python3
 
-.PHONY: all pack windows test clean
+.PHONY: all pack windows test bundle clean
 
 all: fsmp.out
 
@@ -38,7 +42,10 @@ pack.exe: tools/pack_forcefield.cpp
 	$(CXX) $(CXXFLAGS) -static $< -o $@
 
 test:
-	bash tests/run_tests.sh
+	$(PYTHON) tests/run_tests.py
+
+bundle: windows
+	$(PYTHON) tools/make_bundle.py
 
 clean:
 	rm -f fsmp.out pack.out configs/*.out

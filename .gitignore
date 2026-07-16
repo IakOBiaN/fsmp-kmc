@@ -58,6 +58,9 @@ __pycache__/
 gui/build/
 gui/dist/
 
+# Release bundles assembled by tools/make_bundle.py
+dist/
+
 # Atomistic molecule models are sources, exempt from the global *.xyz ignore
 # (that rule targets the trajectory outputs)
 !models/*.xyz
