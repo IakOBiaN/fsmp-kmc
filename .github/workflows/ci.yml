@@ -1,7 +1,11 @@
 name: CI
 
+# Branch pushes and pull requests only: a tag triggers the Release
+# workflow, which runs the same test suite on all three platforms itself,
+# so a second CI run for the tag would test the same commit twice.
 on:
   push:
+    branches: ['**']
   pull_request:
 
 jobs:
