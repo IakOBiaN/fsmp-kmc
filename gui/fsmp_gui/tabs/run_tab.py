@@ -504,8 +504,8 @@ class RunTab(QWidget):
             missing.append("unit cell (tab 4)")
         if self.project.simulation_cell is None:
             missing.append("simulation cell (tab 5)")
-        if self.project.atomistic is None and self.project.site is None:
-            missing.append("molecule model (tab 1)")
+        if self.project.atomistic is None:
+            missing.append("atomistic model (tab 1)")
         command = find_engine()
         if command is None:
             missing.append("engine (a release fsmp.exe in the repository "

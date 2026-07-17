@@ -24,6 +24,7 @@ from fsmp_gui.runs import (DONE, INTERRUPTED, RUNNING, STOPPED, LogWatch,
 REPO = Path(__file__).resolve().parents[2]
 GRID = REPO / "tests" / "data" / "TMA_simple_2020_s4.v2.bin"
 SITE = REPO / "models" / "TMA_simplified_2020.site"
+MODEL = REPO / "models" / "trimesic_acid.xyz"
 
 FORM = {"temp_from": 300.0, "temp_to": 300.0, "temp_step": 10.0,
         "um_from": 0.0, "um_to": 0.0, "um_step": 5000.0,
@@ -181,10 +182,12 @@ class TestWaiter(unittest.TestCase):
 
 
 def _e2e_project(td):
+    from fsmp_gui.molecule import Molecule
     from fsmp_gui.project import Project
     from fsmp_gui.sitemodel import SiteModel
 
     project = Project.create(Path(td) / "proj", "e2e")
+    project.set_atomistic("TMA", Molecule.load_xyz(MODEL))
     project.set_site("TMA", SiteModel.load(SITE))
     project.set_potential("small-grid", GRID)
     project.set_unit_cell(11.6, 19.8, [
@@ -232,7 +235,7 @@ class TestEndToEnd(unittest.TestCase):
                                         got[0][0][-1])
             self.assertIsNotNone(lattice)
             self.assertEqual(len(atoms), 2 * SIM["uc_in_x"] * SIM["uc_in_y"]
-                             * 7)   # molecules x sites of the TMA model
+                             * 21)   # molecules x atoms of the TMA model
 
     def test_stop_terminates_the_engine(self):
         # a run long enough to still be going when we shoot it down

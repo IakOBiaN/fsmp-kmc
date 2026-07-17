@@ -23,7 +23,6 @@ from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 
 from .molecule import Molecule
 from .project import Project
-from .sitemodel import SiteModel
 
 REPO = Path(__file__).resolve().parents[2]
 RUN_DIR = "optimize"
@@ -247,18 +246,14 @@ def final_energy(text: str) -> float | None:
 def write_model(project: Project, run_dir: Path) -> list:
     """Write the visualization model for a run (the engine requires one)
     and return the atom offsets used to decode the animation frames. The
-    atomistic model is preferred; a site model is a valid stand-in since
-    only the positions matter."""
+    atomistic model is mandatory (a site model never exists without one),
+    so every trajectory keeps real element colors."""
     entry = project.atomistic
-    if entry is not None:
-        mol = Molecule.load_xyz(project.model_path(entry))
-        rows = [(a.element, a.x, a.y, a.z) for a in mol.atoms]
-    elif project.site is not None:
-        sm = SiteModel.load(project.model_path(project.site))
-        rows = [(s.label, s.x, s.y, s.z) for s in sm.sites]
-    else:
-        raise EngineError("the project has no molecule model "
+    if entry is None:
+        raise EngineError("the project has no atomistic model "
                           "(Molecule model tab)")
+    mol = Molecule.load_xyz(project.model_path(entry))
+    rows = [(a.element, a.x, a.y, a.z) for a in mol.atoms]
     lines = [str(len(rows)), "written by FSMP-kMC Studio for the optimizer run"]
     lines += [f"{el:<2} {x:15.8f} {y:15.8f} {z:15.8f}" for el, x, y, z in rows]
     (run_dir / "model.xyz").write_text("\n".join(lines) + "\n", encoding="utf-8")
