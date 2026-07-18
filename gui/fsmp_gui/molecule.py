@@ -38,6 +38,44 @@ def bonded_pairs(atoms: list["Atom"]) -> list[tuple[int, int]]:
     return pairs
 
 
+def centroid(atoms: list["Atom"]) -> tuple[float, float]:
+    """The unweighted centre of the atom positions in the plane. The engine
+    rotates a molecule about the origin (molecule_model.h), so a finished
+    model normally has this point at (0, 0)."""
+    n = len(atoms)
+    return (sum(a.x for a in atoms) / n, sum(a.y for a in atoms) / n)
+
+
+def translated(atoms: list["Atom"], dx: float, dy: float) -> list["Atom"]:
+    """A copy of the geometry shifted in the plane (z is untouched)."""
+    return [Atom(a.element, a.x + dx, a.y + dy, a.z) for a in atoms]
+
+
+def rotated(atoms: list["Atom"], angle_deg: float) -> list["Atom"]:
+    """A copy of the geometry rotated rigidly about the origin,
+    counterclockwise for a positive angle: the same sense as the orientation
+    angle of a molecule placed in a cell."""
+    rad = math.radians(angle_deg)
+    c, s = math.cos(rad), math.sin(rad)
+    return [Atom(a.element, a.x * c - a.y * s, a.x * s + a.y * c, a.z)
+            for a in atoms]
+
+
+def aimed_at_x(atoms: list["Atom"], index: int) -> list["Atom"]:
+    """A copy of the geometry rotated rigidly about the origin so that atom
+    `index` lands on the positive x axis, which is the reference direction of
+    the zero orientation angle. Raises ValueError for an atom at the origin,
+    which defines no direction."""
+    a = atoms[index]
+    r = math.hypot(a.x, a.y)
+    if r < 1e-6:
+        raise ValueError("the chosen atom sits at the rotation centre; "
+                         "pick one away from the origin")
+    out = rotated(atoms, -math.degrees(math.atan2(a.y, a.x)))
+    out[index] = Atom(a.element, r, 0.0, a.z)   # exactly on the axis
+    return out
+
+
 def connected_components(atoms: list["Atom"]) -> list[list[int]]:
     """Groups of atom indices joined through bonds (see bonded_pairs). A whole
     molecule is a single group; more than one means the geometry has detached

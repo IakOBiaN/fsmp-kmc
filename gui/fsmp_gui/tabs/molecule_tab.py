@@ -8,16 +8,17 @@ from pathlib import Path
 
 from PySide6.QtCore import QSettings, Qt, Signal
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup,
-                               QComboBox, QFileDialog, QFrame, QHBoxLayout,
-                               QHeaderView, QInputDialog, QLabel, QMessageBox,
-                               QPushButton, QSplitter, QTableView, QToolButton,
-                               QVBoxLayout, QWidget)
+                               QComboBox, QDoubleSpinBox, QFileDialog, QFrame,
+                               QHBoxLayout, QHeaderView, QInputDialog, QLabel,
+                               QMessageBox, QPushButton, QSplitter, QTableView,
+                               QToolButton, QVBoxLayout, QWidget)
 
 from .. import mmff
 from ..atom_table import AtomTableModel
 from ..canvas import Mode, MoleculeCanvas
 from ..elements import COMMON, normalize_symbol
-from ..molecule import Atom, Molecule, connected_components
+from ..molecule import (Atom, Molecule, aimed_at_x, centroid,
+                        connected_components, rotated, translated)
 from ..project import Project
 
 
@@ -88,6 +89,39 @@ class MoleculeTab(QWidget):
             self.optimize_btn.setToolTip("Install RDKit (pip install rdkit) to "
                                          "optimize the geometry")
         bar.addWidget(self.optimize_btn)
+
+        bar.addSpacing(16)
+
+        center = QPushButton("Center")
+        center.setToolTip("Move the molecule centre to the origin, the point "
+                          "the engine rotates the molecule about")
+        center.clicked.connect(self.center_molecule)
+        bar.addWidget(center)
+
+        ccw = QToolButton()
+        ccw.setText("↺")
+        ccw.setToolTip("Rotate the whole molecule counterclockwise by the step")
+        ccw.clicked.connect(lambda: self.rotate_molecule(+1.0))
+        bar.addWidget(ccw)
+        self.rotate_step = QDoubleSpinBox()
+        self.rotate_step.setRange(0.1, 180.0)
+        self.rotate_step.setValue(15.0)
+        self.rotate_step.setDecimals(1)
+        self.rotate_step.setSingleStep(5.0)
+        self.rotate_step.setSuffix("°")
+        self.rotate_step.setToolTip("Rotation step")
+        bar.addWidget(self.rotate_step)
+        cw = QToolButton()
+        cw.setText("↻")
+        cw.setToolTip("Rotate the whole molecule clockwise by the step")
+        cw.clicked.connect(lambda: self.rotate_molecule(-1.0))
+        bar.addWidget(cw)
+
+        aim = QPushButton("Point at +x")
+        aim.setToolTip("Rotate the molecule rigidly so the selected atom lies "
+                       "on the positive x axis, the zero-angle direction")
+        aim.clicked.connect(self.aim_selected_at_x)
+        bar.addWidget(aim)
 
         bar.addSpacing(16)
 
@@ -242,6 +276,53 @@ class MoleculeTab(QWidget):
             "A molecule must be a single connected structure. Move the stray "
             "atoms into bonding range or remove them.")
         return False
+
+    # -- whole-molecule geometry ---------------------------------------------
+
+    def _apply_geometry(self, atoms: list[Atom]) -> None:
+        self.model.set_molecule(Molecule(atoms, self.model.molecule.comment))
+
+    def center_molecule(self) -> None:
+        """Shift the molecule so its centre (the engine's rotation point)
+        sits at the origin."""
+        atoms = self.model.molecule.atoms
+        if not atoms:
+            return
+        cx, cy = centroid(atoms)
+        self._apply_geometry(translated(atoms, -cx, -cy))
+        self.canvas.reset_view()
+        self.statusMessage.emit("Molecule centred on its centroid")
+
+    def rotate_molecule(self, direction: float) -> None:
+        """Rotate the whole molecule about the origin by the toolbar step."""
+        atoms = self.model.molecule.atoms
+        if not atoms:
+            return
+        deg = direction * self.rotate_step.value()
+        self._apply_geometry(rotated(atoms, deg))
+        self.statusMessage.emit(f"Rotated by {deg:+.1f}°")
+
+    def aim_selected_at_x(self) -> None:
+        """Turn the molecule rigidly so the selected atom points along +x,
+        making the zero orientation angle a chosen feature of the molecule."""
+        rows = self.canvas.selected_rows()
+        if not rows:
+            rows = [i.row() for i in self.table.selectionModel().selectedRows()]
+        if len(rows) != 1:
+            QMessageBox.information(
+                self, "Point at +x",
+                "Select exactly one atom, on the canvas or in the table; the "
+                "molecule will turn so that atom points along +x.")
+            return
+        atoms = self.model.molecule.atoms
+        try:
+            aimed = aimed_at_x(atoms, rows[0])
+        except ValueError as e:
+            QMessageBox.information(self, "Point at +x", str(e))
+            return
+        label = f"{atoms[rows[0]].element}{rows[0] + 1}"
+        self._apply_geometry(aimed)
+        self.statusMessage.emit(f"{label} now points along +x")
 
     def optimize_geometry(self) -> None:
         """Relax the current geometry with MMFF94 (UFF fallback). The result is

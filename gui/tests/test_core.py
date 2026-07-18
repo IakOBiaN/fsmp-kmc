@@ -4,6 +4,7 @@ Run from the repository root:
     gui/.venv/Scripts/python gui/tests/test_core.py
 """
 
+import math
 import sys
 import tempfile
 import unittest
@@ -12,7 +13,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fsmp_gui.forcefield import ForcefieldError, read_header
-from fsmp_gui.molecule import Atom, Molecule
+from fsmp_gui.molecule import (Atom, Molecule, aimed_at_x, centroid, rotated,
+                               translated)
 from fsmp_gui.project import Project, ProjectError, safe_filename
 from fsmp_gui.sitemodel import Site, SiteModel
 
@@ -53,6 +55,57 @@ class TestMolecule(unittest.TestCase):
             bad.write_text("2\ncomment\nC 0 0 0\n", encoding="utf-8")
             with self.assertRaises(ValueError):
                 Molecule.load_xyz(bad)
+
+
+class TestGeometry(unittest.TestCase):
+    """Whole-molecule transforms behind the editor's Center / rotate /
+    Point-at-+x actions: rigid, z-preserving, engine-frame conventions."""
+
+    ATOMS = [Atom("C", 1.2, 0.0, 0.3), Atom("O", 0.0, 3.4, -1.0),
+             Atom("H", -2.0, 0.7)]
+
+    def assert_rigid(self, a, b):
+        """Same elements, same pairwise (3D) distances."""
+        self.assertEqual([x.element for x in a], [x.element for x in b])
+        for i in range(len(a)):
+            for j in range(i + 1, len(a)):
+                da = math.dist((a[i].x, a[i].y, a[i].z),
+                               (a[j].x, a[j].y, a[j].z))
+                db = math.dist((b[i].x, b[i].y, b[i].z),
+                               (b[j].x, b[j].y, b[j].z))
+                self.assertAlmostEqual(da, db, places=12, msg=f"pair {i},{j}")
+
+    def test_centroid_and_translate(self):
+        atoms = [Atom("C", 1.0, 2.0, 0.5), Atom("O", 3.0, 6.0)]
+        cx, cy = centroid(atoms)
+        self.assertEqual((cx, cy), (2.0, 4.0))
+        moved = translated(atoms, -cx, -cy)
+        self.assertEqual(centroid(moved), (0.0, 0.0))
+        self.assertEqual(moved[0].z, 0.5)                  # z rides along
+        self.assert_rigid(atoms, moved)
+
+    def test_rotation_is_rigid_and_counterclockwise(self):
+        turned = rotated(self.ATOMS, 37.0)
+        self.assert_rigid(self.ATOMS, turned)
+        self.assertEqual(turned[1].z, -1.0)
+        # a positive angle turns +x toward +y
+        e = rotated([Atom("C", 1.0, 0.0)], 90.0)[0]
+        self.assertAlmostEqual(e.x, 0.0, places=12)
+        self.assertAlmostEqual(e.y, 1.0, places=12)
+
+    def test_aim_at_x_lands_exactly_on_the_axis(self):
+        for index in range(len(self.ATOMS)):
+            aimed = aimed_at_x(self.ATOMS, index)
+            a = self.ATOMS[index]
+            self.assertEqual(aimed[index].y, 0.0)
+            self.assertAlmostEqual(aimed[index].x, math.hypot(a.x, a.y),
+                                   places=12)
+            self.assertGreater(aimed[index].x, 0.0)
+            self.assert_rigid(self.ATOMS, aimed)
+
+    def test_aim_at_x_refuses_the_origin(self):
+        with self.assertRaises(ValueError):
+            aimed_at_x([Atom("C", 0.0, 0.0), Atom("O", 1.0, 0.0)], 0)
 
 
 class TestSiteModel(unittest.TestCase):
