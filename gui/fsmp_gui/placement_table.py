@@ -67,6 +67,15 @@ class PlacementTableModel(QAbstractTableModel):
                               [Qt.DisplayRole, Qt.EditRole])
         self.changed.emit()
 
+    def set_phi(self, row: int, phi_deg: float) -> None:
+        """Orientation update coming from the canvas rotation handle; keeps
+        phi in [0, 360)."""
+        p = self._items[row]
+        p.phi = phi_deg % 360.0
+        idx = self.index(row, 2)
+        self.dataChanged.emit(idx, idx, [Qt.DisplayRole, Qt.EditRole])
+        self.changed.emit()
+
     # -- QAbstractTableModel ------------------------------------------------
 
     def rowCount(self, parent=QModelIndex()) -> int:

@@ -1,5 +1,6 @@
 """Tab 4 "Unit cell": lay out molecule copies in a rectangular cell, resize
-the cell and move the copies. The Optimize button hands the rough cell to
+the cell, move and rotate the copies (the canvas and the placements table
+share one selection). The Optimize button hands the rough cell to
 the engine (structure = calculate, optimize_only) and plays its animation
 back live until the optimized cell lands in the editor. Cells are exchanged
 with .cell files; the repository cells/ folder holds the reference
@@ -52,6 +53,11 @@ class UnitCellTab(QWidget):
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 0)
         splitter.setSizes([880, 380])
+
+        # canvas and table always point at the same molecule
+        self.canvas.moleculePicked.connect(self._on_canvas_pick)
+        self.table.selectionModel().selectionChanged.connect(
+            self._on_table_selection)
 
         self._set_mode(Mode.SELECT)
 
@@ -159,6 +165,13 @@ class UnitCellTab(QWidget):
         row.addStretch(1)
         layout.addLayout(row)
 
+        hint = QLabel("Click a molecule to select it, then drag its round "
+                      "handle to rotate (hold Shift to snap to 5°); the φ "
+                      "column takes exact values.")
+        hint.setWordWrap(True)
+        hint.setProperty("dim", True)
+        layout.addWidget(hint)
+
         layout.addSpacing(8)
         caption2 = QLabel("Project unit cell")
         caption2.setProperty("dim", True)
@@ -223,6 +236,18 @@ class UnitCellTab(QWidget):
     def _set_mode(self, mode: Mode) -> None:
         self.mode_buttons[mode].setChecked(True)
         self.canvas.set_mode(mode)
+
+    # -- selection sync ------------------------------------------------------
+
+    def _on_canvas_pick(self, row: int) -> None:
+        if row < 0:
+            self.table.clearSelection()
+        else:
+            self.table.selectRow(row)
+
+    def _on_table_selection(self, *_) -> None:
+        rows = [i.row() for i in self.table.selectionModel().selectedRows()]
+        self.canvas.set_selected(rows[0] if len(rows) == 1 else None)
 
     # -- cell files ----------------------------------------------------------
 
