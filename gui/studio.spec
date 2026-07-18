@@ -9,11 +9,20 @@
 
 import sys
 
+from PyInstaller.utils.hooks import collect_all
+
+# RDKit ships compiled libraries and data files (atom typing, MMFF tables)
+# that PyInstaller does not pick up automatically
+rd_datas, rd_binaries, rd_hidden = collect_all("rdkit")
+
 a = Analysis(
     ["studio_launcher.py"],
     pathex=[],
+    binaries=rd_binaries,
     # version.h rides along so the frozen app knows the project version
-    datas=[("fsmp_gui/assets", "fsmp_gui/assets"), ("../version.h", ".")],
+    datas=[("fsmp_gui/assets", "fsmp_gui/assets"),
+           ("../version.h", ".")] + rd_datas,
+    hiddenimports=rd_hidden,
     excludes=["tkinter"],
 )
 pyz = PYZ(a.pure)

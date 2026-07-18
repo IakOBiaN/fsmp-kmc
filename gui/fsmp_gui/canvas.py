@@ -6,7 +6,6 @@ what an item looks like and where it lives. Scene coordinates are angstroms
 with +y up (the view flips y, so item labels are mirrored back).
 """
 
-import math
 from enum import Enum
 
 from PySide6.QtCore import QRectF, Qt, Signal
@@ -16,9 +15,9 @@ from PySide6.QtWidgets import (QGraphicsEllipseItem, QGraphicsItem,
 
 from . import theme
 from .atom_table import AtomTableModel
-from .elements import BOND_TOLERANCE, covalent_radius, element_color
+from .elements import covalent_radius, element_color
 from .gridview import GridView
-from .molecule import Atom
+from .molecule import Atom, bonded_pairs
 from .site_table import SiteTableModel
 
 
@@ -226,15 +225,8 @@ class MoleculeCanvas(ItemCanvas):
 
     def decorate(self):
         atoms = self.model.molecule.atoms
-        segments = []
-        for i in range(len(atoms)):
-            for j in range(i + 1, len(atoms)):
-                a, b = atoms[i], atoms[j]
-                d = math.dist((a.x, a.y, a.z), (b.x, b.y, b.z))
-                limit = BOND_TOLERANCE * (covalent_radius(a.element)
-                                          + covalent_radius(b.element))
-                if 1e-6 < d < limit:
-                    segments.append((a.x, a.y, b.x, b.y))
+        segments = [(atoms[i].x, atoms[i].y, atoms[j].x, atoms[j].y)
+                    for i, j in bonded_pairs(atoms)]
         # reuse the existing line items; only add/remove when the bond count
         # changes, so dragging just repositions lines (no scene mutation)
         while len(self._bonds) < len(segments):

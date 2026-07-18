@@ -1,11 +1,19 @@
-"""Generate a pair potential from a site model.
+"""Generate a pair potential from a molecule model.
 
 Two rigid copies of the molecule are swept over a grid of (r, alpha1, alpha2):
 molecule A sits at the origin with orientation alpha1, molecule B at (r, 0)
-with orientation alpha2. The pair energy is the sum of Lennard-Jones terms
-between LJ sites and Coulomb terms between charges, in J/mol. The raw slab is
-capped, exchange-symmetrised and folded exactly as tools/pack_forcefield.cpp
-does, then written in the binary v2 format.
+with orientation alpha2, both rotating about the origin (the molecule centre,
+per molecule_model.h). An energy backend turns each (r, angle grid) into a raw
+slab in J/mol; the slab is capped, exchange-symmetrised and folded exactly as
+tools/pack_forcefield.cpp does, then written in the binary v2 format.
+
+Two backends share this machinery:
+
+- SiteBackend: Lennard-Jones + Coulomb between the coarse-grained sites of a
+  site model (the original, released generator);
+- MMFFBackend: the full atomistic molecule scored with MMFF94 (buffered-14-7
+  van der Waals + buffered Coulomb) on RDKit's typed parameters, so a project
+  with only an atomistic model can still make a potential.
 """
 
 import math
@@ -22,6 +30,9 @@ Ke = 8.9875517923e19               # J*A/C^2
 Na = 6.02214076e23
 E_CHARGE = 1.602176634e-19
 CAP_JMOL = 1.0e4 * 4184.0          # 1e4 kcal/mol, matches the reference grid
+KCAL_TO_JMOL = 4184.0
+MMFF_ELE = 332.0716                # kcal*A/(mol*e^2), MMFF electrostatic constant
+MMFF_DELTA = 0.05                  # A, MMFF electrostatic buffering
 
 HEADER_BYTES = 64
 MAGIC = b"FSMP"
@@ -121,11 +132,63 @@ def _fold(slab: np.ndarray, spec: GridSpec):
     return folded / (copies * copies)
 
 
-def generate(model: SiteModel, spec: GridSpec, out_path: str | Path,
+class SiteBackend:
+    """Lennard-Jones + Coulomb energy between the sites of a site model."""
+
+    def __init__(self, model: SiteModel):
+        self.lj, self.ch = _prepare(model)
+
+    def slab(self, r: float, ang: np.ndarray) -> np.ndarray:
+        return _slab(r, ang, self.lj, self.ch)
+
+
+class MMFFBackend:
+    """MMFF94 energy between two rigid copies of an atomistic molecule.
+
+    RDKit's own force field does not score the interaction between two disjoint
+    fragments, so the intermolecular energy is summed here directly from the
+    typed parameters: buffered-14-7 van der Waals plus a buffered Coulomb term
+    on the MMFF partial charges. Result is J/mol, matching SiteBackend."""
+
+    def __init__(self, molecule, net_charge: int = 0):
+        from . import mmff
+        p = mmff.mmff_pair_params(molecule, net_charge)
+        self.xy = np.ascontiguousarray(p.xy, dtype=float)   # (n, 2)
+        self.q = np.ascontiguousarray(p.q, dtype=float)     # (n,)
+        self.Rstar = np.ascontiguousarray(p.Rstar, dtype=float)
+        self.eps = np.ascontiguousarray(p.eps, dtype=float)
+        self.R7 = self.Rstar ** 7
+
+    def slab(self, r: float, ang: np.ndarray) -> np.ndarray:
+        na = len(ang)
+        n = self.xy.shape[0]
+        A = _rotated(self.xy, ang)                       # (na, n, 2)
+        B = _rotated(self.xy, ang) + np.array([r, 0.0])
+        e = np.zeros((na, na))
+        for i in range(n):
+            axi = A[:, i, 0][:, None]
+            ayi = A[:, i, 1][:, None]
+            qi = self.q[i]
+            for j in range(n):
+                dx = axi - B[:, j, 0][None, :]
+                dy = ayi - B[:, j, 1][None, :]
+                d = np.sqrt(dx * dx + dy * dy)
+                np.maximum(d, 1e-6, out=d)
+                Rs, ep, R7 = self.Rstar[i, j], self.eps[i, j], self.R7[i, j]
+                t = (1.07 * Rs) / (d + 0.07 * Rs)
+                evdw = ep * t ** 7 * (1.12 * R7 / (d ** 7 + 0.12 * R7) - 2.0)
+                e += evdw + MMFF_ELE * qi * self.q[j] / (d + MMFF_DELTA)
+        return e * KCAL_TO_JMOL
+
+
+def generate(backend, spec: GridSpec, out_path: str | Path,
              progress=None, cancel=None) -> None:
-    """Write the v2 potential. `progress(done, total)` is called per distance
-    row; `cancel()` returning True aborts and removes the partial file."""
-    lj, ch = _prepare(model)
+    """Write the v2 potential. `backend.slab(r, ang)` returns the raw J/mol
+    energy matrix; a bare SiteModel is accepted too, for backward compatibility.
+    `progress(done, total)` is called per distance row; `cancel()` returning
+    True aborts and removes the partial file."""
+    if isinstance(backend, SiteModel):
+        backend = SiteBackend(backend)
     na_raw = int(round(360.0 / spec.da)) + 1
     ang = np.deg2rad(np.arange(na_raw) * spec.da)
     if spec.fold_deg < 359.999:
@@ -153,7 +216,7 @@ def generate(model: SiteModel, spec: GridSpec, out_path: str | Path,
                 out_path.unlink(missing_ok=True)
                 return
             r = spec.r_min + i * spec.dr
-            slab = _slab(r, ang, lj, ch)
+            slab = backend.slab(r, ang)
             np.clip(slab, -CAP_JMOL, CAP_JMOL, out=slab)
             folded = _fold(slab, spec)
             folded.astype(dtype).tofile(f)

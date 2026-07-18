@@ -123,12 +123,10 @@ class SiteTab(QWidget):
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(8, 0, 0, 0)
 
-        note = QLabel("The site model is optional: it is only needed to "
-                      "generate the pair potential from charges and LJ "
-                      "centers. A project can work with the atomistic model "
-                      "alone and an attached potential; a potential "
-                      "generator for the atomistic model (ANI-2x) is "
-                      "planned.")
+        note = QLabel("The site model is optional: it generates the pair "
+                      "potential from charges and LJ centers. A project can "
+                      "also work from the atomistic model alone, either with "
+                      "the built-in MMFF94 generator or an attached potential.")
         note.setWordWrap(True)
         note.setProperty("dim", True)
         layout.addWidget(note)

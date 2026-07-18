@@ -7,7 +7,9 @@ name = "fsmp-gui"
 version = "0.1.0"
 description = "Desktop workbench for FSMP-kMC: molecules, potentials, unit cells and simulations"
 requires-python = ">=3.10"
-dependencies = ["PySide6>=6.6", "numpy>=1.24"]
+# rdkit powers geometry optimization and the built-in MMFF94 atomistic
+# potential generator (BSD, CPU-only, tens of MB)
+dependencies = ["PySide6>=6.6", "numpy>=1.24", "rdkit>=2022.9"]
 
 [project.optional-dependencies]
 build = ["pyinstaller"]   # for tools/make_bundle.py (the Studio bundle)

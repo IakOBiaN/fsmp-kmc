@@ -5,11 +5,12 @@ Charges and other interaction parameters belong to the potential model,
 not to the molecule file.
 """
 
+import math
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-from .elements import normalize_symbol
+from .elements import BOND_TOLERANCE, covalent_radius, normalize_symbol
 
 
 @dataclass
@@ -18,6 +19,45 @@ class Atom:
     x: float
     y: float
     z: float = 0.0
+
+
+def bonded_pairs(atoms: list["Atom"]) -> list[tuple[int, int]]:
+    """Index pairs close enough to be bonded, by the covalent-radius rule.
+    This is the single source of truth for connectivity: the editor draws these
+    exact bonds, and the optimizer and potential generator perceive from them,
+    so what the user sees on the canvas is what gets built."""
+    pairs = []
+    for i in range(len(atoms)):
+        ai = atoms[i]
+        ri = covalent_radius(ai.element)
+        for j in range(i + 1, len(atoms)):
+            aj = atoms[j]
+            d = math.dist((ai.x, ai.y, ai.z), (aj.x, aj.y, aj.z))
+            if 1e-6 < d < BOND_TOLERANCE * (ri + covalent_radius(aj.element)):
+                pairs.append((i, j))
+    return pairs
+
+
+def connected_components(atoms: list["Atom"]) -> list[list[int]]:
+    """Groups of atom indices joined through bonds (see bonded_pairs). A whole
+    molecule is a single group; more than one means the geometry has detached
+    atoms or parts that are not bonded to the rest."""
+    parent = list(range(len(atoms)))
+
+    def find(x: int) -> int:
+        root = x
+        while parent[root] != root:
+            root = parent[root]
+        while parent[x] != root:       # path compression
+            parent[x], x = root, parent[x]
+        return root
+
+    for i, j in bonded_pairs(atoms):
+        parent[find(i)] = find(j)
+    groups: dict[int, list[int]] = {}
+    for i in range(len(atoms)):
+        groups.setdefault(find(i), []).append(i)
+    return list(groups.values())
 
 
 class Molecule:

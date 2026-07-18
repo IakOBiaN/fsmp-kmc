@@ -128,11 +128,13 @@ class ProjectView(QWidget):
         self.model_tab.projectModelChanged.connect(
             lambda: self.unit_cell_tab.canvas.set_glyph(model_glyph(project)))
         # a freshly generated potential should show up on the Potentials tab
-        self.create_tab.site_page.potentialGenerated.connect(
-            self.potentials_tab.refresh)
+        # (either generator page can emit it)
+        for page in (self.create_tab.site_page, self.create_tab.atomistic_page):
+            page.potentialGenerated.connect(self.potentials_tab.refresh)
         # the workflow is sequential: every project change regates the tabs
         for signal in (self.model_tab.projectModelChanged,
                        self.create_tab.site_page.potentialGenerated,
+                       self.create_tab.atomistic_page.potentialGenerated,
                        self.potentials_tab.projectPotentialChanged,
                        self.unit_cell_tab.projectCellChanged,
                        self.sim_cell_tab.projectCellChanged):

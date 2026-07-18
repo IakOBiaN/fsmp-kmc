@@ -7,16 +7,17 @@ the project's atomistic model (used for visualization).
 from pathlib import Path
 
 from PySide6.QtCore import QSettings, Qt, Signal
-from PySide6.QtWidgets import (QAbstractItemView, QButtonGroup, QComboBox,
-                               QFileDialog, QFrame, QHBoxLayout, QHeaderView,
-                               QInputDialog, QLabel, QMessageBox, QPushButton,
-                               QSplitter, QTableView, QToolButton,
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup,
+                               QComboBox, QFileDialog, QFrame, QHBoxLayout,
+                               QHeaderView, QInputDialog, QLabel, QMessageBox,
+                               QPushButton, QSplitter, QTableView, QToolButton,
                                QVBoxLayout, QWidget)
 
+from .. import mmff
 from ..atom_table import AtomTableModel
 from ..canvas import Mode, MoleculeCanvas
 from ..elements import COMMON, normalize_symbol
-from ..molecule import Atom, Molecule
+from ..molecule import Atom, Molecule, connected_components
 from ..project import Project
 
 
@@ -76,6 +77,17 @@ class MoleculeTab(QWidget):
             b = QPushButton(text)
             b.clicked.connect(slot)
             bar.addWidget(b)
+
+        self.optimize_btn = QPushButton("Optimize (MMFF94)")
+        self.optimize_btn.clicked.connect(self.optimize_geometry)
+        if mmff.rdkit_available():
+            self.optimize_btn.setToolTip("Relax the geometry with the MMFF94 "
+                                         "force field (kept planar)")
+        else:
+            self.optimize_btn.setEnabled(False)
+            self.optimize_btn.setToolTip("Install RDKit (pip install rdkit) to "
+                                         "optimize the geometry")
+        bar.addWidget(self.optimize_btn)
 
         bar.addSpacing(16)
 
@@ -210,6 +222,51 @@ class MoleculeTab(QWidget):
         rows = [i.row() for i in self.table.selectionModel().selectedRows()]
         self.model.remove_rows(rows)
 
+    def _connected_or_warn(self, mol: Molecule) -> bool:
+        """A molecule model must be whole. Warn and return False when it has
+        atoms or parts that are not bonded to the rest."""
+        if len(mol.atoms) < 2:
+            return True
+        parts = connected_components(mol.atoms)
+        if len(parts) == 1:
+            return True
+        parts.sort(key=len, reverse=True)
+        stray = sorted(i for part in parts[1:] for i in part)
+        names = ", ".join(f"{mol.atoms[i].element}{i + 1}" for i in stray[:10])
+        if len(stray) > 10:
+            names += f", … (+{len(stray) - 10})"
+        QMessageBox.warning(
+            self, "Molecule is not connected",
+            f"The molecule has {len(parts)} separate parts: some atoms are not "
+            f"bonded to the main structure ({names}).\n\n"
+            "A molecule must be a single connected structure. Move the stray "
+            "atoms into bonding range or remove them.")
+        return False
+
+    def optimize_geometry(self) -> None:
+        """Relax the current geometry with MMFF94 (UFF fallback). The result is
+        planar and recentred on the molecule centre, ready for the engine."""
+        mol = self.model.molecule
+        if not mol.atoms:
+            QMessageBox.information(self, "Nothing to optimize",
+                                    "Add some atoms first.")
+            return
+        if not self._connected_or_warn(mol):
+            return
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            relaxed, report = mmff.optimize_molecule(mol)
+        except mmff.MMFFError as e:
+            QMessageBox.warning(self, "Optimization failed", str(e))
+            return
+        finally:
+            QApplication.restoreOverrideCursor()
+        self.model.set_molecule(relaxed)
+        self._dirty = True
+        self.canvas.reset_view()
+        self._update_info()
+        self.statusMessage.emit(f"Optimized  ·  {report.summary()}")
+
     # -- file actions ------------------------------------------------------
 
     def _last_dir(self) -> str:
@@ -288,6 +345,8 @@ class MoleculeTab(QWidget):
             QMessageBox.information(self, "Empty molecule",
                                     "Add some atoms before using the molecule "
                                     "in the project.")
+            return
+        if not self._connected_or_warn(mol):
             return
         default = self._current_name or mol.formula()
         name, ok = QInputDialog.getText(self, "Use molecule in project",

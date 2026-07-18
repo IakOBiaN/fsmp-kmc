@@ -1,12 +1,17 @@
 """Tab 2 "Create potential": prepare the project model for potential
 generation. The panel depends on the model kind:
 
-- atomistic: read-only geometry; generation via ANI-2x (torchani) is planned,
-  so the panel is a placeholder for now;
-- site: read-only site model overview plus a working Lennard-Jones + Coulomb
-  potential generator.
+- atomistic: the molecule scored with the MMFF94 classical force field
+  (buffered-14-7 van der Waals + Coulomb on RDKit's typed partial charges),
+  a built-in demonstration backend that works out of the box;
+- site: the coarse-grained Lennard-Jones + Coulomb generator.
+
+A site model always implies an atomistic one, and the site generator is the
+more specific of the two, so when both exist the site page is shown; a project
+with only an atomistic model gets the MMFF page.
 """
 
+import math
 from pathlib import Path
 
 from PySide6.QtCore import QThread, Qt, Signal
@@ -16,100 +21,29 @@ from PySide6.QtWidgets import (QAbstractItemView, QCheckBox, QDoubleSpinBox,
                                QSplitter, QStackedWidget, QTableView,
                                QVBoxLayout, QWidget)
 
-from .. import theme
 from ..atom_table import AtomTableModel
 from ..canvas import MoleculeCanvas, SiteCanvas
-from ..generate import GenerationError, GridSpec, generate
+from ..generate import GenerationError, GridSpec, MMFFBackend, generate
+from ..mmff import MMFFError, rdkit_available
 from ..molecule import Molecule
 from ..project import Project, safe_filename
 from ..site_table import SiteTableModel
 from ..sitemodel import SiteModel
 
 
-class AtomisticPage(QWidget):
-    """Read-only view of the atomistic project molecule. Potential generation
-    from an atomistic model is planned via ANI-2x (torchani) and not built
-    yet, so the panel is a placeholder."""
-
-    statusMessage = Signal(str)
-
-    def __init__(self, project: Project, parent=None):
-        super().__init__(parent)
-        self.project = project
-
-        splitter = QSplitter(Qt.Horizontal)
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(splitter)
-
-        self.canvas_model = AtomTableModel(self)
-        self.canvas = MoleculeCanvas(self.canvas_model, read_only=True)
-        self.canvas.cursorMoved.connect(
-            lambda x, y: self.statusMessage.emit(f"x = {x:.2f} Å,  y = {y:.2f} Å"))
-        splitter.addWidget(self.canvas)
-        splitter.addWidget(self._build_side())
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 0)
-        splitter.setSizes([820, 440])
-
-    def _build_side(self) -> QWidget:
-        panel = QWidget()
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(8, 8, 8, 8)
-
-        self.title = QLabel()
-        self.title.setWordWrap(True)
-        layout.addWidget(self.title)
-
-        table = QTableView()
-        table.setModel(self.canvas_model)
-        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        table.setSelectionBehavior(QAbstractItemView.SelectRows)
-        table.setAlternatingRowColors(True)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        table.verticalHeader().setDefaultSectionSize(24)
-        layout.addWidget(table, 1)
-
-        box = QGroupBox("Potential generation")
-        v = QVBoxLayout(box)
-        info = QLabel("Potential generation from an atomistic molecule will use "
-                      "the ANI-2x machine-learning potential (torchani).")
-        info.setWordWrap(True)
-        info.setProperty("dim", True)
-        v.addWidget(info)
-        badge = QLabel("planned")
-        badge.setStyleSheet(f"color: {theme.GOLD}; font-weight: 600; "
-                            "letter-spacing: 2px; background: transparent;")
-        v.addWidget(badge)
-        layout.addWidget(box)
-        return panel
-
-    def refresh(self) -> None:
-        entry = self.project.atomistic
-        try:
-            mol = Molecule.load_xyz(self.project.model_path(entry))
-        except (OSError, ValueError) as e:
-            self.canvas_model.set_molecule(Molecule())
-            self.title.setText(f"Cannot read molecule: {e}")
-            return
-        self.canvas_model.set_molecule(mol)
-        self.title.setText(f"<b>{entry['name']}</b>   ·   {mol.formula()}   ·   "
-                           f"{len(mol.atoms)} atoms")
-        self.canvas.reset_view()
-
-    def showEvent(self, event):
-        super().showEvent(event)
-        self.canvas.reset_view()
-
-
 class GenerateWorker(QThread):
+    """Build and run an energy backend off the UI thread. `make_backend` is a
+    zero-argument factory so backend construction (RDKit typing, which can
+    raise) happens in the worker and its errors reach `failed`."""
+
     progress = Signal(int, int)
     finished_ok = Signal(str)
     failed = Signal(str)
 
-    def __init__(self, model, spec, out_path, parent=None):
+    def __init__(self, make_backend, spec, out_path, parent=None):
         super().__init__(parent)
-        self._model, self._spec, self._out = model, spec, out_path
+        self._make_backend = make_backend
+        self._spec, self._out = spec, out_path
         self._cancel = False
 
     def cancel(self):
@@ -117,64 +51,34 @@ class GenerateWorker(QThread):
 
     def run(self):
         try:
-            generate(self._model, self._spec, self._out,
+            backend = self._make_backend()
+            generate(backend, self._spec, self._out,
                      progress=lambda d, t: self.progress.emit(d, t),
                      cancel=lambda: self._cancel)
-        except (GenerationError, OSError, ValueError) as e:
+        except (GenerationError, MMFFError, OSError, ValueError) as e:
             self.failed.emit(str(e))
             return
         if not self._cancel:
             self.finished_ok.emit(str(self._out))
 
 
-class SitePage(QWidget):
+class _GeneratorPage(QWidget):
+    """Shared potential-generation controls and background-worker handling.
+    Subclasses add their own canvas/table and implement _prepare_generation,
+    which returns the backend factory and output path (or None to abort)."""
+
     statusMessage = Signal(str)
     potentialGenerated = Signal()
 
     def __init__(self, project: Project, parent=None):
         super().__init__(parent)
         self.project = project
-        self._site_model = SiteModel()
         self._worker: GenerateWorker | None = None
 
-        splitter = QSplitter(Qt.Horizontal)
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(splitter)
+    # -- generation controls -----------------------------------------------
 
-        self.model = SiteTableModel(self)
-        self.canvas = SiteCanvas(self.model, read_only=True)
-        self.canvas.cursorMoved.connect(
-            lambda x, y: self.statusMessage.emit(f"x = {x:.2f} Å,  y = {y:.2f} Å"))
-        splitter.addWidget(self.canvas)
-        splitter.addWidget(self._build_side())
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 0)
-        splitter.setSizes([760, 520])
-
-    def _build_side(self) -> QWidget:
-        panel = QWidget()
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(8, 8, 8, 8)
-
-        self.title = QLabel()
-        self.title.setWordWrap(True)
-        layout.addWidget(self.title)
-
-        table = QTableView()
-        table.setModel(self.model)
-        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        table.setSelectionBehavior(QAbstractItemView.SelectRows)
-        table.setAlternatingRowColors(True)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        table.verticalHeader().setDefaultSectionSize(24)
-        layout.addWidget(table, 1)
-
-        layout.addWidget(self._build_generation())
-        return panel
-
-    def _build_generation(self) -> QGroupBox:
-        box = QGroupBox("Potential generation  (Lennard-Jones + Coulomb)")
+    def _build_generation(self, title: str, with_charge: bool = False) -> QGroupBox:
+        box = QGroupBox(title)
         v = QVBoxLayout(box)
 
         def spin(lo, hi, val, step, dec, suffix):
@@ -215,6 +119,20 @@ class SitePage(QWidget):
         r2.addStretch(1)
         v.addLayout(r2)
 
+        if with_charge:
+            self.net_charge = QSpinBox()
+            self.net_charge.setRange(-10, 10)
+            self.net_charge.setValue(0)
+            self.net_charge.setToolTip("Net charge used for bond perception "
+                                       "(0 for a neutral molecule).")
+            r3 = QHBoxLayout()
+            r3.addWidget(QLabel("net charge"))
+            r3.addWidget(self.net_charge)
+            r3.addStretch(1)
+            v.addLayout(r3)
+        else:
+            self.net_charge = None
+
         row = QHBoxLayout()
         self.gen_btn = QPushButton("Generate…")
         self.gen_btn.setProperty("primary", True)
@@ -236,45 +154,29 @@ class SitePage(QWidget):
         v.addWidget(self.gen_status)
         return box
 
-    def refresh(self) -> None:
-        entry = self.project.site
-        try:
-            sm = SiteModel.load(self.project.model_path(entry))
-        except (OSError, ValueError) as e:
-            self._site_model = SiteModel()
-            self.model.set_site_model(SiteModel())
-            self.title.setText(f"Cannot read site model: {e}")
-            return
-        self._site_model = sm
-        self.model.set_site_model(sm)
-        self.title.setText(f"<b>{entry['name']}</b>   ·   {sm.summary()}   ·   "
-                           f"total charge {sm.total_charge():+.4f} e")
-        # prefill r_min just outside the hard core
-        r0 = max((s.r0 for s in sm.sites if s.is_lj), default=0.0)
-        if r0 > 0:
-            self.r_min.setValue(round(r0 + 0.02, 2))
-        self.canvas.reset_view()
+    def _grid_spec(self) -> GridSpec:
+        return GridSpec(self.r_min.value(), self.r_max.value(), self.dr.value(),
+                        self.da.value(), self.fold.value() or 360.0,
+                        self.use_float.isChecked())
 
-    def showEvent(self, event):
-        super().showEvent(event)
-        self.canvas.reset_view()
+    # -- generation lifecycle ----------------------------------------------
 
-    # -- generation --------------------------------------------------------
+    def _prepare_generation(self):
+        """Return (make_backend, out_path) or None to abort. Subclasses show
+        their own message before returning None."""
+        raise NotImplementedError
 
     def _generate(self) -> None:
         if self._worker is not None:
             return
-        if not self._site_model.sites:
-            QMessageBox.information(self, "No model", "The site model is empty.")
+        prep = self._prepare_generation()
+        if prep is None:
             return
-        spec = GridSpec(self.r_min.value(), self.r_max.value(), self.dr.value(),
-                        self.da.value(), self.fold.value() or 360.0,
-                        self.use_float.isChecked())
+        make_backend, out = prep
+        spec = self._grid_spec()
         if spec.r_max <= spec.r_min or spec.n_dist < 2:
             QMessageBox.warning(self, "Bad grid", "Check the r range and step.")
             return
-        entry = self.project.site
-        out = self.project.root / f"{safe_filename(entry['name'])}.v2.bin"
         if out.exists():
             if QMessageBox.question(self, "Overwrite", f"{out.name} exists. "
                                     "Overwrite?") != QMessageBox.Yes:
@@ -285,7 +187,7 @@ class SitePage(QWidget):
         self.gen_btn.setEnabled(False)
         self.cancel_btn.setEnabled(True)
         self.gen_status.setText(f"Generating {spec.n_dist} distances…")
-        self._worker = GenerateWorker(self._site_model, spec, out, self)
+        self._worker = GenerateWorker(make_backend, spec, out, self)
         self._worker.progress.connect(self._on_progress)
         self._worker.finished_ok.connect(self._on_done)
         self._worker.failed.connect(self._on_failed)
@@ -323,6 +225,183 @@ class SitePage(QWidget):
         QMessageBox.warning(self, "Generation failed", msg)
 
 
+class AtomisticPage(_GeneratorPage):
+    """The project's atomistic molecule with an MMFF94 pair-potential generator.
+    MMFF94 is a classical force field: fast, no extra downloads, physically
+    honest tails (so hydrogen-bonded assemblies hold together), but only
+    demonstration accuracy. For production numbers, load a higher-level grid on
+    the Potentials tab instead."""
+
+    def __init__(self, project: Project, parent=None):
+        super().__init__(project, parent)
+
+        splitter = QSplitter(Qt.Horizontal)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(splitter)
+
+        self.canvas_model = AtomTableModel(self)
+        self.canvas = MoleculeCanvas(self.canvas_model, read_only=True)
+        self.canvas.cursorMoved.connect(
+            lambda x, y: self.statusMessage.emit(f"x = {x:.2f} Å,  y = {y:.2f} Å"))
+        splitter.addWidget(self.canvas)
+        splitter.addWidget(self._build_side())
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 0)
+        splitter.setSizes([760, 520])
+
+    def _build_side(self) -> QWidget:
+        panel = QWidget()
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(8, 8, 8, 8)
+
+        self.title = QLabel()
+        self.title.setWordWrap(True)
+        layout.addWidget(self.title)
+
+        table = QTableView()
+        table.setModel(self.canvas_model)
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table.setAlternatingRowColors(True)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.verticalHeader().setDefaultSectionSize(24)
+        layout.addWidget(table, 1)
+
+        hint = QLabel("MMFF94 classical force field — a built-in demonstration "
+                      "backend. For production accuracy, load your own grid on "
+                      "the Potentials tab.")
+        hint.setWordWrap(True)
+        hint.setProperty("dim", True)
+        layout.addWidget(hint)
+
+        layout.addWidget(self._build_generation("Potential generation  (MMFF94)",
+                                                with_charge=True))
+        if not rdkit_available():
+            self.gen_btn.setEnabled(False)
+            self.gen_status.setText("RDKit is not installed, so atomistic "
+                                    "generation is unavailable. Install it "
+                                    "(pip install rdkit) or use a site model.")
+        return panel
+
+    def refresh(self) -> None:
+        entry = self.project.atomistic
+        try:
+            mol = Molecule.load_xyz(self.project.model_path(entry))
+        except (OSError, ValueError) as e:
+            self.canvas_model.set_molecule(Molecule())
+            self.title.setText(f"Cannot read molecule: {e}")
+            return
+        self.canvas_model.set_molecule(mol)
+        self.title.setText(f"<b>{entry['name']}</b>   ·   {mol.formula()}   ·   "
+                           f"{len(mol.atoms)} atoms")
+        # the molecule rotates about the origin, so a sensible r_min is its
+        # radial extent: closer than that the copies overlap (and get capped)
+        r_ext = max((math.hypot(a.x, a.y) for a in mol.atoms), default=5.0)
+        self.r_min.setValue(round(max(3.0, r_ext), 1))
+        self.canvas.reset_view()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.canvas.reset_view()
+
+    def _prepare_generation(self):
+        if not rdkit_available():
+            QMessageBox.information(self, "RDKit missing",
+                                    "Install RDKit (pip install rdkit) to generate "
+                                    "a potential from an atomistic model.")
+            return None
+        entry = self.project.atomistic
+        try:
+            mol = Molecule.load_xyz(self.project.model_path(entry))
+        except (OSError, ValueError) as e:
+            QMessageBox.warning(self, "Cannot read molecule", str(e))
+            return None
+        if not mol.atoms:
+            QMessageBox.information(self, "Empty molecule",
+                                    "The molecule has no atoms.")
+            return None
+        charge = self.net_charge.value()
+        out = self.project.root / f"{safe_filename(entry['name'])}.v2.bin"
+        return (lambda: MMFFBackend(mol, charge)), out
+
+
+class SitePage(_GeneratorPage):
+    """The project's site model with the Lennard-Jones + Coulomb generator."""
+
+    def __init__(self, project: Project, parent=None):
+        super().__init__(project, parent)
+        self._site_model = SiteModel()
+
+        splitter = QSplitter(Qt.Horizontal)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(splitter)
+
+        self.model = SiteTableModel(self)
+        self.canvas = SiteCanvas(self.model, read_only=True)
+        self.canvas.cursorMoved.connect(
+            lambda x, y: self.statusMessage.emit(f"x = {x:.2f} Å,  y = {y:.2f} Å"))
+        splitter.addWidget(self.canvas)
+        splitter.addWidget(self._build_side())
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 0)
+        splitter.setSizes([760, 520])
+
+    def _build_side(self) -> QWidget:
+        panel = QWidget()
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(8, 8, 8, 8)
+
+        self.title = QLabel()
+        self.title.setWordWrap(True)
+        layout.addWidget(self.title)
+
+        table = QTableView()
+        table.setModel(self.model)
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table.setAlternatingRowColors(True)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.verticalHeader().setDefaultSectionSize(24)
+        layout.addWidget(table, 1)
+
+        layout.addWidget(self._build_generation(
+            "Potential generation  (Lennard-Jones + Coulomb)"))
+        return panel
+
+    def refresh(self) -> None:
+        entry = self.project.site
+        try:
+            sm = SiteModel.load(self.project.model_path(entry))
+        except (OSError, ValueError) as e:
+            self._site_model = SiteModel()
+            self.model.set_site_model(SiteModel())
+            self.title.setText(f"Cannot read site model: {e}")
+            return
+        self._site_model = sm
+        self.model.set_site_model(sm)
+        self.title.setText(f"<b>{entry['name']}</b>   ·   {sm.summary()}   ·   "
+                           f"total charge {sm.total_charge():+.4f} e")
+        # prefill r_min just outside the hard core
+        r0 = max((s.r0 for s in sm.sites if s.is_lj), default=0.0)
+        if r0 > 0:
+            self.r_min.setValue(round(r0 + 0.02, 2))
+        self.canvas.reset_view()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.canvas.reset_view()
+
+    def _prepare_generation(self):
+        if not self._site_model.sites:
+            QMessageBox.information(self, "No model", "The site model is empty.")
+            return None
+        entry = self.project.site
+        out = self.project.root / f"{safe_filename(entry['name'])}.v2.bin"
+        return (lambda: self._site_model), out
+
+
 class CreatePotentialTab(QWidget):
     statusMessage = Signal(str)
 
@@ -350,8 +429,8 @@ class CreatePotentialTab(QWidget):
         self.refresh()
 
     def refresh(self) -> None:
-        # the site model drives generation; a lone atomistic model falls back
-        # to the (planned) ANI-2x page
+        # the site model is the more specific generator; a lone atomistic model
+        # falls back to the MMFF94 page
         kind = self.project.generation_kind
         if kind == "site":
             self.site_page.refresh()
