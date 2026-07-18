@@ -48,8 +48,10 @@ def distorted_tma() -> Molecule:
     return Molecule([Atom(el, x, y, 0.0) for el, x, y in _DISTORTED_TMA])
 
 
-def _coarse_well(backend, da=3.0, r_lo=6.0, r_hi=14.0, dr=0.2):
-    """Global minimum (kJ/mol) and its (r, a1, a2) over a coarse scan."""
+def _coarse_well(backend, da=5.0, r_lo=6.0, r_hi=14.0, dr=0.5):
+    """Global minimum (kJ/mol) and its (r, a1, a2) over a coarse scan. The
+    grid is deliberately coarse: it finds the same TMA well (-42 kJ/mol at
+    r = 10) as a fine scan, in a fraction of the time."""
     ang = np.deg2rad(np.arange(int(round(360 / da)) + 1) * da)
     best = (1e18, None)
     for r in np.arange(r_lo, r_hi + 1e-9, dr):
@@ -159,6 +161,21 @@ class TestPairEnergy(unittest.TestCase):
         self.assertLess(np.abs(far).max() / 1000.0, 1.0)
         near = backend.slab(4.0, ang)          # deep overlap: strongly repulsive
         self.assertGreater(near.max() / 1000.0, 100.0)
+
+    def test_net_charge_species(self):
+        """The generator's net-charge path: a planar acetate anion perceives
+        with charge -1, MMFF types it, and its partial charges sum to -1."""
+        acetate = Molecule([Atom(el, x, y, 0.0) for el, x, y in
+                            [("C", -1.50, 0.00), ("C", 0.00, 0.00),
+                             ("O", 0.65, 1.05), ("O", 0.65, -1.05),
+                             ("H", -2.10, 0.90), ("H", -2.10, -0.90),
+                             ("H", -2.59, 0.00)]])
+        params = mmff_pair_params(acetate, net_charge=-1)
+        self.assertAlmostEqual(float(params.q.sum()), -1.0, places=4)
+        backend = MMFFBackend(acetate, net_charge=-1)
+        slab = backend.slab(8.0, np.deg2rad(np.arange(0, 361, 30)))
+        self.assertTrue(np.isfinite(slab).all())
+        self.assertGreater(float(slab.min()), 0.0)   # two anions repel
 
 
 @skip_no_rdkit

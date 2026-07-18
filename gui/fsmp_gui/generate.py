@@ -162,22 +162,32 @@ class MMFFBackend:
     def slab(self, r: float, ang: np.ndarray) -> np.ndarray:
         na = len(ang)
         n = self.xy.shape[0]
-        A = _rotated(self.xy, ang)                       # (na, n, 2)
-        B = _rotated(self.xy, ang) + np.array([r, 0.0])
+        A = _rotated(self.xy, ang)          # (na, n, 2); molecule B is the
+        Bx = A[:, :, 0] + r                 # same rotation shifted by (r, 0)
+        By = A[:, :, 1]
         e = np.zeros((na, na))
+        # The (na, na) per-pair layout is deliberate: these slices stay inside
+        # the CPU cache, where a fully broadcast (na, na, n) version thrashes
+        # memory and ends up slower. Powers go by multiplication chains:
+        # `** 7` on an array costs several times more, and this double loop
+        # is the entire cost of an atomistic generation.
         for i in range(n):
             axi = A[:, i, 0][:, None]
             ayi = A[:, i, 1][:, None]
             qi = self.q[i]
             for j in range(n):
-                dx = axi - B[:, j, 0][None, :]
-                dy = ayi - B[:, j, 1][None, :]
+                dx = axi - Bx[:, j][None, :]
+                dy = ayi - By[:, j][None, :]
                 d = np.sqrt(dx * dx + dy * dy)
                 np.maximum(d, 1e-6, out=d)
                 Rs, ep, R7 = self.Rstar[i, j], self.eps[i, j], self.R7[i, j]
                 t = (1.07 * Rs) / (d + 0.07 * Rs)
-                evdw = ep * t ** 7 * (1.12 * R7 / (d ** 7 + 0.12 * R7) - 2.0)
-                e += evdw + MMFF_ELE * qi * self.q[j] / (d + MMFF_DELTA)
+                t2 = t * t
+                t7 = t2 * t2 * t2 * t
+                d2 = d * d
+                d7 = d2 * d2 * d2 * d
+                e += ep * t7 * (1.12 * R7 / (d7 + 0.12 * R7) - 2.0)
+                e += (MMFF_ELE * qi * self.q[j]) / (d + MMFF_DELTA)
         return e * KCAL_TO_JMOL
 
 
