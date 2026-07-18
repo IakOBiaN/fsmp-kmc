@@ -28,6 +28,34 @@ jobs:
           CXX: ${{ matrix.cxx }}
         run: python3 tests/run_tests.py
 
+  # The Studio suite: offscreen GUI tests (PySide6, rdkit, the MMFF
+  # generator). The engine is built first so the end-to-end tests run
+  # instead of skipping; dependencies come from gui/pyproject.toml.
+  test-gui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # PySide6 needs the Qt runtime libraries even under the offscreen
+      # platform (the same set the Release bundle build installs)
+      - name: Qt runtime libraries
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0
+
+      - name: Build the engine for the end-to-end tests
+        run: g++ -O2 fsmp.cpp -o fsmp.out
+
+      - name: Install the GUI package
+        run: pip install ./gui
+
+      - name: GUI test suite
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m unittest discover -s gui/tests -v
+
   test-macos:
     runs-on: macos-latest
     steps:
