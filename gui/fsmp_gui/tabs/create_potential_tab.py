@@ -34,11 +34,14 @@ from ..sitemodel import SiteModel
 class GenerateWorker(QThread):
     """Build and run an energy backend off the UI thread. `make_backend` is a
     zero-argument factory so backend construction (RDKit typing, which can
-    raise) happens in the worker and its errors reach `failed`."""
+    raise) happens in the worker and its errors reach `failed`. Every run ends
+    in exactly one signal: finished_ok, failed or cancelled — the page relies
+    on that to restore its controls."""
 
     progress = Signal(int, int)
     finished_ok = Signal(str)
     failed = Signal(str)
+    cancelled = Signal()
 
     def __init__(self, make_backend, spec, out_path, parent=None):
         super().__init__(parent)
@@ -52,14 +55,17 @@ class GenerateWorker(QThread):
     def run(self):
         try:
             backend = self._make_backend()
-            generate(backend, self._spec, self._out,
-                     progress=lambda d, t: self.progress.emit(d, t),
-                     cancel=lambda: self._cancel)
+            done = generate(backend, self._spec, self._out,
+                            progress=lambda d, t: self.progress.emit(d, t),
+                            cancel=lambda: self._cancel)
         except (GenerationError, MMFFError, OSError, ValueError) as e:
             self.failed.emit(str(e))
             return
-        if not self._cancel:
+        # a cancel that arrives after the last row is a completed grid
+        if done:
             self.finished_ok.emit(str(self._out))
+        else:
+            self.cancelled.emit()
 
 
 class _GeneratorPage(QWidget):
@@ -191,6 +197,7 @@ class _GeneratorPage(QWidget):
         self._worker.progress.connect(self._on_progress)
         self._worker.finished_ok.connect(self._on_done)
         self._worker.failed.connect(self._on_failed)
+        self._worker.cancelled.connect(self._on_cancelled)
         self._worker.start()
 
     def _on_progress(self, done: int, total: int) -> None:
@@ -200,6 +207,7 @@ class _GeneratorPage(QWidget):
     def _cancel(self) -> None:
         if self._worker is not None:
             self._worker.cancel()
+            self.cancel_btn.setEnabled(False)   # one click is enough
             self.gen_status.setText("Cancelling…")
 
     def _cleanup_worker(self) -> None:
@@ -218,6 +226,11 @@ class _GeneratorPage(QWidget):
             name = Path(path).name.removesuffix(".v2.bin").removesuffix(".bin")
             self.project.set_potential(name, path)
             self.potentialGenerated.emit()
+
+    def _on_cancelled(self) -> None:
+        self._cleanup_worker()
+        self.gen_status.setText("Cancelled.")
+        self.statusMessage.emit("Generation cancelled")
 
     def _on_failed(self, msg: str) -> None:
         self._cleanup_worker()

@@ -182,11 +182,12 @@ class MMFFBackend:
 
 
 def generate(backend, spec: GridSpec, out_path: str | Path,
-             progress=None, cancel=None) -> None:
+             progress=None, cancel=None) -> bool:
     """Write the v2 potential. `backend.slab(r, ang)` returns the raw J/mol
     energy matrix; a bare SiteModel is accepted too, for backward compatibility.
-    `progress(done, total)` is called per distance row; `cancel()` returning
-    True aborts and removes the partial file."""
+    `progress(done, total)` is called per distance row. `cancel()` returning
+    True aborts, removes the partial file and makes this return False; a fully
+    written grid returns True."""
     if isinstance(backend, SiteModel):
         backend = SiteBackend(backend)
     na_raw = int(round(360.0 / spec.da)) + 1
@@ -214,7 +215,7 @@ def generate(backend, spec: GridSpec, out_path: str | Path,
             if cancel is not None and cancel():
                 f.close()
                 out_path.unlink(missing_ok=True)
-                return
+                return False
             r = spec.r_min + i * spec.dr
             slab = backend.slab(r, ang)
             np.clip(slab, -CAP_JMOL, CAP_JMOL, out=slab)
@@ -222,3 +223,4 @@ def generate(backend, spec: GridSpec, out_path: str | Path,
             folded.astype(dtype).tofile(f)
             if progress is not None:
                 progress(i + 1, n_dist)
+    return True
