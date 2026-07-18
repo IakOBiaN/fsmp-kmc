@@ -7,6 +7,8 @@ Run from the repository root:
     gui/.venv/Scripts/python gui/tests/test_mmff.py
 """
 
+import contextlib
+import io
 import math
 import sys
 import tempfile
@@ -17,6 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 
+from fsmp_gui import selftest
+from fsmp_gui.engine import find_engine
 from fsmp_gui.forcefield import ForcefieldGrid, read_header
 from fsmp_gui.generate import GridSpec, MMFFBackend, generate
 from fsmp_gui.mmff import (MMFFError, _rdkit_mol, mmff_pair_params,
@@ -176,6 +180,23 @@ class TestPairEnergy(unittest.TestCase):
         slab = backend.slab(8.0, np.deg2rad(np.arange(0, 361, 30)))
         self.assertTrue(np.isfinite(slab).all())
         self.assertGreater(float(slab.min()), 0.0)   # two anions repel
+
+
+@skip_no_rdkit
+class TestSelftest(unittest.TestCase):
+    @unittest.skipUnless(find_engine(), "engine binary not present")
+    def test_reports_ok_from_source(self):
+        """The bundle health check must pass from a source tree too: it is
+        the same code path the release workflow runs on every frozen bundle."""
+        with tempfile.TemporaryDirectory() as td:
+            report = Path(td) / "selftest.log"
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = selftest.run(str(report))
+            self.assertEqual(code, 0)
+            text = report.read_text(encoding="utf-8")
+        self.assertIn("SELFTEST OK", text)
+        self.assertIn("rdkit", text)
+        self.assertIn("engine", text)
 
 
 @skip_no_rdkit

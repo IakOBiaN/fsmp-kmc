@@ -69,6 +69,15 @@ jobs:
           pip install "./gui[build]"
           python tools/make_bundle.py --name ${{ github.ref_name }}
 
+      # the frozen app must prove RDKit and its MMFF tables actually froze in
+      - name: Self-test the bundle
+        shell: bash
+        run: |
+          bundle=$(ls -dt dist/fsmp-kmc-*/ | head -1)
+          "${bundle}FSMP-kMC Studio.exe" --selftest selftest.log && ok=1 || ok=0
+          cat selftest.log || true
+          test "$ok" = 1
+
       - uses: actions/upload-artifact@v6
         with:
           name: bundle-windows-x86_64
@@ -113,6 +122,13 @@ jobs:
           pip install "./gui[build]"
           python tools/make_bundle.py --name ${{ github.ref_name }}
 
+      - name: Self-test the bundle
+        run: |
+          bundle=$(ls -dt dist/fsmp-kmc-*/ | head -1)
+          "${bundle}FSMP-kMC Studio" --selftest selftest.log && ok=1 || ok=0
+          cat selftest.log || true
+          test "$ok" = 1
+
       - uses: actions/upload-artifact@v6
         with:
           name: bundle-linux-x86_64
@@ -150,6 +166,14 @@ jobs:
         run: |
           pip install "./gui[build]"
           python tools/make_bundle.py --name ${{ github.ref_name }}
+
+      - name: Self-test the bundle
+        run: |
+          bundle=$(ls -dt dist/fsmp-kmc-*/ | head -1)
+          "${bundle}FSMP-kMC Studio.app/Contents/MacOS/FSMP-kMC Studio" \
+            --selftest selftest.log && ok=1 || ok=0
+          cat selftest.log || true
+          test "$ok" = 1
 
       - uses: actions/upload-artifact@v6
         with:
