@@ -62,5 +62,7 @@ gui/dist/
 dist/
 
 # Atomistic molecule models are sources, exempt from the global *.xyz ignore
-# (that rule targets the trajectory outputs)
-!models/*.xyz
+# (that rule targets the trajectory and run outputs). This covers the sample
+# models and each sample project's own molecule files.
+!samples/models/*.xyz
+!samples/projects/**/molecules/*.xyz

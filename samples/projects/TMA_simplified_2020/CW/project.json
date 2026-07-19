@@ -1,0 +1,96 @@
+{
+  "format": 1,
+  "name": "test",
+  "created": "2026-07-07T04:04:21+00:00",
+  "molecules": [
+    {
+      "name": "N2",
+      "file": "molecules/N2.xyz"
+    },
+    {
+      "name": "N2_2",
+      "file": "molecules/N2_2.xyz"
+    }
+  ],
+  "potentials": [],
+  "unit_cell": {
+    "cell_x": 19.076,
+    "cell_y": 32.752,
+    "molecules": [
+      {
+        "x": 6.8063,
+        "y": 7.2248,
+        "phi": 30.57
+      },
+      {
+        "x": 16.3467,
+        "y": 12.6479,
+        "phi": 89.41
+      },
+      {
+        "x": 16.4596,
+        "y": 23.6073,
+        "phi": 29.45
+      },
+      {
+        "x": 6.9158,
+        "y": 29.0173,
+        "phi": 90.57
+      }
+    ]
+  },
+  "simulation_cell": {
+    "uc_in_x": 22,
+    "uc_in_y": 5,
+    "free_space": 0.26,
+    "lambdam": 0.0,
+    "temperature_in_transition_zone": 900.0,
+    "preview_temp": 300.0,
+    "preview_um": -5000
+  },
+  "simulation": {
+    "temp_from": 300.0,
+    "temp_to": 300.0,
+    "temp_step": 10.0,
+    "um_from": 1000.0,
+    "um_to": -20000.0,
+    "um_step": 2000.0,
+    "nSteps": 500000,
+    "nStepsEq": 250000,
+    "kMC": true,
+    "delta": 2.0,
+    "delta_angle": 60.0,
+    "widom": false,
+    "sigma_mode": "manual",
+    "sigma": 11.052,
+    "constant_pressure": false,
+    "constant_pressure_value": 0.0,
+    "mask": true,
+    "mask_free_radius": 3.0,
+    "mask_ramp_width": 2.0,
+    "mask_penalty": 25000.0,
+    "seed": 0
+  },
+  "molecule": {
+    "name": "CO2",
+    "file": "molecules/CO2.xyz"
+  },
+  "charges": null,
+  "potential": {
+    "name": "TMA_simple_2020",
+    "path": "../../../../forcefields/TMA_simple_2020.v2.bin"
+  },
+  "model": {
+    "kind": "site",
+    "name": "TMA_simplified_2020",
+    "file": "molecules/TMA_simplified_2020.site"
+  },
+  "site": {
+    "name": "TMA_simplified_2020",
+    "file": "molecules/TMA_simplified_2020.site"
+  },
+  "atomistic": {
+    "name": "TMA_simple",
+    "file": "molecules/TMA_simple.xyz"
+  }
+}

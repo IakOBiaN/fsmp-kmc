@@ -20,7 +20,7 @@ from fsmp_gui.sitemodel import SiteModel
 
 REPO = Path(__file__).resolve().parents[2]
 REFERENCE = REPO / "forcefields" / "TMA_simple_2020.v2.bin"
-TMA = REPO / "models" / "TMA_simplified_2020.site"
+TMA = REPO / "samples" / "models" / "TMA_simplified_2020.site"
 
 
 class TestGenerator(unittest.TestCase):

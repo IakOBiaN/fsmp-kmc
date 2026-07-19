@@ -1,6 +1,6 @@
 // Atomistic model of the molecule used for every xyz visualization: the unit
 // cell optimization animation and the trajectory. The model is a plain xyz
-// file (see models/): an atom count line, a comment line, then "element x y z"
+// file (see samples/models/): an atom count line, a comment line, then "element x y z"
 // rows in A. The model must be drawn in the frame the forcefield uses: the
 // molecule center at the origin and the phi = 0 orientation along the +x axis.
 // The engine only rotates the model by the molecule orientation phi and

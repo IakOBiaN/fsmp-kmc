@@ -12,15 +12,17 @@ fsmp.exe / fsmp   the simulation engine, also usable from the command line
 pack.exe / pack   converts an ASCII potential to the binary format (optional)
 _internal/        the Studio runtime (do not edit)
 configs/          example parameter files for command-line runs
-models/           molecule models: atomistic .xyz and site .site files
-cells/            reference unit cells (.cell) to open in the Studio
+samples/          example data to explore:
+                    models/    molecule models (atomistic .xyz and site .site)
+                    cells/     reference unit cells (.cell) to open in the Studio
+                    projects/  ready-to-open Studio projects (open one and run)
 forcefields/      put the downloaded potentials here (see readme.txt inside)
 
 Quick start
 1. Download the potentials you need (links in forcefields/readme.txt) and
    unpack them into the forcefields folder.
-2. Start the Studio and create a project; the bundled models and cells can
-   be opened straight from the models and cells folders.
+2. Start the Studio and either open a ready-made project from samples/projects,
+   or create your own from the bundled samples/models and samples/cells.
 
 Command line, without the Studio:
 

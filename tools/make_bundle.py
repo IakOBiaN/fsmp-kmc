@@ -100,7 +100,9 @@ def main() -> None:
                         dirs_exist_ok=True)
     shutil.copy2(engine, bundle)
     shutil.copy2(pack, bundle)
-    for folder in ("configs", "models", "cells"):
+    # configs are the engine's example parameter files; samples carries the
+    # example molecule models, unit cells and ready-to-open Studio projects
+    for folder in ("configs", "samples"):
         shutil.copytree(REPO / folder, bundle / folder)
     (bundle / "forcefields").mkdir()
     shutil.copy2(REPO / "forcefields" / "readme.txt", bundle / "forcefields")

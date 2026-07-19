@@ -138,7 +138,7 @@ void read_parameters(const char * path)
 		// are now drawn with the xyz model given by the molecule_model key.
 		else if (key == "total_molecule_directions" || key == "angle_1" || key == "angle_2")
 		{
-			param_error(file, lineno, "key \"" + key + "\" was removed: point molecule_model at an xyz model instead (see models/)");
+			param_error(file, lineno, "key \"" + key + "\" was removed: point molecule_model at an xyz model instead (see samples/models/)");
 		}
 		else if (key == "delta")                          { delta = param_double(file, lineno, key, value); }
 		else if (key == "delta_angle")                    { delta_angle = param_double(file, lineno, key, value); }

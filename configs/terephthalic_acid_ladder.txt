@@ -40,7 +40,7 @@ uc_in_y = 7
 free_space = 0.24
 
 # Atomistic molecule model (xyz) used for all visualizations
-molecule_model = models/terephthalic_acid.xyz
+molecule_model = samples/models/terephthalic_acid.xyz
 
 # MC move sizes: maximal shift (A) and rotation (deg)
 delta = 2.0

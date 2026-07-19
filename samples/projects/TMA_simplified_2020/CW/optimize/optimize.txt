@@ -1,0 +1,27 @@
+# Written by FSMP-kMC Studio: unit cell optimization
+potential = ../../Ustinov/forcefields/TMA_simple_2020.v2.bin
+structure = calculate
+optimize_only = true
+unit_cell = 4  12.076000  19.252000  5.994775  44.168705  30.570000  6.050346  29.170498  89.410000  5.847654  86.382105  29.450000  6.851074  147.451196  90.570000
+molecule_model = model.xyz
+unit_cell_name = cell_animation.xyz
+sigma_mode = min_dist
+temp_from = 300
+temp_to = 300
+temp_step = 10
+um_from = 0.0
+um_to = 0.0
+um_step = 5000.0
+temperature_in_transition_zone = 900
+lambdam = 0.0
+nSteps = 1
+nStepsEq = 1
+constant_pressure = false
+kMC = true
+uc_in_x = 2
+uc_in_y = 2
+free_space = 0.24
+delta = 2.0
+delta_angle = 60.0
+widom_test_index = false
+xyz_name = trajectory.xyz

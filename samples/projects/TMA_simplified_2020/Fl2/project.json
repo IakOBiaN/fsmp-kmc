@@ -1,0 +1,196 @@
+{
+  "format": 1,
+  "name": "test",
+  "created": "2026-07-07T04:04:21+00:00",
+  "molecules": [
+    {
+      "name": "N2",
+      "file": "molecules/N2.xyz"
+    },
+    {
+      "name": "N2_2",
+      "file": "molecules/N2_2.xyz"
+    }
+  ],
+  "potentials": [],
+  "unit_cell": {
+    "cell_x": 41.223,
+    "cell_y": 71.343,
+    "molecules": [
+      {
+        "x": 6.5733,
+        "y": 6.5733,
+        "phi": 89.96
+      },
+      {
+        "x": 17.6932,
+        "y": 6.5914,
+        "phi": 90.04
+      },
+      {
+        "x": 12.1154,
+        "y": 16.1696,
+        "phi": 90.4
+      },
+      {
+        "x": 23.2557,
+        "y": 16.2467,
+        "phi": 89.66
+      },
+      {
+        "x": 11.9947,
+        "y": 27.1209,
+        "phi": 30.63
+      },
+      {
+        "x": 23.1648,
+        "y": 27.2263,
+        "phi": 31.08
+      },
+      {
+        "x": 32.7321,
+        "y": 10.7011,
+        "phi": 29.66
+      },
+      {
+        "x": 1.0084,
+        "y": 16.1676,
+        "phi": 90.7
+      },
+      {
+        "x": 0.8745,
+        "y": 27.1266,
+        "phi": 29.97
+      },
+      {
+        "x": 32.6539,
+        "y": 32.7284,
+        "phi": 89.32
+      },
+      {
+        "x": 17.5345,
+        "y": 36.7472,
+        "phi": 29.89
+      },
+      {
+        "x": 6.4359,
+        "y": 36.7685,
+        "phi": 29.74
+      },
+      {
+        "x": 12.0461,
+        "y": 46.3882,
+        "phi": 30.25
+      },
+      {
+        "x": 27.0357,
+        "y": 42.2796,
+        "phi": 90.21
+      },
+      {
+        "x": 38.1861,
+        "y": 42.2944,
+        "phi": 89.96
+      },
+      {
+        "x": 21.5315,
+        "y": 51.9188,
+        "phi": 89.73
+      },
+      {
+        "x": 32.6481,
+        "y": 51.879,
+        "phi": 89.66
+      },
+      {
+        "x": 2.5254,
+        "y": 51.8575,
+        "phi": 89.82
+      },
+      {
+        "x": 21.6071,
+        "y": 62.8871,
+        "phi": 29.67
+      },
+      {
+        "x": 32.7136,
+        "y": 62.8391,
+        "phi": 29.75
+      },
+      {
+        "x": 2.5709,
+        "y": 62.817,
+        "phi": 29.76
+      },
+      {
+        "x": 27.2038,
+        "y": 1.1099,
+        "phi": 30.04
+      },
+      {
+        "x": 38.3011,
+        "y": 1.0998,
+        "phi": 29.96
+      },
+      {
+        "x": 12.0832,
+        "y": 68.3104,
+        "phi": 90.34
+      }
+    ]
+  },
+  "simulation_cell": {
+    "uc_in_x": 10,
+    "uc_in_y": 2,
+    "free_space": 0.24,
+    "lambdam": 0.0,
+    "temperature_in_transition_zone": 900.0,
+    "preview_temp": 300.0,
+    "preview_um": -5000
+  },
+  "simulation": {
+    "temp_from": 300.0,
+    "temp_to": 300.0,
+    "temp_step": 10.0,
+    "um_from": -6000.0,
+    "um_to": -26000.0,
+    "um_step": 2000.0,
+    "nSteps": 500000,
+    "nStepsEq": 250000,
+    "kMC": true,
+    "delta": 2.0,
+    "delta_angle": 60.0,
+    "widom": false,
+    "sigma_mode": "manual",
+    "sigma": 11.052,
+    "constant_pressure": false,
+    "constant_pressure_value": 0.0,
+    "mask": true,
+    "mask_free_radius": 3.0,
+    "mask_ramp_width": 2.0,
+    "mask_penalty": 25000.0,
+    "seed": 0
+  },
+  "molecule": {
+    "name": "CO2",
+    "file": "molecules/CO2.xyz"
+  },
+  "charges": null,
+  "potential": {
+    "name": "TMA_simple_2020",
+    "path": "../../../../forcefields/TMA_simple_2020.v2.bin"
+  },
+  "model": {
+    "kind": "site",
+    "name": "TMA_simplified_2020",
+    "file": "molecules/TMA_simplified_2020.site"
+  },
+  "site": {
+    "name": "TMA_simplified_2020",
+    "file": "molecules/TMA_simplified_2020.site"
+  },
+  "atomistic": {
+    "name": "TMA_simple",
+    "file": "molecules/TMA_simple.xyz"
+  }
+}

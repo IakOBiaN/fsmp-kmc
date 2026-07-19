@@ -3,7 +3,7 @@ the cell, move and rotate the copies (the canvas and the placements table
 share one selection). The Optimize button hands the rough cell to
 the engine (structure = calculate, optimize_only) and plays its animation
 back live until the optimized cell lands in the editor. Cells are exchanged
-with .cell files; the repository cells/ folder holds the reference
+with .cell files; the repository samples/cells/ folder holds the reference
 structures from StructureGenerator.h in that format.
 
 Every copy is an instance of the project molecule model; the cell stores each
@@ -255,7 +255,7 @@ class UnitCellTab(QWidget):
         stored = QSettings().value("cells/last_dir", "")
         if stored:
             return stored
-        bundled = app_root() / "cells"
+        bundled = app_root() / "samples" / "cells"
         return str(bundled if bundled.is_dir() else Path.home())
 
     def open_cell(self) -> None:

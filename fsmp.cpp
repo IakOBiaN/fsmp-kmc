@@ -31,7 +31,7 @@ string sigma_mode;                                     // reference area: manual
 double sigma_manual = 0;                               // sigma in A (used with sigma_mode = manual)
 int uc_in_x = 0, uc_in_y = 0;                          // unit cells along x and y
 double free_space = 0;                                 // fraction of free space in the elongated cell
-string molecule_model_file;                            // atomistic model for visualization (xyz, see models/)
+string molecule_model_file;                            // atomistic model for visualization (xyz, see samples/models/)
 double delta = 0;                                      // maximal MC shift, A
 double delta_angle = 0;                                // maximal MC rotation, deg
 bool widom_test_index = false;

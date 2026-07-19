@@ -1,7 +1,7 @@
 """Unit cell file input/output (.cell): a plain xyz-like text format, so
 cells can be saved, shared and loaded like molecule models. The reference
-structures from StructureGenerator.h live in the repository cells/ folder
-in this format.
+structures from StructureGenerator.h live in the repository samples/cells/
+folder in this format.
 
     <n_molecules>
     <cell_x> <cell_y> [comment]

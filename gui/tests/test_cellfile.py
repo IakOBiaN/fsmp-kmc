@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from fsmp_gui.cellfile import load_cell, save_cell
 
 REPO = Path(__file__).resolve().parents[2]
-HCP = REPO / "cells" / "TMA_HCP_simple_2020.cell"
-HEX = REPO / "cells" / "IPA_hexagones_qPBE_Dreiding_Dhb5.0.cell"
+HCP = REPO / "samples" / "cells" / "TMA_HCP_simple_2020.cell"
+HEX = REPO / "samples" / "cells" / "IPA_hexagones_qPBE_Dreiding_Dhb5.0.cell"
 
 
 class TestRoundTrip(unittest.TestCase):

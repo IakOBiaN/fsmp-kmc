@@ -206,7 +206,7 @@ runs against the published reference energy.
 | `Weighted_averages.h` | Time averaging of the run statistics. |
 | `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
 | `random/` | SFMT random number generator (by Agner Fog). |
-| `models/` | Atomistic molecule models (xyz) used to draw molecules in all visual output; a configuration picks one with the `molecule_model` key. |
+| `samples/` | Example data shipped in every bundle: `models/` (atomistic `.xyz` and site `.site`, picked by a configuration's `molecule_model` key and drawn in all visual output), `cells/` (reference unit cells), and `projects/` (ready-to-open Studio projects that reproduce the paper). |
 | `molecule_model.h` | Loader of the molecule model. |
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `logo/` | Project logo, GitHub preview artwork and the graphical abstract. |

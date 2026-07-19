@@ -29,7 +29,7 @@ def run(report_path: str | None = None) -> int:
         from .mmff import mmff_pair_params
         from .molecule import Molecule
 
-        model = app_root() / "models" / "trimesic_acid.xyz"
+        model = app_root() / "samples" / "models" / "trimesic_acid.xyz"
         mol = Molecule.load_xyz(model)
         params = mmff_pair_params(mol)
         lines.append(f"MMFF typing of {model.name}: {len(params.elements)} "

@@ -28,7 +28,7 @@ from fsmp_gui.mmff import (MMFFError, _rdkit_mol, mmff_pair_params,
 from fsmp_gui.molecule import Atom, Molecule, bonded_pairs, connected_components
 
 REPO = Path(__file__).resolve().parents[2]
-TMA = REPO / "models" / "trimesic_acid.xyz"
+TMA = REPO / "samples" / "models" / "trimesic_acid.xyz"
 
 skip_no_rdkit = unittest.skipUnless(rdkit_available(), "RDKit not installed")
 
