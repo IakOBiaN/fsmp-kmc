@@ -21,13 +21,6 @@ temperature and pressure. This makes it possible to determine the free energy,
 entropy and chemical potential of dense molecular layers from the equality of
 chemical potentials in the coexisting phases.
 
-<p align="center">
-  <img src="logo/visualization.png" alt="FSMP-kMC workflow" width="840"><br>
-  <em>From DFT geometry and charges, through a precalculated numerical
-  pair-potential grid E(r,&nbsp;&alpha;<sub>i</sub>,&nbsp;&alpha;<sub>j</sub>),
-  to the thermodynamics of the coexisting crystal and gas.</em>
-</p>
-
 ## Method
 
 This code accompanies the following study:
@@ -102,8 +95,9 @@ up by the GUI automatically.
 ## GUI: FSMP-kMC Studio
 
 A desktop workbench (`gui/`, PySide6) that covers the whole workflow:
-molecule models, potential conversion, unit-cell optimization with a live
-animation, the simulation cell, and production runs that are started
+molecule models (with MMFF94 geometry optimization of a hand-built
+molecule), potential generation and conversion, unit-cell optimization with
+a live animation, the simulation cell, and production runs that are started
 detached, with live progress, statistics plots and a trajectory viewer.
 Every release ships it as a ready-made app (see
 [Ready-made builds](#ready-made-builds-no-compiler-no-python)); the
@@ -161,6 +155,23 @@ Add `--float` to store the energies in 32-bit precision. The file is half the
 size, and the rounding error in the physically relevant region (about 0.01 J/mol)
 is negligible compared to the thermal energy.
 
+### Generating a potential in the Studio
+
+The Studio can also build a numerical potential by itself, on the *Create
+potential* tab. A coarse-grained site model is swept with Lennard-Jones and
+Coulomb interactions between its sites; an atomistic molecule is scored with
+the MMFF94 classical force field (typed by RDKit), so a freshly drawn and
+optimized molecule turns into a working potential in seconds, with no
+external data.
+
+MMFF94 is a demonstration-grade backend with honest physics: hydrogen-bonded
+assemblies hold together, the tails behave correctly out to the grid cutoff,
+and for trimesic acid the dimer well lands at the same geometry as the DFT
+reference. It does underbind compared to a DFT-quality potential, so absolute
+cohesion energies and transition temperatures shift. For production numbers,
+compute the grid with your own method and attach the packed file: the engine
+reads any v2 binary regardless of its origin.
+
 ## Tests
 
 ```bash
@@ -205,12 +216,15 @@ runs against the published reference energy.
 
 ## Status
 
-This is a research code under active cleanup. It reproduces the published
-results, but it is not yet packaged for general use. The program is a single
-binary driven by text parameter files. Every push is checked by CI: a
-warning-free build with GCC and Clang, and the regression test suite (see
-[Tests](#tests)) on both Linux and native Windows. Improving and documenting
-the code is ongoing.
+Stable. The engine reproduces the published results, and every release ships
+ready-made bundles for Windows, Linux and macOS (see
+[Ready-made builds](#ready-made-builds-no-compiler-no-python)); the program
+itself is a single binary driven by text parameter files. Every push is
+checked by CI: a warning-free build with GCC and Clang, the engine
+regression suite (see [Tests](#tests)) on Linux, macOS and native Windows,
+and the Studio's own GUI test suite. A release additionally self-tests every
+assembled bundle before publishing. Development continues with bug fixes and
+small features.
 
 ## License
 

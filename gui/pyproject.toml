@@ -4,7 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fsmp-gui"
-version = "0.1.0"
+# keep in sync with ../version.h, the single project-version source (the
+# running app reads version.h itself; this is package metadata only)
+version = "1.0.0"
 description = "Desktop workbench for FSMP-kMC: molecules, potentials, unit cells and simulations"
 requires-python = ">=3.10"
 # rdkit powers geometry optimization and the built-in MMFF94 atomistic
