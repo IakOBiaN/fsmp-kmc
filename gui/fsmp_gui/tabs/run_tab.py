@@ -428,11 +428,34 @@ class RunTab(QWidget):
             self.mask_enable.toggled.connect(w.setEnabled)
         layout.addWidget(mask_box)
 
+        buttons = QHBoxLayout()
+        self.save_btn = QPushButton("Save settings")
+        self.save_btn.setToolTip("Store these run parameters in the project so "
+                                 "it opens with them next time (no run started)")
+        self.save_btn.clicked.connect(self._save_settings)
+        buttons.addWidget(self.save_btn)
         start = QPushButton("Start run")
         start.setProperty("primary", True)
         start.clicked.connect(self._start)
-        layout.addWidget(start)
+        buttons.addWidget(start)
+        layout.addLayout(buttons)
+
+        self.save_status = QLabel(" ")
+        self.save_status.setProperty("dim", True)
+        layout.addWidget(self.save_status)
         layout.addStretch(1)
+
+        # a saved-confirmation that clears itself as soon as anything changes
+        for w in (self.temp_from, self.temp_to, self.temp_step, self.um_from,
+                  self.um_to, self.um_step, self.nsteps, self.nsteps_eq,
+                  self.delta, self.delta_angle, self.sigma, self.const_p_value,
+                  self.mask_radius, self.mask_ramp, self.mask_penalty,
+                  self.seed):
+            w.valueChanged.connect(self._touch_settings)
+        for w in (self.kmc, self.widom, self.const_p, self.mask_enable):
+            w.toggled.connect(self._touch_settings)
+        self.sigma_mode.currentTextChanged.connect(self._touch_settings)
+
         self._update_points()
         return wrap
 
@@ -582,6 +605,18 @@ class RunTab(QWidget):
         }
 
     # -- actions ----------------------------------------------------------------------
+
+    def _save_settings(self) -> None:
+        """Persist the current form into the project without starting a run, so
+        a prepared project opens with its intended parameters. This is what
+        makes a project fully 'open and compute'."""
+        self.project.set_simulation(self._form())
+        self.save_status.setText("Settings saved to the project.")
+        self.statusMessage.emit("Run settings saved to the project")
+
+    def _touch_settings(self, *_) -> None:
+        """Any edit invalidates the saved-confirmation label."""
+        self.save_status.setText(" ")
 
     def _start(self) -> None:
         if self.nsteps_eq.value() >= self.nsteps.value():
