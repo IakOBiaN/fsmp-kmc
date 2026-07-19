@@ -523,6 +523,8 @@ class RunTab(QWidget):
         missing = []
         if self.project.potential is None:
             missing.append("potential (tab 3)")
+        elif not self.project.potential_path().is_file():
+            missing.append("the potential file (download it into forcefields/)")
         if self.project.unit_cell is None:
             missing.append("unit cell (tab 4)")
         if self.project.simulation_cell is None:

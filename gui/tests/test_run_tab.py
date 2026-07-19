@@ -80,5 +80,39 @@ class TestSaveSettings(unittest.TestCase):
             self.assertEqual(tab.save_status.text().strip(), "")
 
 
+class TestPrereqs(unittest.TestCase):
+    """The Run tab's readiness banner. A sample project ships with a potential
+    attached but the heavy file is a separate download, so 'attached' must not
+    be mistaken for 'the file is here'."""
+
+    def test_unattached_potential_is_flagged(self):
+        with tempfile.TemporaryDirectory() as td:
+            project = Project.create(Path(td) / "proj", "p")
+            tab = RunTab(project)
+            tab._check_prereqs()
+            self.assertIn("potential (tab 3)", tab.prereq.text())
+
+    def test_attached_but_missing_file_is_flagged(self):
+        with tempfile.TemporaryDirectory() as td:
+            project = Project.create(Path(td) / "proj", "p")
+            # attach a potential whose file is not present (the download case)
+            project.set_potential("ghost", Path(td) / "ghost.v2.bin")
+            tab = RunTab(project)
+            tab._check_prereqs()
+            text = tab.prereq.text()
+            self.assertIn("forcefields", text)          # tells the user what to do
+            self.assertNotIn("potential (tab 3)", text)  # it IS attached
+
+    def test_present_file_is_not_flagged(self):
+        with tempfile.TemporaryDirectory() as td:
+            project = Project.create(Path(td) / "proj", "p")
+            grid = Path(td) / "here.v2.bin"
+            grid.write_bytes(b"\x00" * 64)
+            project.set_potential("here", grid)
+            tab = RunTab(project)
+            tab._check_prereqs()
+            self.assertNotIn("potential", tab.prereq.text())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -6,6 +6,7 @@ usable without the GUI.
 """
 
 import json
+import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -145,7 +146,11 @@ class Project:
     def potential_path(self) -> Path:
         entry = self.potential
         p = Path(entry["path"])
-        return p if p.is_absolute() else self.root / p
+        full = p if p.is_absolute() else self.root / p
+        # collapse any ".." (a sample project stores the shared forcefields/
+        # folder relative to itself) so callers and error messages get a clean
+        # path
+        return Path(os.path.normpath(full))
 
     def set_potential(self, name: str, path: str | Path) -> dict:
         p = Path(path).resolve()
