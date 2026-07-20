@@ -62,8 +62,18 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Build the bundle (Studio + engine + data)
+      # A PyInstaller app carries a small C "bootloader" that unpacks and
+      # starts it. Antivirus engines fingerprint the stock prebuilt bootloader
+      # from the wheel and false-positive on it (Windows Defender quarantined
+      # the 1.0.1 Studio exe). Building the bootloader from source gives it a
+      # fresh signature and clears most of those flags. It needs a C compiler:
+      # msvc-dev-cmd puts the runner's MSVC on PATH, and --no-binary forces
+      # pyinstaller to build from its sdist instead of taking the wheel.
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build the bundle (Studio + engine + data, own bootloader)
         run: |
+          pip install --no-binary pyinstaller pyinstaller
           pip install "./gui[build]"
           python tools/make_bundle.py --name ${{ github.ref_name }}
 

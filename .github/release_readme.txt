@@ -3,7 +3,12 @@ FSMP-kMC release bundle
 
 FSMP-kMC Studio   the desktop app - start it and work:
                     Windows:  FSMP-kMC Studio.exe (SmartScreen may warn on
-                              the first launch: More info -> Run anyway)
+                              the first launch: More info -> Run anyway.
+                              Windows Defender may also quarantine the exe
+                              as a false positive - it is the PyInstaller
+                              packer, not malware; restore it from Windows
+                              Security -> Protection history and exclude the
+                              folder before re-extracting)
                     Linux:    ./FSMP-kMC\ Studio (needs glibc 2.35+,
                               i.e. Ubuntu 22.04 or newer)
                     macOS:    FSMP-kMC Studio.app (unsigned build; macOS 15+
