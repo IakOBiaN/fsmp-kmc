@@ -132,8 +132,8 @@ jobs:
           name: bundle-linux-x86_64
           path: dist/fsmp-kmc-*.tar.gz
 
-  # experimental: built and tested only in CI, unsigned (macOS will ask to
-  # confirm the first launch via right-click -> Open)
+  # experimental: built and tested only in CI, unsigned (macOS 15+ blocks the
+  # first launch until the user allows it in Privacy & Security settings)
   macos:
     needs: version-check
     runs-on: macos-latest
@@ -217,9 +217,10 @@ jobs:
 
           The binaries are not code-signed (usual for academic software):
           Windows SmartScreen warns on the first launch of a downloaded
-          copy (More info → Run anyway), macOS requires right-click →
-          Open. A download can be verified against `SHA256SUMS.txt`:
-          `sha256sum -c --ignore-missing SHA256SUMS.txt`.
+          copy (More info → Run anyway); macOS 15+ blocks it until allowed
+          in System Settings → Privacy & Security → Open Anyway (older
+          macOS: right-click → Open). A download can be verified against
+          `SHA256SUMS.txt`: `sha256sum -c --ignore-missing SHA256SUMS.txt`.
           EOF
           echo >> notes.md
           gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \

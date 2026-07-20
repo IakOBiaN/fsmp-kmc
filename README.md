@@ -96,7 +96,11 @@ fsmp.exe configs\tma_acid_hcp.txt
 Working with a release does not require the source code. The binaries are
 not code-signed (usual for academic software): on the first launch of a
 downloaded copy Windows SmartScreen may warn about an unrecognized app
-(More info → Run anyway) and macOS requires right-click → Open. Every
+(More info → Run anyway). On macOS 15 and newer the first launch is
+blocked outright: allow the app under System Settings → Privacy & Security
+→ Open Anyway (on older macOS right-click → Open is enough), or unpack the
+archive in Terminal with `tar -xzf`, which never sets the quarantine flag
+in the first place. Every
 release also carries a `SHA256SUMS.txt`; verify a download with
 `sha256sum -c --ignore-missing SHA256SUMS.txt`. The Linux
 bundle runs on Ubuntu 22.04 or newer (glibc 2.35+); the engine binary

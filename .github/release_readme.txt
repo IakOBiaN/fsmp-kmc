@@ -6,8 +6,12 @@ FSMP-kMC Studio   the desktop app - start it and work:
                               the first launch: More info -> Run anyway)
                     Linux:    ./FSMP-kMC\ Studio (needs glibc 2.35+,
                               i.e. Ubuntu 22.04 or newer)
-                    macOS:    FSMP-kMC Studio.app (unsigned build: the first
-                              time use right-click -> Open)
+                    macOS:    FSMP-kMC Studio.app (unsigned build; macOS 15+
+                              blocks the first launch: allow it in System
+                              Settings -> Privacy & Security -> Open Anyway;
+                              on older macOS right-click -> Open is enough.
+                              Unpacking with `tar -xzf` in Terminal avoids
+                              the prompt entirely)
 fsmp.exe / fsmp   the simulation engine, also usable from the command line
 pack.exe / pack   converts an ASCII potential to the binary format (optional)
 _internal/        the Studio runtime (do not edit)
