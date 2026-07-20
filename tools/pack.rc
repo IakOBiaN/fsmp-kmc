@@ -1,0 +1,31 @@
+// Version resource of the forcefield converter (pack.exe); see fsmp.rc.
+#include <winver.h>
+#include "version.h"
+
+1 ICON "gui/studio.ico"
+
+1 VERSIONINFO
+FILEVERSION     FSMP_RC_VERSION
+PRODUCTVERSION  FSMP_RC_VERSION
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName",      "The FSMP-kMC authors"
+      VALUE "FileDescription",  "FSMP-kMC forcefield converter"
+      VALUE "FileVersion",      FSMP_VERSION
+      VALUE "InternalName",     "pack"
+      VALUE "OriginalFilename", "pack.exe"
+      VALUE "ProductName",      "FSMP-kMC"
+      VALUE "ProductVersion",   FSMP_VERSION
+      VALUE "LegalCopyright",   "(C) The FSMP-kMC authors. GPL-3.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

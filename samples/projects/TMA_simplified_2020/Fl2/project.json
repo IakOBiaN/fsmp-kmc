@@ -1,18 +1,19 @@
 {
   "format": 1,
-  "name": "test",
+  "name": "TMA Fl2 (simple model 2020)",
   "created": "2026-07-07T04:04:21+00:00",
-  "molecules": [
-    {
-      "name": "N2",
-      "file": "molecules/N2.xyz"
-    },
-    {
-      "name": "N2_2",
-      "file": "molecules/N2_2.xyz"
-    }
-  ],
-  "potentials": [],
+  "atomistic": {
+    "name": "Trimesic acid",
+    "file": "molecules/trimesic_acid.xyz"
+  },
+  "site": {
+    "name": "TMA_simplified_2020",
+    "file": "molecules/TMA_simplified_2020.site"
+  },
+  "potential": {
+    "name": "TMA_simple_2020",
+    "path": "../../../../forcefields/TMA_simple_2020.v2.bin"
+  },
   "unit_cell": {
     "cell_x": 41.223,
     "cell_y": 71.343,
@@ -170,27 +171,5 @@
     "mask_ramp_width": 2.0,
     "mask_penalty": 25000.0,
     "seed": 0
-  },
-  "molecule": {
-    "name": "CO2",
-    "file": "molecules/CO2.xyz"
-  },
-  "charges": null,
-  "potential": {
-    "name": "TMA_simple_2020",
-    "path": "../../../../forcefields/TMA_simple_2020.v2.bin"
-  },
-  "model": {
-    "kind": "site",
-    "name": "TMA_simplified_2020",
-    "file": "molecules/TMA_simplified_2020.site"
-  },
-  "site": {
-    "name": "TMA_simplified_2020",
-    "file": "molecules/TMA_simplified_2020.site"
-  },
-  "atomistic": {
-    "name": "TMA_simple",
-    "file": "molecules/TMA_simple.xyz"
   }
 }

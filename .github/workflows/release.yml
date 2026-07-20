@@ -39,15 +39,13 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
-          install: mingw-w64-ucrt-x86_64-gcc python
+          install: mingw-w64-ucrt-x86_64-gcc make python
 
-      # -static bakes the MinGW runtime in, so the exe runs on any Windows
-      # machine with no extra DLLs
+      # the Makefile windows target: -static binaries with the version
+      # resources (icon, Explorer Properties fields) attached by windres
       - name: Build static engine binaries
         shell: msys2 {0}
-        run: |
-          g++ -O3 -static -Wall -Wextra fsmp.cpp -o fsmp.exe
-          g++ -O3 -static -Wall -Wextra tools/pack_forcefield.cpp -o pack.exe
+        run: make windows
 
       - name: Run the test suite
         shell: msys2 {0}
@@ -199,11 +197,33 @@ jobs:
           path: bundles
           merge-multiple: true
 
+      # SHA256SUMS.txt lets a download be verified:
+      #   sha256sum -c --ignore-missing SHA256SUMS.txt
+      - name: Checksums of the bundles
+        run: cd bundles && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      # The release body: a short how-to-install preamble, then the
+      # auto-generated changelog. A re-run keeps an existing release as is.
       - name: Create the release and upload the bundles
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           ls -l bundles
+          cat > notes.md <<'EOF'
+          Self-contained bundles per platform: unpack, put the downloaded
+          potentials into `forcefields/` and start the Studio, or run the
+          engine from the command line. `README.txt` inside the archive
+          walks through it.
+
+          The binaries are not code-signed (usual for academic software):
+          Windows SmartScreen warns on the first launch of a downloaded
+          copy (More info → Run anyway), macOS requires right-click →
+          Open. A download can be verified against `SHA256SUMS.txt`:
+          `sha256sum -c --ignore-missing SHA256SUMS.txt`.
+          EOF
+          echo >> notes.md
+          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+            -f tag_name="$GITHUB_REF_NAME" --jq .body >> notes.md
           gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
-            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes
+            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --notes-file notes.md
           gh release upload "$GITHUB_REF_NAME" bundles/* --repo "$GITHUB_REPOSITORY" --clobber

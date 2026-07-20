@@ -21,6 +21,16 @@ temperature and pressure. This makes it possible to determine the free energy,
 entropy and chemical potential of dense molecular layers from the equality of
 chemical potentials in the coexisting phases.
 
+<p align="center">
+  <a href="docs/screenshots/5-simulation-cell.png"><img
+    src="docs/screenshots/5-simulation-cell.png"
+    alt="FSMP-kMC Studio: the elongated two-phase simulation cell with the damping and external field profiles"
+    width="880"></a>
+</p>
+<p align="center"><em>The method in one picture (FSMP-kMC Studio): the elongated
+cell holds a crystal slab and a gas reservoir; the damping field λ(x) and the
+external field u<sub>ext</sub>(x) stabilize their coexistence.</em></p>
+
 ## Method
 
 This code accompanies the following study:
@@ -86,7 +96,9 @@ fsmp.exe configs\tma_acid_hcp.txt
 Working with a release does not require the source code. The binaries are
 not code-signed (usual for academic software): on the first launch of a
 downloaded copy Windows SmartScreen may warn about an unrecognized app
-(More info → Run anyway) and macOS requires right-click → Open. The Linux
+(More info → Run anyway) and macOS requires right-click → Open. Every
+release also carries a `SHA256SUMS.txt`; verify a download with
+`sha256sum -c --ignore-missing SHA256SUMS.txt`. The Linux
 bundle runs on Ubuntu 22.04 or newer (glibc 2.35+); the engine binary
 itself is static and runs anywhere. For development, the same layout works inside
 the repository: `fsmp.exe` or `fsmp.out` in the repository root is picked
@@ -99,7 +111,33 @@ molecule models (with MMFF94 geometry optimization of a hand-built
 molecule), potential generation and conversion, unit-cell optimization with
 a live animation, the simulation cell, and production runs that are started
 detached, with live progress, statistics plots and a trajectory viewer.
-Every release ships it as a ready-made app (see
+
+| ![Molecule model tab: the atomistic molecule and the site model](docs/screenshots/1-molecule-model.png) | ![Create potential tab: sweep a model into a numerical pair potential](docs/screenshots/2-create-potential.png) |
+| :---: | :---: |
+| *1 · Molecule model — the atomistic molecule and the site model* | *2 · Create potential — sweep the model into a numerical potential* |
+| ![Potentials tab: interactive dimer geometry over the attached grid](docs/screenshots/3-potentials.png) | ![Unit cell tab: build and optimize the crystal cell](docs/screenshots/4-unit-cell.png) |
+| *3 · Potentials — probe the attached grid at any dimer geometry* | *4 · Unit cell — build and optimize the crystal cell* |
+| ![Run tab: production runs with live statistics plots](docs/screenshots/6-run-plots.png) | ![Run tab: trajectory viewer with the two-phase cell](docs/screenshots/6-run-trajectory.png) |
+| *6 · Run — detached production runs, live statistics plots* | *6 · Run — the trajectory viewer on the two-phase cell* |
+
+And this is what a run looks like up close — the trajectory viewer zoomed
+to a crystal–gas interface of the TMA monolayer, over a sweep of the
+external field:
+
+<p align="center">
+  <img src="docs/screenshots/run-trajectory.gif"
+       alt="A live run at the crystal-gas interface: TMA molecules leave and rejoin the hydrogen-bonded lattice"
+       width="880">
+</p>
+<p align="center"><em>Molecules leave and rejoin the hydrogen-bonded
+lattice; the damping field fades them out as they cross into the
+ideal-gas reservoir.</em></p>
+
+<sub>Tab 5, the simulation cell, is the picture at the top of this README.
+All stills and the animation are rendered straight from the application,
+on the bundled sample project.</sub>
+
+Every release ships the Studio as a ready-made app (see
 [Ready-made builds](#ready-made-builds-no-compiler-no-python)); the
 following runs it from source. It runs natively on Windows, Linux and
 macOS; the setup is the same everywhere:
@@ -210,7 +248,8 @@ runs against the published reference energy.
 | `molecule_model.h` | Loader of the molecule model. |
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `logo/` | Project logo, GitHub preview artwork and the graphical abstract. |
-| `tools/` | `pack_forcefield.cpp` converts an ASCII potential into the compact binary grid; `make_bundle.py` assembles a release bundle (CI and `make bundle`). |
+| `docs/` | README screenshots, rendered straight from the app. |
+| `tools/` | `pack_forcefield.cpp` converts an ASCII potential into the compact binary grid; `make_bundle.py` assembles a release bundle (CI and `make bundle`); `fsmp.rc`/`pack.rc` are the version resources of the Windows binaries. |
 | `tests/` | Regression tests and their small data grid (`python3 tests/run_tests.py`). |
 | `xyz_modification/` | Post-processing: a time-averaged density map from an XYZ trajectory. |
 

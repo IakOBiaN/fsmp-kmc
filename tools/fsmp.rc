@@ -1,0 +1,34 @@
+// Version resource of the native Windows engine binary (fsmp.exe): the
+// Explorer Properties -> Details fields. The numeric FILEVERSION quad is
+// derived from version.h by the build, which passes it in as
+// -DFSMP_RC_VERSION=a,b,c,0 (see the windows target in the Makefile).
+#include <winver.h>
+#include "version.h"
+
+1 ICON "gui/studio.ico"
+
+1 VERSIONINFO
+FILEVERSION     FSMP_RC_VERSION
+PRODUCTVERSION  FSMP_RC_VERSION
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName",      "The FSMP-kMC authors"
+      VALUE "FileDescription",  "FSMP-kMC kinetic Monte Carlo engine"
+      VALUE "FileVersion",      FSMP_VERSION
+      VALUE "InternalName",     "fsmp"
+      VALUE "OriginalFilename", "fsmp.exe"
+      VALUE "ProductName",      "FSMP-kMC"
+      VALUE "ProductVersion",   FSMP_VERSION
+      VALUE "LegalCopyright",   "(C) The FSMP-kMC authors. GPL-3.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

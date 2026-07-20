@@ -74,7 +74,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
-          install: mingw-w64-ucrt-x86_64-gcc python
+          install: mingw-w64-ucrt-x86_64-gcc make python
 
       - name: Regression tests (native Windows, MinGW g++)
         shell: msys2 {0}
@@ -82,12 +82,11 @@ jobs:
 
       # Fresh development build of the Windows binaries: downloadable from the
       # workflow run page (Actions tab), kept for 90 days. Tagged releases are
-      # built and published separately by release.yml.
+      # built and published separately by release.yml. The Makefile target
+      # attaches the version resources (icon, Explorer Properties fields).
       - name: Build static Windows binaries
         shell: msys2 {0}
-        run: |
-          g++ -O3 -static -Wall -Wextra fsmp.cpp -o fsmp.exe
-          g++ -O3 -static -Wall -Wextra tools/pack_forcefield.cpp -o pack.exe
+        run: make windows
 
       - uses: actions/upload-artifact@v6
         with:

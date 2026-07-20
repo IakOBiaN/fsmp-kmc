@@ -32,14 +32,27 @@ pack.out: tools/pack_forcefield.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 # -static bakes the MinGW runtime in, so the binaries run on any Windows
-# machine with no extra DLLs (same flags as the release workflow)
+# machine with no extra DLLs (the release workflow builds through this
+# same target)
 windows: fsmp.exe pack.exe
 
-fsmp.exe: fsmp.cpp program_body.cpp includes.h $(wildcard *.h)
-	$(CXX) $(CXXFLAGS) -static fsmp.cpp -o $@
+# Version resources (icon and the Explorer Properties fields) for the
+# native binaries. The numeric a,b,c,0 quad is derived here from the
+# "a.b.c" string in version.h, the single project-version source.
+comma := ,
+RC_VERSION = $(subst .,$(comma),$(shell sed -n 's/.*FSMP_VERSION "\([^"]*\)".*/\1/p' version.h)),0
 
-pack.exe: tools/pack_forcefield.cpp
-	$(CXX) $(CXXFLAGS) -static $< -o $@
+fsmp.res.o: tools/fsmp.rc version.h gui/studio.ico
+	windres -DFSMP_RC_VERSION=$(RC_VERSION) --include-dir . $< $@
+
+pack.res.o: tools/pack.rc version.h gui/studio.ico
+	windres -DFSMP_RC_VERSION=$(RC_VERSION) --include-dir . $< $@
+
+fsmp.exe: fsmp.cpp program_body.cpp includes.h $(wildcard *.h) fsmp.res.o
+	$(CXX) $(CXXFLAGS) -static fsmp.cpp fsmp.res.o -o $@
+
+pack.exe: tools/pack_forcefield.cpp pack.res.o
+	$(CXX) $(CXXFLAGS) -static $< pack.res.o -o $@
 
 test:
 	$(PYTHON) tests/run_tests.py
@@ -48,5 +61,5 @@ bundle: windows
 	$(PYTHON) tools/make_bundle.py
 
 clean:
-	rm -f fsmp.out pack.out configs/*.out
+	rm -f fsmp.out pack.out *.res.o configs/*.out
 	rm -rf tests/build
