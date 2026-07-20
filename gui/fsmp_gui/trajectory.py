@@ -155,6 +155,10 @@ class TrajectoryViewer(QWidget):
         """Point the viewer at a trajectory file (resets the index)."""
         if path == self._path:
             return
+        if self._indexer is not None:
+            # a stale index applied to the new file would decode garbage
+            # frames; _on_indexed drops its result by the path check
+            self._indexer.cancel()
         self._path = path
         self._offsets, self._end, self._shown = [], 0, 0
         self.canvas.scene().clear()
@@ -179,6 +183,8 @@ class TrajectoryViewer(QWidget):
         self._indexer.start()
 
     def _on_indexed(self, offsets: list, end: int) -> None:
+        if self._indexer is not None and self._indexer._path != self._path:
+            return                      # indexed a file we switched away from
         self._offsets, self._end = offsets, end
         if not offsets:
             self.info.setText("no frames yet")

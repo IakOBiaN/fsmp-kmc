@@ -31,7 +31,9 @@ def nice_ticks(lo: float, hi: float, target: int = 5) -> list:
 
 
 class PlotWidget(QWidget):
-    MARGIN_L, MARGIN_R, MARGIN_T, MARGIN_B = 74, 18, 14, 42
+    # the top and bottom margins leave a full text line for the axis
+    # titles, so they never collide with the tick labels
+    MARGIN_L, MARGIN_R, MARGIN_T, MARGIN_B = 74, 18, 34, 60
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -95,8 +97,7 @@ class PlotWidget(QWidget):
         p.drawText(QPointF(rect.center().x()
                            - fm.horizontalAdvance(self._xlabel) / 2,
                            self.height() - 8), self._xlabel)
-        p.drawText(QPointF(6, self.MARGIN_T - 2 + fm.height() / 2),
-                   self._ylabel)
+        p.drawText(QPointF(6, 6 + fm.ascent()), self._ylabel)
 
         # the series: points in file order, connected when there are several
         points = [QPointF(sx(a), sy(b)) for a, b in zip(self._x, self._y)]
