@@ -44,6 +44,20 @@ def run(report_path: str | None = None) -> int:
         if not -80.0 < well < -20.0:
             raise RuntimeError(f"implausible pair well: {well:.1f} kJ/mol")
 
+        # the demonstration is the first thing a new user opens, so a bundle
+        # that lost it (or its potential) must not be published
+        from .demo import available, source_grid, source_project
+        from .project import Project
+        if not available():
+            raise RuntimeError(f"demonstration data missing: "
+                               f"{source_project()}, {source_grid()}")
+        demo_potential = Project.open(source_project()).potential_path()
+        if not demo_potential.is_file():
+            raise RuntimeError(f"the demonstration project does not resolve "
+                               f"its potential: {demo_potential}")
+        lines.append(f"demonstration: {source_project().name} with "
+                     f"{demo_potential.name}")
+
         engine = find_engine()
         if engine is None:
             raise RuntimeError("engine binary not found next to the app")

@@ -17,6 +17,7 @@ class StartPage(QWidget):
     newProjectRequested = Signal()
     openProjectRequested = Signal()
     recentProjectRequested = Signal(str)
+    demoRequested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -35,13 +36,28 @@ class StartPage(QWidget):
 
         buttons = QHBoxLayout()
         buttons.addStretch(1)
+        # the demonstration comes first and carries the primary styling: it is
+        # the only button that gives a new user a result without any setup
+        self.demo_btn = QPushButton("Open the demonstration")
+        self.demo_btn.setProperty("primary", True)
+        # height fixed like its neighbours, width free to follow the label:
+        # a fixed width would clip this longer text under a substituted font
+        # or a different DPI
+        self.demo_btn.setFixedHeight(48)
+        self.demo_btn.setMinimumWidth(220)
+        self.demo_btn.setToolTip(
+            "A ready-to-run trimesic acid monolayer with its own potential.\n"
+            "Copied into your documents folder, then opened: press Start on\n"
+            "the Run tab and watch it go. Nothing to download.")
+        self.demo_btn.clicked.connect(self.demoRequested)
         new_btn = QPushButton("New project…")
-        new_btn.setProperty("primary", True)
         new_btn.setFixedSize(200, 48)
         new_btn.clicked.connect(self.newProjectRequested)
         open_btn = QPushButton("Open project…")
         open_btn.setFixedSize(200, 48)
         open_btn.clicked.connect(self.openProjectRequested)
+        buttons.addWidget(self.demo_btn)
+        buttons.addSpacing(16)
         buttons.addWidget(new_btn)
         buttons.addSpacing(16)
         buttons.addWidget(open_btn)
@@ -80,6 +96,16 @@ class StartPage(QWidget):
         version.setStyleSheet(
             f"color: {theme.TEXT_DIM}; font-size: 9pt; background: transparent;")
         outer.addWidget(version)
+
+    def set_demo_available(self, available: bool) -> None:
+        """Grey out the demonstration when this build has no samples folder
+        (a source tree with samples/ removed, say), instead of failing on the
+        click."""
+        self.demo_btn.setEnabled(available)
+        if not available:
+            self.demo_btn.setToolTip(
+                "This build does not carry the demonstration project "
+                "(samples/projects/TMA_quickstart)")
 
     def set_recent(self, paths: list[str]) -> None:
         self.recent_list.clear()

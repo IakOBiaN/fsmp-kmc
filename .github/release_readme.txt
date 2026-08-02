@@ -32,9 +32,10 @@ forcefields/      put the downloaded production potentials here (see the
                   readme.txt inside)
 
 Quick start, with nothing to download
-1. Start the Studio, open the ready-made project samples/projects/
-   TMA_quickstart and press Start on the Run tab. Half a minute later you
-   have a trajectory, live plots and a statistics table for a trimesic acid
+1. Start the Studio and press "Open the demonstration". It copies the
+   ready-made TMA_quickstart project into your documents folder, opens it
+   and lands on the Run tab: press Start there. Half a minute later you have
+   a trajectory, live plots and a statistics table for a trimesic acid
    monolayer at 300 K.
    The same run from the command line:
        fsmp.exe configs\tma_quickstart_demo.txt      (Windows)

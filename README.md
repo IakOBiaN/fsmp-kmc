@@ -131,6 +131,11 @@ molecule), potential generation and conversion, unit-cell optimization with
 a live animation, the simulation cell, and production runs that are started
 detached, with live progress, statistics plots and a trajectory viewer.
 
+Its start page opens with **Open the demonstration**: one click installs the
+quickstart project (with its own potential, so nothing is downloaded) into
+your documents folder and lands on the Run tab, where Start is the only
+thing left to press.
+
 | ![Molecule model tab: the atomistic molecule and the site model](docs/screenshots/1-molecule-model.png) | ![Create potential tab: sweep a model into a numerical pair potential](docs/screenshots/2-create-potential.png) |
 | :---: | :---: |
 | *1 · Molecule model — the atomistic molecule and the site model* | *2 · Create potential — sweep the model into a numerical potential* |

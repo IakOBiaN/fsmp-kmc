@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QFileDialog,
                                QStackedWidget, QTabWidget, QVBoxLayout,
                                QWidget)
 
-from . import __version__, theme
+from . import __version__, demo, theme
 from .glyph import model_glyph
 from .project import Project, ProjectError, safe_filename
 from .start_page import ASSETS, StartPage
@@ -191,6 +191,8 @@ class MainWindow(QMainWindow):
         self.start_page.newProjectRequested.connect(self.new_project)
         self.start_page.openProjectRequested.connect(self.open_project)
         self.start_page.recentProjectRequested.connect(self.open_project_at)
+        self.start_page.demoRequested.connect(self.open_demo)
+        self.start_page.set_demo_available(demo.available())
         self.stack.addWidget(self.start_page)
         self.setCentralWidget(self.stack)
 
@@ -207,6 +209,10 @@ class MainWindow(QMainWindow):
             action.setShortcut(shortcut)
             action.triggered.connect(slot)
             file_menu.addAction(action)
+        self.demo_action = QAction("Open the &demonstration", self)
+        self.demo_action.setEnabled(demo.available())
+        self.demo_action.triggered.connect(self.open_demo)
+        file_menu.addAction(self.demo_action)
         file_menu.addSeparator()
         self.close_action = QAction("&Close project", self)
         self.close_action.setShortcut("Ctrl+W")
@@ -262,6 +268,27 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Cannot open project", str(e))
             return
         self._show_project(project)
+
+    def demo_location(self) -> Path:
+        """Where the demonstration is installed: one branded folder in the
+        user's documents, so the copy is easy to find and easy to delete."""
+        documents = QStandardPaths.writableLocation(
+            QStandardPaths.DocumentsLocation)
+        return Path(documents or Path.home()) / demo.INSTALL_FOLDER
+
+    def open_demo(self) -> None:
+        """Install (once) and open the bundled demonstration project, landing
+        on the Run tab, which is the only thing left to press."""
+        try:
+            project, created = demo.install(self.demo_location())
+        except (demo.DemoError, ProjectError, OSError) as e:
+            QMessageBox.warning(self, "Cannot open the demonstration", str(e))
+            return
+        self._show_project(project)
+        self.project_view.tabs.setCurrentWidget(self.project_view.run_tab)
+        self.statusBar().showMessage(
+            f"Demonstration {'installed in' if created else 'reopened from'} "
+            f"{project.root} — press Start on the Run tab")
 
     def _show_project(self, project: Project) -> None:
         if self.project_view is not None:
