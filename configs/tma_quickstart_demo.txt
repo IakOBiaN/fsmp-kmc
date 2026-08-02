@@ -1,0 +1,79 @@
+# FSMP-kMC quickstart: a short demonstration run that needs no downloads.
+# Run from the repository root (or from an unpacked release bundle):
+#
+#   ./fsmp.out configs/tma_quickstart_demo.txt      (Linux, macOS)
+#   fsmp.exe configs\tma_quickstart_demo.txt        (Windows)
+#
+# It takes about half a minute and writes the three output files listed at
+# the bottom into the working directory. What to expect: the central cell of
+# the TMA HCP crystal starts at "Density: 1.56  Energy: -61.68" (kJ/mol per
+# molecule, before any Monte Carlo step), the monolayer stays near the
+# published density of 1.558 mkmol/m2 through the field sweep, and the
+# statistics file ends up with one row per external-field value, chemical
+# potential included. The trajectory opens in the Studio or any xyz viewer.
+#
+# Everything here is a demonstration, NOT a publication setup: the bundled
+# potential is a coarse copy of the real one (see samples/potentials/
+# readme.txt) and the run is far too short to converge. For the real thing
+# see configs/tma_acid_hcp.txt, which uses the full downloaded potential.
+
+# Crystal temperature loop, K (a single point here)
+temp_from = 300
+temp_to = 300
+temp_step = 10
+
+# External field strength loop, J/mol: three points, the crystal loses
+# molecules to the gas reservoir as the field weakens
+um_from = -10000.0
+um_to = -20000.0
+um_step = 5000.0
+
+# Temperature in the transition zone, K
+temperature_in_transition_zone = 900
+lambdam = 0.0
+
+# Length of the MC run: total Monte Carlo steps and steps for relaxation
+nSteps = 15000
+nStepsEq = 7500
+
+constant_pressure = false
+constant_pressure_value = 0
+kMC = true
+
+# The coarse demonstration potential that ships with the repository and with
+# every release bundle: no download needed
+potential = samples/potentials/TMA_simple_2020_coarse_demo.v2.bin
+
+# Initial structure: a name from StructureGenerator.h, or "calculate" to
+# optimize a rough unit cell given by the unit_cell key
+structure = TMA_HCP_simple_2020
+
+# Reference area for the chemical potential: manual (uses the sigma key, in A),
+# min_dist (pi*min_dist^2/4 from the potential's hard core), or molecule_area
+# (from the U=0 contour of the potential)
+sigma_mode = manual
+sigma = 11.052
+
+# Unit cells along x and y, and the fraction of free (gas) space in the cell.
+# Small on purpose: the demonstration should finish while you watch it.
+uc_in_x = 12
+uc_in_y = 4
+free_space = 0.24
+
+# Atomistic molecule model (xyz) used for all visualizations
+molecule_model = samples/models/trimesic_acid.xyz
+
+# MC move sizes: maximal shift (A) and rotation (deg)
+delta = 2.0
+delta_angle = 60.0
+
+widom_test_index = false
+
+# A fixed seed makes the demonstration reproducible run after run
+seed = 12345
+
+# Output files (xyz animation of the cell optimization, xyz trajectory,
+# statistics table)
+unit_cell_name = quickstart_0_unit_cell.xyz
+xyz_name = quickstart_1_trajectory.xyz
+statistics_name = quickstart_2_statistics.dat

@@ -58,8 +58,18 @@ every key; use one as a template for your own system.
 
 ```bash
 make
-./fsmp.out configs/tma_acid_hcp.txt
+./fsmp.out configs/tma_quickstart_demo.txt
 ```
+
+That second line is the quickstart: it runs on the small demonstration
+potential committed to the repository, so it works right after a clone with
+nothing downloaded. Half a minute later you have a trajectory, a statistics
+table with the chemical potential of the layer, and a trimesic acid
+monolayer sitting at a density of 1.55 mkmol/m² against the published 1.558.
+The same run is a ready-to-open Studio project in
+`samples/projects/TMA_quickstart`. For real numbers, use a full potential
+(see [Forcefields](#forcefields)) and a configuration like
+`configs/tma_acid_hcp.txt`.
 
 Or compile directly, which is all the Makefile does:
 
@@ -227,10 +237,12 @@ make test
 
 The suite first checks the ASCII-to-binary converter on a synthetic grid
 against an independent reimplementation of the packing rules, then runs the
-engine on a small grid committed to the repository and compares the
-deterministic initial energy of the TMA HCP crystal with a pinned value. When
-the full TMA simple potential is present in `forcefields/`, the same check also
-runs against the published reference energy.
+engine and the unit-cell optimizer on the small demonstration grid committed
+to the repository and compares the deterministic initial energy of the TMA
+HCP crystal with a pinned value. When the full TMA simple potential is
+present in `forcefields/`, the same check also runs against the published
+reference energy. The last block runs the quickstart configuration exactly as
+it ships, so the first thing a new user tries is covered by the suite too.
 
 ## Repository layout
 
@@ -253,13 +265,13 @@ runs against the published reference energy.
 | `Weighted_averages.h` | Time averaging of the run statistics. |
 | `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
 | `random/` | SFMT random number generator (by Agner Fog). |
-| `samples/` | Example data shipped in every bundle: `models/` (atomistic `.xyz` and site `.site`, picked by a configuration's `molecule_model` key and drawn in all visual output), `cells/` (reference unit cells), and `projects/` (ready-to-open Studio projects that reproduce the paper). |
+| `samples/` | Example data shipped in every bundle: `models/` (atomistic `.xyz` and site `.site`, picked by a configuration's `molecule_model` key and drawn in all visual output), `cells/` (reference unit cells), `potentials/` (the small demonstration grid the quickstart runs on), and `projects/` (ready-to-open Studio projects: `TMA_quickstart` needs no download, the others reproduce the paper). |
 | `molecule_model.h` | Loader of the molecule model. |
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `logo/` | Project logo, GitHub preview artwork and the graphical abstract. |
 | `docs/` | README screenshots, rendered straight from the app. |
 | `tools/` | `pack_forcefield.cpp` converts an ASCII potential into the compact binary grid; `make_bundle.py` assembles a release bundle (CI and `make bundle`); `fsmp.rc`/`pack.rc` are the version resources of the Windows binaries. |
-| `tests/` | Regression tests and their small data grid (`python3 tests/run_tests.py`). |
+| `tests/` | Regression tests (`python3 tests/run_tests.py`); they run on the demonstration grid in `samples/potentials/`. |
 | `xyz_modification/` | Post-processing: a time-averaged density map from an XYZ trajectory. |
 
 ## Status

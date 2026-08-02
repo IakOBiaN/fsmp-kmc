@@ -22,22 +22,36 @@ pack.exe / pack   converts an ASCII potential to the binary format (optional)
 _internal/        the Studio runtime (do not edit)
 configs/          example parameter files for command-line runs
 samples/          example data to explore:
-                    models/    molecule models (atomistic .xyz and site .site)
-                    cells/     reference unit cells (.cell) to open in the Studio
-                    projects/  ready-to-open Studio projects (open one and run)
-forcefields/      put the downloaded potentials here (see readme.txt inside)
+                    models/     molecule models (atomistic .xyz and site .site)
+                    cells/      reference unit cells (.cell) to open in the Studio
+                    potentials/ the small demonstration potential the
+                                quickstart runs on (see the readme inside)
+                    projects/   ready-to-open Studio projects; TMA_quickstart
+                                works with nothing downloaded
+forcefields/      put the downloaded production potentials here (see the
+                  readme.txt inside)
 
-Quick start
-1. Download the potentials you need (links in forcefields/readme.txt) and
-   unpack them into the forcefields folder.
-2. Start the Studio and either open a ready-made project from samples/projects,
-   or create your own from the bundled samples/models and samples/cells.
+Quick start, with nothing to download
+1. Start the Studio, open the ready-made project samples/projects/
+   TMA_quickstart and press Start on the Run tab. Half a minute later you
+   have a trajectory, live plots and a statistics table for a trimesic acid
+   monolayer at 300 K.
+   The same run from the command line:
+       fsmp.exe configs\tma_quickstart_demo.txt      (Windows)
+       ./fsmp configs/tma_quickstart_demo.txt        (Linux, macOS)
+2. For real numbers, download a full potential (links in
+   forcefields/readme.txt), unpack it into the forcefields folder and open
+   one of the other sample projects, or build your own model in the Studio:
+   the quickstart potential is a coarse demonstration grid.
 
-Command line, without the Studio:
+Command line, without the Studio: every file in configs/ is a documented
+parameter file, and the engine takes one as its only argument.
 
     fsmp.exe configs\tma_acid_hcp.txt      (Windows)
     ./fsmp configs/tma_acid_hcp.txt        (Linux, macOS)
 
+That one is the published trimesic acid setup and needs the full potential
+downloaded into forcefields/; configs/tma_quickstart_demo.txt does not.
 Output files are written to the current folder.
 
 Project page, sources and documentation:

@@ -40,10 +40,12 @@ run.log
 # Local experiments / scratch verification (not part of the project)
 experiments/
 
-# Regression tests: build artifacts are ignored, the small committed grid is
-# exempt from the global *.bin ignore above
+# Regression tests: build artifacts are ignored. The small demonstration
+# grid shipped in samples/ is exempt from the global *.bin ignore above (it
+# is the only potential small enough to live in git, and both the quickstart
+# and the regression suite run on it)
 tests/build/
-!tests/data/*.bin
+!samples/potentials/*.bin
 
 # Papers and documents
 *.docx

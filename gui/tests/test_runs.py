@@ -22,7 +22,7 @@ from fsmp_gui.runs import (DONE, INTERRUPTED, RUNNING, STOPPED, LogWatch,
                            run_parameters, stop, waiter_main)
 
 REPO = Path(__file__).resolve().parents[2]
-GRID = REPO / "tests" / "data" / "TMA_simple_2020_s4.v2.bin"
+GRID = REPO / "samples" / "potentials" / "TMA_simple_2020_coarse_demo.v2.bin"
 SITE = REPO / "samples" / "models" / "TMA_simplified_2020.site"
 MODEL = REPO / "samples" / "models" / "trimesic_acid.xyz"
 

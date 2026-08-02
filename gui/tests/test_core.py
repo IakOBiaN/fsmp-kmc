@@ -19,7 +19,7 @@ from fsmp_gui.project import Project, ProjectError, safe_filename
 from fsmp_gui.sitemodel import Site, SiteModel
 
 REPO = Path(__file__).resolve().parents[2]
-TEST_GRID = REPO / "tests" / "data" / "TMA_simple_2020_s4.v2.bin"
+TEST_GRID = REPO / "samples" / "potentials" / "TMA_simple_2020_coarse_demo.v2.bin"
 
 
 class TestMolecule(unittest.TestCase):
@@ -259,6 +259,43 @@ class TestForcefieldHeader(unittest.TestCase):
             short.write_bytes(b"FSMP")
             with self.assertRaises(ForcefieldError):
                 read_header(short)
+
+
+class TestSampleProjects(unittest.TestCase):
+    """The projects shipped in samples/ (and in every release bundle) must
+    open on any machine, not just the one they were saved on: every path in
+    a manifest has to be relative, and the quickstart's potential has to be
+    there, since its whole point is working with nothing downloaded."""
+
+    SAMPLES = REPO / "samples" / "projects"
+
+    def sample_projects(self):
+        return sorted(p.parent for p in self.SAMPLES.rglob("project.json"))
+
+    def test_every_sample_opens_with_relative_paths(self):
+        found = self.sample_projects()
+        self.assertTrue(found, "no sample projects found")
+        for root in found:
+            with self.subTest(project=root.name):
+                project = Project.open(root)
+                for entry in (project.atomistic, project.site):
+                    self.assertIsNotNone(entry)
+                    self.assertFalse(Path(entry["file"]).is_absolute())
+                    self.assertTrue(project.model_path(entry).is_file())
+                self.assertIsNotNone(project.potential)
+                self.assertFalse(Path(project.potential["path"]).is_absolute(),
+                                 "a machine-specific path would break on any "
+                                 "other computer")
+                cell = project.unit_cell
+                self.assertTrue(cell and cell["molecules"])
+                self.assertIsNotNone(project.simulation_cell)
+                self.assertIsNotNone(project.simulation)
+
+    def test_quickstart_needs_no_download(self):
+        project = Project.open(self.SAMPLES / "TMA_quickstart")
+        self.assertTrue(project.potential_path().is_file(),
+                        "the quickstart potential must ship with the project")
+        self.assertEqual(read_header(project.potential_path()).version, 2)
 
 
 if __name__ == "__main__":

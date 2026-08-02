@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Make the small committed test grid by striding an existing v2 binary.
+"""Make the small committed demonstration grid by striding an existing v2 binary.
 
 Keeps every N-th point along the distance and both angles, and scales dr/da in
 the header accordingly. The angular grid must keep its endpoint, so N has to
 divide n_ang-1. Assumes a little-endian host (the file format is little-endian).
 
-The committed tests/data/TMA_simple_2020_s4.v2.bin was produced with:
+The committed samples/potentials/TMA_simple_2020_coarse_demo.v2.bin was
+produced with:
     python3 tests/make_test_grid.py forcefields/TMA_simple_2020.v2.bin \
-            tests/data/TMA_simple_2020_s4.v2.bin 4
+            samples/potentials/TMA_simple_2020_coarse_demo.v2.bin 4
 
 Usage: make_test_grid.py <input.v2.bin> <output.v2.bin> <stride>
 """

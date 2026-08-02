@@ -23,7 +23,7 @@ from fsmp_gui.engine import (ANIMATION, PARAMETERS, FrameReader, app_root,
                              placements_to_chain)
 
 REPO = Path(__file__).resolve().parents[2]
-GRID = REPO / "tests" / "data" / "TMA_simple_2020_s4.v2.bin"
+GRID = REPO / "samples" / "potentials" / "TMA_simple_2020_coarse_demo.v2.bin"
 MODEL = REPO / "samples" / "models" / "trimesic_acid.xyz"
 
 
