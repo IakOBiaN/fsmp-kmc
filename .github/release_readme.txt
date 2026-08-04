@@ -30,6 +30,10 @@ samples/          example data to explore:
                                 works with nothing downloaded
 forcefields/      put the downloaded production potentials here (see the
                   readme.txt inside)
+LICENSE           FSMP-kMC is free software under the GNU GPL v3.0
+THIRD_PARTY_NOTICES.md
+licenses/         what this archive carries besides FSMP-kMC itself (Qt,
+                  Python, NumPy, RDKit and the rest) and under what terms
 
 Quick start, with nothing to download
 1. Start the Studio and press "Open the demonstration". It copies the

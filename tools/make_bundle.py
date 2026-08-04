@@ -19,10 +19,18 @@ import re
 import shutil
 import subprocess
 import sys
+from importlib import metadata
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 EXE = ".exe" if os.name == "nt" else ""
+
+# Components frozen into the Studio that ship their own license text. It is
+# taken from the installed distribution, so the text in the archive always
+# describes the version that was actually bundled. Qt is not here: the
+# PySide6 wheels carry only a reference to the commercial license, while
+# these builds use Qt under the LGPL, whose text is kept in licenses/.
+WHEEL_LICENSES = ("numpy", "rdkit", "pillow", "PyYAML", "pyinstaller")
 
 
 def project_version() -> str:
@@ -63,6 +71,88 @@ def build_engine() -> None:
          "fsmp.cpp", "-o", "fsmp" + EXE])
     run([cxx, "-O3", *static, "-Wall", "-Wextra",
          Path("tools") / "pack_forcefield.cpp", "-o", "pack" + EXE])
+
+
+def wheel_license_files(name: str) -> list[tuple[Path, Path]]:
+    """(path inside the .dist-info, absolute path) of every license text an
+    installed distribution ships."""
+    try:
+        dist = metadata.distribution(name)
+    except metadata.PackageNotFoundError:
+        return []
+    found = []
+    for entry in dist.files or []:
+        parts = Path(str(entry)).parts
+        info = next((i for i, p in enumerate(parts)
+                     if p.endswith(".dist-info")), None)
+        if info is None:
+            continue                     # package data, not a license text
+        rest = parts[info + 1:]
+        if not rest:
+            continue
+        # the folder test comes first: "licenses" itself starts with "license"
+        if rest[0] == "licenses" and len(rest) > 1:
+            rel = Path(*rest[1:])      # wheels nest their texts one level down
+        elif rest[0].upper().startswith(("LICENSE", "COPYING", "NOTICE")):
+            rel = Path(*rest)
+        else:
+            continue
+        path = Path(dist.locate_file(entry))
+        if path.is_file():
+            found.append((rel, path))
+    return found
+
+
+def copy_licenses(bundle: Path) -> None:
+    """The project's own license, the third-party notices, and the license
+    texts of everything frozen into the archive. Distributing binaries
+    without them would breach both the project's GPL and the terms of the
+    bundled libraries."""
+    shutil.copy2(REPO / "LICENSE", bundle / "LICENSE")
+    shutil.copy2(REPO / "THIRD_PARTY_NOTICES.md", bundle)
+    dest = bundle / "licenses"
+    dest.mkdir(exist_ok=True)
+    for text in sorted((REPO / "licenses").glob("*.txt")):
+        shutil.copy2(text, dest / text.name)
+    for name in WHEEL_LICENSES:
+        files = wheel_license_files(name)
+        if not files:
+            print(f"  ! no license text found for {name}", flush=True)
+            continue
+        for rel, path in files:
+            target = dest / name / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
+
+
+def studio_name() -> str:
+    if platform.system() == "Darwin":
+        return "FSMP-kMC Studio.app"
+    return "FSMP-kMC Studio" + EXE
+
+
+def verify(bundle: Path) -> None:
+    """Refuse to publish an archive that lost something a user needs: the
+    licenses, the app, the engine, or the data the demonstration runs on."""
+    required = [
+        studio_name(),
+        "fsmp" + EXE, "pack" + EXE,
+        "README.txt", "LICENSE", "THIRD_PARTY_NOTICES.md",
+        "licenses/LGPL-3.0.txt",
+        "forcefields/readme.txt",
+        "configs/tma_quickstart_demo.txt",
+        "samples/models/trimesic_acid.xyz",
+        "samples/projects/TMA_quickstart/project.json",
+    ]
+    missing = [name for name in required if not (bundle / name).exists()]
+    # the demonstration is useless without its grid; the name is free to
+    # change, the folder may not be empty
+    if not list((bundle / "samples" / "potentials").glob("*.v2.bin")):
+        missing.append("samples/potentials/*.v2.bin")
+    if missing:
+        sys.exit("bundle is incomplete, refusing to package:\n  "
+                 + "\n  ".join(missing))
+    print(f"verified {len(required) + 1} required entries")
 
 
 def main() -> None:
@@ -108,6 +198,8 @@ def main() -> None:
     shutil.copy2(REPO / "forcefields" / "readme.txt", bundle / "forcefields")
     shutil.copy2(REPO / ".github" / "release_readme.txt",
                  bundle / "README.txt")
+    copy_licenses(bundle)
+    verify(bundle)
 
     kind = "zip" if os.name == "nt" else "gztar"
     archive = shutil.make_archive(str(bundle), kind,

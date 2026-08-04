@@ -295,6 +295,13 @@ small features.
 
 Released under the GNU General Public License v3.0. See [LICENSE](LICENSE).
 
+Every release archive carries that license, a
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and a `licenses/` folder
+with the terms of everything bundled with it: Qt through PySide6 under the
+LGPL v3.0, the Python runtime, NumPy, RDKit, Pillow, PyYAML, the PyInstaller
+bootloader, and the SFMT random number generator inside the engine itself.
+The bundle is not packaged unless all of them are present.
+
 This repository is a fork and continuation of the original FSMP-kMC code,
 published on GitLab under its historical name
 [pedl/n2_quadrupole](https://gitlab.com/pedl/n2_quadrupole). The code was
