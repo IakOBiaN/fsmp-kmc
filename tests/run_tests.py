@@ -61,6 +61,32 @@ def engine(config, log_name, cwd=TESTS):
     return log
 
 
+def rejected(edits, expected_message):
+    """Run the engine on hcp_small.txt with some keys replaced, and require
+    that it refuses the file with a message naming the problem."""
+    lines = (TESTS / "hcp_small.txt").read_text().splitlines()
+    for key, value in edits.items():
+        for i, line in enumerate(lines):
+            if line.split("=")[0].strip() == key:
+                lines[i] = f"{key} = {value}"
+                break
+        else:
+            sys.exit(f"test bug: hcp_small.txt has no key {key}")
+    bad = BUILD / "invalid.txt"
+    bad.write_text("\n".join(lines) + "\n")
+
+    result = subprocess.run([str(BUILD / ("fsmp" + EXE)), "build/invalid.txt"],
+                            cwd=TESTS, capture_output=True, text=True)
+    output = result.stdout + result.stderr
+    edited = ", ".join(f"{k} = {v}" for k, v in edits.items())
+    if result.returncode == 0:
+        sys.exit(f"FAIL: the engine accepted {edited}")
+    if expected_message not in output:
+        sys.exit(f"FAIL: {edited} was refused, but the message does not mention "
+                 f"{expected_message!r}:\n{output.strip()}")
+    print(f"OK  refused {edited}")
+
+
 def pin(log, expected, tolerance, label=None):
     cmd = [sys.executable, "check_energy.py", log, expected, tolerance]
     if label:
@@ -75,7 +101,7 @@ for pattern in ("0_*.xyz", "1_*.xyz", "2_*.dat"):
     for stray in TESTS.glob(pattern):
         stray.unlink()
 
-print("== [1/7] pack_forcefield round-trip on a synthetic grid ==", flush=True)
+print("== [1/8] pack_forcefield round-trip on a synthetic grid ==", flush=True)
 compile_cpp(TESTS.parent / "tools" / "pack_forcefield.cpp",
             BUILD / ("pack" + EXE), "-Wall", "-Wextra")
 run([sys.executable, "test_pack_roundtrip.py", BUILD / ("pack" + EXE), BUILD])
@@ -83,27 +109,27 @@ run([sys.executable, "test_pack_roundtrip.py", BUILD / ("pack" + EXE), BUILD])
 compile_cpp(TESTS.parent / "fsmp.cpp", BUILD / ("fsmp" + EXE),
             "-ffp-contract=off")
 
-print("== [2/7] the engine reports its version ==", flush=True)
+print("== [2/8] the engine reports its version ==", flush=True)
 version = subprocess.run([str(BUILD / ("fsmp" + EXE)), "--version"],
                          cwd=TESTS, capture_output=True, text=True)
 if version.returncode != 0 or not version.stdout.startswith("FSMP-kMC "):
     sys.exit(f"--version failed: {version.stdout}{version.stderr}")
 print(version.stdout.strip())
 
-print("== [3/7] engine on the small committed grid ==", flush=True)
+print("== [3/8] engine on the small committed grid ==", flush=True)
 pin(engine("hcp_small.txt", "hcp_small.log"), -61.7449, 0.001)
 
-print("== [4/7] engine on the full TMA simple potential ==", flush=True)
+print("== [4/8] engine on the full TMA simple potential ==", flush=True)
 if (TESTS.parent / "forcefields" / "TMA_simple_2020.v2.bin").is_file():
     pin(engine("hcp_full.txt", "hcp_full.log"), -62.8605, 0.001)
 else:
     print("SKIP: forcefields/TMA_simple_2020.v2.bin not present")
 
-print("== [5/7] unit-cell optimizer on the small committed grid ==", flush=True)
+print("== [5/8] unit-cell optimizer on the small committed grid ==", flush=True)
 pin(engine("optimize_small.txt", "optimize_small.log"), -62.2276, 0.05,
     "Final energy per molecule:")
 
-print("== [6/7] unit-cell optimizer from an overlapping start ==", flush=True)
+print("== [6/8] unit-cell optimizer from an overlapping start ==", flush=True)
 pin(engine("optimize_overlap.txt", "optimize_overlap.log"), -62.2276, 0.05,
     "Final energy per molecule:")
 
@@ -111,7 +137,7 @@ pin(engine("optimize_overlap.txt", "optimize_overlap.log"), -62.2276, 0.05,
 # too: the shipped configuration, from the repository root as its own
 # comment says, on the demonstration grid that ships next to it. Its output
 # files land in the working directory, so they are cleared around the run.
-print("== [7/7] the quickstart configuration, as shipped ==", flush=True)
+print("== [7/8] the quickstart configuration, as shipped ==", flush=True)
 QUICKSTART_OUTPUT = ("quickstart_0_unit_cell.xyz", "quickstart_1_trajectory.xyz",
                      "quickstart_2_statistics.dat")
 for name in QUICKSTART_OUTPUT:
@@ -120,5 +146,22 @@ pin(engine(Path("configs") / "tma_quickstart_demo.txt", "quickstart.log",
            cwd=REPO), -61.6841, 0.001)
 for name in QUICKSTART_OUTPUT:
     (REPO / name).unlink(missing_ok=True)
+
+
+# A parameter file that parses but cannot be run with must stop the program
+# at once, naming the key and the line, instead of producing NaNs or looping
+# forever hours into a run.
+print("== [8/8] the engine refuses impossible parameters ==", flush=True)
+rejected({"temp_from": "nan"}, "is not a finite number")
+rejected({"um_to": "inf"}, "is not a finite number")
+rejected({"nSteps": "3000000000"}, "does not fit in a 32-bit integer")
+rejected({"temp_to": "400", "temp_step": "0"}, "would never reach the end")
+rejected({"free_space": "0.5"}, "must be in [0, 0.5)")
+rejected({"nStepsEq": "3"}, "must not exceed nSteps")
+rejected({"uc_in_x": "0"}, "must be at least one unit cell")
+rejected({"delta": "0"}, "must be a positive maximal displacement")
+rejected({"temperature_in_transition_zone": "0"}, "must be a positive temperature")
+# nSteps itself fits in an int, but nSteps x 264 particles does not
+rejected({"nSteps": "10000000"}, "iterations, which does not fit")
 
 print("ALL TESTS PASSED")

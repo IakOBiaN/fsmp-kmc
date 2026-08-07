@@ -17,9 +17,15 @@
 // that keeps a metastable polymorph intact, see the key handler below).
 
 #include <set>
+#include <map>
+#include <cerrno>
 
 static bool param_seed_given = false;
 static int  param_seed = 0;
+
+// Line each key was read from, so a range error can point at it just like a
+// parse error does.
+static map<string, int> param_lines;
 
 static string trim_spaces(const string & s)
 {
@@ -38,10 +44,21 @@ static void param_error(const string & file, int line, const string & msg)
 static double param_double(const string & file, int line, const string & key, const string & value)
 {
 	char * end = 0;
+	errno = 0;
 	double v = strtod(value.c_str(), &end);
 	if (end == value.c_str() || *end != '\0')
 	{
 		param_error(file, line, "key \"" + key + "\": \"" + value + "\" is not a number");
+	}
+	// strtod happily returns nan and inf; they would spread through every
+	// energy and never trip a comparison, so they stop the run here
+	if (!isfinite(v))
+	{
+		param_error(file, line, "key \"" + key + "\": \"" + value + "\" is not a finite number");
+	}
+	if (errno == ERANGE && v != 0.0)
+	{
+		param_error(file, line, "key \"" + key + "\": \"" + value + "\" is too large to represent");
 	}
 	return v;
 }
@@ -49,12 +66,30 @@ static double param_double(const string & file, int line, const string & key, co
 static int param_int(const string & file, int line, const string & key, const string & value)
 {
 	char * end = 0;
+	errno = 0;
 	long v = strtol(value.c_str(), &end, 10);
 	if (end == value.c_str() || *end != '\0')
 	{
 		param_error(file, line, "key \"" + key + "\": \"" + value + "\" is not an integer");
 	}
+	// without this, a value above 2^31 would be silently truncated, and the
+	// run would use a number the file never mentioned
+	if (errno == ERANGE || v < INT_MIN || v > INT_MAX)
+	{
+		param_error(file, line, "key \"" + key + "\": \"" + value + "\" does not fit in a 32-bit integer");
+	}
 	return (int)v;
+}
+
+// A value that parsed but cannot be run with. The message points at the line
+// the key came from.
+static void param_require(bool ok, const string & file, const string & key, const string & msg)
+{
+	if (!ok)
+	{
+		int line = param_lines.count(key) ? param_lines[key] : 0;
+		param_error(file, line, "key \"" + key + "\" " + msg);
+	}
 }
 
 static bool param_bool(const string & file, int line, const string & key, const string & value)
@@ -90,6 +125,7 @@ void read_parameters(const char * path)
 		string value = trim_spaces(line.substr(eq + 1));
 		if (key.empty() || value.empty()) { param_error(file, lineno, "expected \"key = value\""); }
 		if (!seen.insert(key).second) { param_error(file, lineno, "duplicate key \"" + key + "\""); }
+		param_lines[key] = lineno;
 
 		if      (key == "potential")                      { p_name = value; }
 		else if (key == "structure")                      { structure_name = value; }
@@ -217,5 +253,43 @@ void read_parameters(const char * path)
 		     << "(a named structure has nothing to optimize)" << endl;
 		exit(1);
 	}
+
+	// Values that parse but cannot be run with. Each one below either divides
+	// by zero, loops forever, samples nothing, or silently produces a NaN
+	// halfway through a long run, so it is refused here instead.
+	param_require(temp_from > 0, file, "temp_from", "must be a positive temperature (K)");
+	param_require(temp_to > 0, file, "temp_to", "must be a positive temperature (K)");
+	param_require(temperature_in_transition_zone > 0, file, "temperature_in_transition_zone",
+	              "must be a positive temperature (K): the damping field takes its square root");
+	// the loop walks from *_from towards *_to and stops when it passes it, so
+	// a zero step over a non-empty range never terminates (the sign does not
+	// matter, the program takes the absolute value)
+	param_require(temp_from == temp_to || temp_step != 0, file, "temp_step",
+	              "must not be zero when temp_from and temp_to differ: the loop would never reach the end");
+	param_require(um_from == um_to || um_step != 0, file, "um_step",
+	              "must not be zero when um_from and um_to differ: the loop would never reach the end");
+	param_require(lambdam >= 0, file, "lambdam", "must not be negative: it scales the damping field");
+	param_require(nSteps >= 1, file, "nSteps", "must be at least one Monte Carlo step");
+	param_require(nStepsEq >= 0, file, "nStepsEq", "must not be negative");
+	param_require(nStepsEq <= nSteps, file, "nStepsEq",
+	              "must not exceed nSteps: the run would end before anything is averaged");
+	param_require(uc_in_x >= 1, file, "uc_in_x", "must be at least one unit cell");
+	param_require(uc_in_y >= 1, file, "uc_in_y", "must be at least one unit cell");
+	param_require(free_space >= 0 && free_space < 0.5, file, "free_space",
+	              "must be in [0, 0.5): the cell length is divided by (1 - 2*free_space)");
+	param_require(delta > 0, file, "delta", "must be a positive maximal displacement (A)");
+	param_require(delta_angle > 0, file, "delta_angle", "must be a positive maximal rotation (deg)");
+	if (seen.count("sigma"))
+	{
+		param_require(sigma_manual > 0, file, "sigma", "must be a positive length (A)");
+	}
+	if (!unit_cell_params.empty())
+	{
+		param_require(unit_cell_params[0] == floor(unit_cell_params[0]), file, "unit_cell",
+		              "must start with a whole number of molecules per cell");
+		param_require(unit_cell_params[1] > 0 && unit_cell_params[2] > 0, file, "unit_cell",
+		              "must have positive cell sides");
+	}
+
 	cout << "Parameters read from " << file << endl;
 }

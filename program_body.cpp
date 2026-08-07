@@ -244,6 +244,16 @@ int main(int argc, char ** argv)
 	/////////////////////////////
 	// Set the Monte Carlo run //
 	/////////////////////////////
+	// The iteration counters are ints, so the product must fit in one: an
+	// overflow here would silently run a negative number of iterations
+	// instead of the long run that was asked for.
+	if ((long long)nSteps * nPart > (long long)INT_MAX)
+	{
+		cerr << "ERROR: nSteps (" << nSteps << ") x " << nPart << " particles = "
+		     << (long long)nSteps * nPart << " iterations, which does not fit in a 32-bit"
+		     << " integer; reduce nSteps or the number of unit cells" << endl;
+		exit(1);
+	}
 	int nIter = nSteps * nPart; // convert the MCS to iterations
 	int nIterEq = nStepsEq * nPart;
 	//vector <double> pressure_stat(nIter - nIterEq);

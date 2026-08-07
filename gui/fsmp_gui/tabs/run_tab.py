@@ -370,6 +370,10 @@ class RunTab(QWidget):
         grid2 = QGridLayout(mc)
         self.nsteps = self._ispin(1, 1000000000, 500000)
         self.nsteps_eq = self._ispin(1, 1000000000, 250000)
+        # relaxation cannot outlast the run itself: the engine refuses such a
+        # pair, so the form never offers it (settings are loaded nSteps first)
+        self.nsteps.valueChanged.connect(self.nsteps_eq.setMaximum)
+        self.nsteps_eq.setMaximum(self.nsteps.value())
         self.delta = self._dspin(0.01, 50, 2.0, 0.1, dec=2, suffix=" Å")
         self.delta_angle = self._dspin(0.1, 180, 60.0, 5, suffix=" °")
         self.kmc = QCheckBox("kinetic MC (kMC)")

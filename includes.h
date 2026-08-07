@@ -12,6 +12,7 @@
 #include "random/sfmt.cpp"
 #pragma GCC diagnostic pop
 #include <float.h>
+#include <climits>
 #include <string>
 #include "version.h"
 using namespace std;
