@@ -94,14 +94,19 @@ are written there.
 Every [release](https://github.com/IakOBiaN/fsmp-kmc/releases/latest) ships a
 self-contained bundle per platform (Windows, Linux, macOS): the FSMP-kMC
 Studio desktop app, the engine and converter binaries, example configs and
-the bundled molecule models and unit cells. Download the archive for your
-system, unpack it, put the downloaded potentials into its `forcefields/`
-folder and start the Studio (`FSMP-kMC Studio.exe` on Windows), or run the
-engine from the command line:
+the bundled molecule models, unit cells and demonstration potential. Download
+the archive for your system, unpack it and start the Studio
+(`FSMP-kMC Studio.exe` on Windows), or run the engine from the command line:
 
 ```
-fsmp.exe configs\tma_acid_hcp.txt
+fsmp.exe configs\tma_quickstart_demo.txt
 ```
+
+The same release also carries a `-cli` archive per platform: the engine, the
+converter and the example data without the Studio, a few megabytes instead of
+a hundred, for running from the command line or on a cluster. Both archives
+carry a `BUILD_INFO.txt` naming the version, the platform and the commit they
+were built from.
 
 Working with a release does not require the source code. The binaries are
 not code-signed (usual for academic software): on the first launch of a

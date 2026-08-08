@@ -6,7 +6,8 @@
 #                   needs a MinGW g++ (w64devkit or MSYS2) on PATH
 #   make test       run the regression test suite (needs a Python 3; on
 #                   Windows pass PYTHON=python or a full interpreter path)
-#   make bundle     assemble a release-layout bundle in dist/ (Windows;
+#   make bundle     assemble the release archives in dist/ (the Studio
+#                   bundle and the engine-only -cli archive; Windows,
 #                   elsewhere run tools/make_bundle.py --build-engine)
 #   make clean      remove built binaries
 #

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Assemble a release bundle: the Studio (PyInstaller), the engine binaries
-and the bundled data, laid out exactly like a published release archive.
+"""Assemble the release archives: the full bundle (the Studio frozen with
+PyInstaller, the engine binaries and the bundled data) and the -cli archive
+(the same minus the Studio, a few megabytes for command-line use), laid out
+exactly like a published release.
 
-    python3 tools/make_bundle.py [--name v0.5.0] [--build-engine]
+    python3 tools/make_bundle.py [--name v0.5.0] [--build-engine] [--cli]
 
 The engine binaries (fsmp.exe/pack.exe on Windows, fsmp/pack elsewhere) are
 expected in the repository root: `make windows` builds them on Windows,
@@ -19,6 +21,7 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
 
@@ -131,28 +134,117 @@ def studio_name() -> str:
     return "FSMP-kMC Studio" + EXE
 
 
-def verify(bundle: Path) -> None:
-    """Refuse to publish an archive that lost something a user needs: the
-    licenses, the app, the engine, or the data the demonstration runs on."""
-    required = [
-        studio_name(),
-        "fsmp" + EXE, "pack" + EXE,
-        "README.txt", "LICENSE", "THIRD_PARTY_NOTICES.md",
-        "licenses/LGPL-3.0.txt",
-        "forcefields/readme.txt",
-        "configs/tma_quickstart_demo.txt",
-        "samples/models/trimesic_acid.xyz",
-        "samples/projects/TMA_quickstart/project.json",
-    ]
+# Everything an archive must carry whatever else is in it: the engine, the
+# papers that let it be redistributed, and the data the demonstration runs on
+COMMON_REQUIRED = [
+    "fsmp" + EXE, "pack" + EXE,
+    "README.txt", "LICENSE", "THIRD_PARTY_NOTICES.md", "BUILD_INFO.txt",
+    "forcefields/readme.txt",
+    "configs/tma_quickstart_demo.txt",
+    "samples/models/trimesic_acid.xyz",
+    "samples/projects/TMA_quickstart/project.json",
+]
+
+
+def verify(bundle: Path, required: list) -> None:
+    """Refuse to package an archive that lost something a user needs."""
     missing = [name for name in required if not (bundle / name).exists()]
     # the demonstration is useless without its grid; the name is free to
     # change, the folder may not be empty
     if not list((bundle / "samples" / "potentials").glob("*.v2.bin")):
         missing.append("samples/potentials/*.v2.bin")
     if missing:
-        sys.exit("bundle is incomplete, refusing to package:\n  "
+        sys.exit(f"{bundle.name} is incomplete, refusing to package:\n  "
                  + "\n  ".join(missing))
-    print(f"verified {len(required) + 1} required entries")
+    print(f"verified {len(required) + 1} required entries in {bundle.name}")
+
+
+def git_commit() -> str:
+    """The commit an archive was built from, marked when the tree carried
+    uncommitted changes. Unknown outside a git checkout."""
+    try:
+        sha = subprocess.run(["git", "rev-parse", "--short=12", "HEAD"],
+                             cwd=REPO, capture_output=True, text=True,
+                             check=True).stdout.strip()
+        dirty = subprocess.run(["git", "status", "--porcelain"], cwd=REPO,
+                               capture_output=True, text=True,
+                               check=True).stdout.strip()
+        return sha + (" (with uncommitted changes)" if dirty else "")
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown (not a git checkout)"
+
+
+def engine_version(engine: Path) -> str:
+    try:
+        return subprocess.run([str(engine), "--version"], capture_output=True,
+                              text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as e:
+        return f"could not be asked ({e})"
+
+
+def write_build_info(bundle: Path, name: str, engine: Path,
+                     studio: bool) -> None:
+    """A short record of where this archive came from, so a bug report can
+    name the build instead of guessing at it."""
+    lines = [
+        f"FSMP-kMC {project_version()}",
+        f"archive:   {bundle.name}",
+        f"contents:  {'Studio, engine and data' if studio else 'engine and data, no Studio'}",
+        f"built:     {datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S} UTC",
+        f"platform:  {platform_tag()} ({platform.platform()})",
+        f"commit:    {git_commit()}",
+        f"engine:    {engine_version(engine)}",
+    ]
+    if studio:
+        lines.append(f"python:    {platform.python_version()}")
+        frozen = []
+        for package in ("PySide6", "numpy", "rdkit", "pillow", "pyinstaller"):
+            try:
+                frozen.append(f"{package} {metadata.version(package)}")
+            except metadata.PackageNotFoundError:
+                pass
+        lines.append("frozen:    " + ", ".join(frozen))
+    (bundle / "BUILD_INFO.txt").write_text("\n".join(lines) + "\n",
+                                           encoding="utf-8")
+
+
+def copy_shared_data(bundle: Path, engine: Path, pack: Path) -> None:
+    """The parts both archives carry: the binaries, the examples and the
+    empty forcefields folder the user drops downloads into."""
+    shutil.copy2(engine, bundle)
+    shutil.copy2(pack, bundle)
+    # configs are the engine's example parameter files; samples carries the
+    # example molecule models, unit cells, the demonstration potential and
+    # the ready-to-open Studio projects
+    for folder in ("configs", "samples"):
+        shutil.copytree(REPO / folder, bundle / folder)
+    (bundle / "forcefields").mkdir()
+    shutil.copy2(REPO / "forcefields" / "readme.txt", bundle / "forcefields")
+
+
+def build_cli_archive(name: str, engine: Path, pack: Path) -> str:
+    """The engine on its own: a few megabytes for someone who runs from the
+    command line and has no use for a hundred megabytes of Qt and Python.
+    The staging folder is removed once packed, so dist/ keeps exactly one
+    unpacked bundle (the release workflow self-tests it by globbing)."""
+    stage = REPO / "dist" / f"fsmp-kmc-{name}-{platform_tag()}-cli"
+    if stage.exists():
+        shutil.rmtree(stage)
+    stage.mkdir(parents=True)
+
+    copy_shared_data(stage, engine, pack)
+    shutil.copy2(REPO / ".github" / "release_readme_cli.txt",
+                 stage / "README.txt")
+    shutil.copy2(REPO / "LICENSE", stage / "LICENSE")
+    shutil.copy2(REPO / "THIRD_PARTY_NOTICES.md", stage)
+    write_build_info(stage, name, engine, studio=False)
+    verify(stage, COMMON_REQUIRED)
+
+    kind = "zip" if os.name == "nt" else "gztar"
+    archive = shutil.make_archive(str(stage), kind, root_dir=stage.parent,
+                                  base_dir=stage.name)
+    shutil.rmtree(stage)
+    return archive
 
 
 def main() -> None:
@@ -162,6 +254,8 @@ def main() -> None:
                              " defaults to version.h")
     parser.add_argument("--build-engine", action="store_true",
                         help="compile the engine here with the release flags")
+    parser.add_argument("--cli", action="store_true",
+                        help="only the command-line archive (no PyInstaller)")
     args = parser.parse_args()
     name = args.name or ("v" + project_version())
 
@@ -172,6 +266,10 @@ def main() -> None:
     if not (engine.is_file() and pack.is_file()):
         sys.exit(f"engine binaries not found in {REPO}: run `make windows` "
                  "(Windows) or rerun with --build-engine")
+
+    if args.cli:
+        print("archive:", build_cli_archive(name, engine, pack))
+        return
 
     run([find_pyinstaller(), "--noconfirm", "--distpath", "gui/dist",
          "--workpath", "gui/build", "gui/studio.spec"])
@@ -188,18 +286,12 @@ def main() -> None:
     else:
         shutil.copytree(REPO / "gui" / "dist" / "studio", bundle,
                         dirs_exist_ok=True)
-    shutil.copy2(engine, bundle)
-    shutil.copy2(pack, bundle)
-    # configs are the engine's example parameter files; samples carries the
-    # example molecule models, unit cells and ready-to-open Studio projects
-    for folder in ("configs", "samples"):
-        shutil.copytree(REPO / folder, bundle / folder)
-    (bundle / "forcefields").mkdir()
-    shutil.copy2(REPO / "forcefields" / "readme.txt", bundle / "forcefields")
+    copy_shared_data(bundle, engine, pack)
     shutil.copy2(REPO / ".github" / "release_readme.txt",
                  bundle / "README.txt")
     copy_licenses(bundle)
-    verify(bundle)
+    write_build_info(bundle, name, engine, studio=True)
+    verify(bundle, COMMON_REQUIRED + [studio_name(), "licenses/LGPL-3.0.txt"])
 
     kind = "zip" if os.name == "nt" else "gztar"
     archive = shutil.make_archive(str(bundle), kind,
@@ -207,6 +299,7 @@ def main() -> None:
                                   base_dir=bundle.name)
     print("bundle: ", bundle)
     print("archive:", archive)
+    print("archive:", build_cli_archive(name, engine, pack))
 
 
 if __name__ == "__main__":

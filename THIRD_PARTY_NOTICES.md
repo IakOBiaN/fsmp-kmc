@@ -55,6 +55,10 @@ attribution requirement for binaries; see
 
 ## In the Studio bundle
 
+This section applies to the full bundle only. The `-cli` archive of a
+release carries the engine and the example data, nothing from the list
+below.
+
 The desktop application is frozen with PyInstaller, so a release archive
 contains a Python runtime and the libraries below.
 

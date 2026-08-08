@@ -218,10 +218,14 @@ jobs:
         run: |
           ls -l bundles
           cat > notes.md <<'EOF'
-          Self-contained bundles per platform: unpack, put the downloaded
-          potentials into `forcefields/` and start the Studio, or run the
-          engine from the command line. `README.txt` inside the archive
-          walks through it.
+          Self-contained bundles per platform: unpack and start the Studio,
+          or run the engine from the command line. Both carry a small
+          demonstration potential, so the quickstart runs with nothing
+          downloaded; production potentials go into `forcefields/`.
+          `README.txt` inside the archive walks through it.
+
+          The `-cli` archives are the engine alone, a few megabytes instead
+          of a hundred, for command-line use with no Studio.
 
           The binaries are not code-signed (usual for academic software):
           Windows SmartScreen warns on the first launch of a downloaded
