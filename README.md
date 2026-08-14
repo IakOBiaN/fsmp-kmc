@@ -8,28 +8,81 @@
 
 # FSMP-kMC
 
-[![CI](https://github.com/iakobian/fsmp-kmc/actions/workflows/ci.yml/badge.svg)](https://github.com/iakobian/fsmp-kmc/actions/workflows/ci.yml)
+[![CI](https://github.com/IakOBiaN/fsmp-kmc/actions/workflows/ci.yml/badge.svg)](https://github.com/IakOBiaN/fsmp-kmc/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/IakOBiaN/fsmp-kmc)](https://github.com/IakOBiaN/fsmp-kmc/releases/latest)
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+![Platforms: Windows, Linux, macOS](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
-**Field-Stabilized Multiphase kinetic Monte Carlo.** A kinetic Monte Carlo
-engine for the atomistic thermodynamics of rigid molecular crystals and
-two-dimensional adsorption layers.
+**The free energy, entropy and chemical potential of a dense molecular
+monolayer, straight from an atomistic simulation you can start by pressing
+one button.**
 
-The code simulates two coexisting phases (a crystal and an ideal-gas reservoir)
-in a single elongated cell. Two imposed inhomogeneous fields, a *damping* field
-and an *external* field, stabilize this coexistence over a wide range of
-temperature and pressure. This makes it possible to determine the free energy,
-entropy and chemical potential of dense molecular layers from the equality of
-chemical potentials in the coexisting phases.
+*Field-Stabilized Multiphase kinetic Monte Carlo* keeps a crystal and its own
+gas reservoir coexisting in one elongated cell, held there by two imposed
+fields. Thermodynamics then follows from the equality of the chemical
+potentials in the two phases: the dense layer is referred to the ideal gas
+sitting in the same cell, rather than integrated along an artificial path.
+Molecules are rigid bodies free to sit and turn anywhere, and they interact
+through a precalculated numerical potential, so a DFT-quality pair
+interaction costs an interpolation during the run.
 
 <p align="center">
-  <a href="docs/screenshots/5-simulation-cell.png"><img
-    src="docs/screenshots/5-simulation-cell.png"
-    alt="FSMP-kMC Studio: the elongated two-phase simulation cell with the damping and external field profiles"
-    width="880"></a>
+  <img src="docs/screenshots/run-trajectory.gif"
+       alt="A live run at the crystal-gas interface: TMA molecules leave and rejoin the hydrogen-bonded lattice"
+       width="880">
 </p>
-<p align="center"><em>The method in one picture (FSMP-kMC Studio): the elongated
-cell holds a crystal slab and a gas reservoir; the damping field λ(x) and the
-external field u<sub>ext</sub>(x) stabilize their coexistence.</em></p>
+<p align="center"><em>A trimesic acid monolayer at its crystal-gas interface,
+recorded in the FSMP-kMC Studio trajectory viewer: molecules leave and rejoin
+the hydrogen-bonded lattice while the damping field fades out the ones that
+cross into the ideal-gas reservoir.</em></p>
+
+## Try it
+
+Download the archive for your system from the
+[latest release](https://github.com/IakOBiaN/fsmp-kmc/releases/latest), unpack
+it, start the Studio and press **Open the demonstration**. It installs a
+ready-made trimesic acid project into your documents folder and opens it on
+the Run tab, where Start is the only thing left to press. Nothing has to be
+downloaded first: the demonstration carries its own potential.
+
+The same run from a source checkout, on any platform with a C++ compiler and
+Python 3:
+
+```bash
+make
+./fsmp.out configs/tma_quickstart_demo.txt
+```
+
+Half a minute later you have an xyz trajectory, the optimized unit cell and a
+statistics table. The crystal starts at `Density: 1.56  Energy: -61.68`
+(kJ/mol per molecule) and holds near the published density of
+1.558 µmol/m² through the field sweep, and the statistics file carries one
+row per external-field value, chemical potential included.
+
+That run is a demonstration, not a publication setup: the bundled potential is
+a coarse copy of the real one and the run is far too short to converge. The
+production path is the same program with a full potential, as in
+`configs/tma_acid_hcp.txt`.
+
+## What it is for
+
+- **Dense molecular layers, off the lattice.** Positions and orientations are
+  continuous, and a molecule is a rigid body, not an occupied site. Lattice kMC
+  frameworks such as [kmos](https://mhoffman.github.io/kmos/) or MonteCoffee
+  answer a different question: reaction kinetics on a fixed set of adsorption
+  sites.
+- **Interactions from a table, not a formula.** The pair energy
+  E(r, θ₁, θ₂) is precalculated on a grid, so the run inherits the accuracy of
+  whatever produced it (DFT, a classical force field, the built-in generator)
+  at the cost of an interpolation.
+- **Thermodynamics as the output**, not just structure: chemical potential,
+  free energy, entropy and the pressure balance across the interface.
+- **The whole workflow in one desktop app**, and prebuilt binaries for
+  Windows, Linux and macOS. A laptop is enough; there is nothing to compile
+  and no cluster to queue for.
+
+It is not a general-purpose MD or MC package, and it does not do chemistry:
+molecules stay rigid and bonds never break.
 
 ## Method
 
@@ -43,12 +96,28 @@ This code accompanies the following study:
 The method was originally introduced as *Fields-supported MultiPhase kinetic
 Monte Carlo (FsMP/kMC)*.
 
+<p align="center">
+  <a href="docs/screenshots/5-simulation-cell.png"><img
+    src="docs/screenshots/5-simulation-cell.png"
+    alt="FSMP-kMC Studio: the elongated two-phase simulation cell with the damping and external field profiles"
+    width="880"></a>
+</p>
+<p align="center"><em>The method in one picture, as the Studio lays it out: the
+elongated cell holds a crystal slab and a gas reservoir; the damping field
+λ(x) and the external field u<sub>ext</sub>(x) stabilize their coexistence
+over a wide range of temperature and pressure.</em></p>
+
 ## Requirements
 
-- A C++ compiler (clang++ is recommended).
-- A numerical forcefield (potential) file. See [Forcefields](#forcefields).
+- A C++ compiler (clang++ is recommended). Nothing else: the engine has no
+  dependencies.
+- A numerical potential. A small demonstration grid is committed to the
+  repository and ships in every release; production potentials are a separate
+  download, see [Forcefields](#forcefields).
 - Python 3 for the regression tests; with numpy and matplotlib it also
   runs the optional post-processing script in `xyz_modification/`.
+- For the Studio only: Python 3.10+ with PySide6, NumPy and RDKit, or simply
+  the ready-made app from a [release](#ready-made-builds-no-compiler-no-python).
 
 ## Building and running
 
@@ -61,12 +130,9 @@ make
 ./fsmp.out configs/tma_quickstart_demo.txt
 ```
 
-That second line is the quickstart: it runs on the small demonstration
-potential committed to the repository, so it works right after a clone with
-nothing downloaded. Half a minute later you have a trajectory, a statistics
-table with the chemical potential of the layer, and a trimesic acid
-monolayer sitting at a density of 1.55 mkmol/m² against the published 1.558.
-The same run is a ready-to-open Studio project in
+That second line is the quickstart from [Try it](#try-it): it runs on the
+small demonstration potential committed to the repository, so it works right
+after a clone, and the same run is a ready-to-open Studio project in
 `samples/projects/TMA_quickstart`. For real numbers, use a full potential
 (see [Forcefields](#forcefields)) and a configuration like
 `configs/tma_acid_hcp.txt`.
@@ -149,22 +215,11 @@ thing left to press.
 | ![Run tab: production runs with live statistics plots](docs/screenshots/6-run-plots.png) | ![Run tab: trajectory viewer with the two-phase cell](docs/screenshots/6-run-trajectory.png) |
 | *6 · Run — detached production runs, live statistics plots* | *6 · Run — the trajectory viewer on the two-phase cell* |
 
-And this is what a run looks like up close — the trajectory viewer zoomed
-to a crystal–gas interface of the TMA monolayer, over a sweep of the
-external field:
-
-<p align="center">
-  <img src="docs/screenshots/run-trajectory.gif"
-       alt="A live run at the crystal-gas interface: TMA molecules leave and rejoin the hydrogen-bonded lattice"
-       width="880">
-</p>
-<p align="center"><em>Molecules leave and rejoin the hydrogen-bonded
-lattice; the damping field fades them out as they cross into the
-ideal-gas reservoir.</em></p>
-
-<sub>Tab 5, the simulation cell, is the picture at the top of this README.
-All stills and the animation are rendered straight from the application,
-on the bundled sample project.</sub>
+<sub>Tab 5, the simulation cell, is the picture in
+[Method](#method); the animation at the top of this README is tab 6, the
+trajectory viewer, zoomed to a crystal-gas interface over a sweep of the
+external field. All stills and the animation are rendered straight from the
+application, on the bundled sample project.</sub>
 
 Every release ships the Studio as a ready-made app (see
 [Ready-made builds](#ready-made-builds-no-compiler-no-python)); the
@@ -280,21 +335,22 @@ it ships, so the first thing a new user tries is covered by the suite too.
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `logo/` | Project logo, GitHub preview artwork and the graphical abstract. |
 | `docs/` | README screenshots, rendered straight from the app. |
-| `tools/` | `pack_forcefield.cpp` converts an ASCII potential into the compact binary grid; `make_bundle.py` assembles a release bundle (CI and `make bundle`); `fsmp.rc`/`pack.rc` are the version resources of the Windows binaries. |
+| `tools/` | `pack_forcefield.cpp` converts an ASCII potential into the compact binary grid; `make_bundle.py` assembles the release archives (CI and `make bundle`); `fsmp.rc`/`pack.rc` are the version resources of the Windows binaries. |
 | `tests/` | Regression tests (`python3 tests/run_tests.py`); they run on the demonstration grid in `samples/potentials/`. |
 | `xyz_modification/` | Post-processing: a time-averaged density map from an XYZ trajectory. |
 
 ## Status
 
 Stable. The engine reproduces the published results, and every release ships
-ready-made bundles for Windows, Linux and macOS (see
+ready-made archives for Windows, Linux and macOS (see
 [Ready-made builds](#ready-made-builds-no-compiler-no-python)); the program
-itself is a single binary driven by text parameter files. Every push is
+itself is a single binary driven by text parameter files, and a parameter it
+cannot run with stops it at once, naming the file and the line. Every push is
 checked by CI: a warning-free build with GCC and Clang, the engine
 regression suite (see [Tests](#tests)) on Linux, macOS and native Windows,
 and the Studio's own GUI test suite. A release additionally self-tests every
-assembled bundle before publishing. Development continues with bug fixes and
-small features.
+assembled bundle and refuses to publish one that lost a file. Development
+continues with bug fixes and small features.
 
 ## License
 
