@@ -96,6 +96,10 @@ This code accompanies the following study:
 The method was originally introduced as *Fields-supported MultiPhase kinetic
 Monte Carlo (FsMP/kMC)*.
 
+That reference, and the metadata of the software itself, are in
+[CITATION.cff](CITATION.cff): GitHub's **Cite this repository** button turns
+it into BibTeX or APA.
+
 <p align="center">
   <a href="docs/screenshots/5-simulation-cell.png"><img
     src="docs/screenshots/5-simulation-cell.png"
@@ -350,7 +354,8 @@ checked by CI: a warning-free build with GCC and Clang, the engine
 regression suite (see [Tests](#tests)) on Linux, macOS and native Windows,
 and the Studio's own GUI test suite. A release additionally self-tests every
 assembled bundle and refuses to publish one that lost a file. Development
-continues with bug fixes and small features.
+continues with bug fixes and small features; what changed in each release is
+in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

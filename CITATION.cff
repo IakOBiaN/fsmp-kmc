@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+message: "If you use FSMP-kMC in your research, please cite the article below; the software itself can be cited with the metadata in this file."
+title: "FSMP-kMC: Field-Stabilized Multiphase kinetic Monte Carlo"
+abstract: >-
+  A kinetic Monte Carlo engine for the atomistic thermodynamics of rigid
+  molecular crystals and two-dimensional adsorption layers. A crystal and an
+  ideal-gas reservoir coexist in one elongated cell, held there by an imposed
+  damping field and external field, which gives the free energy, entropy and
+  chemical potential of the dense layer from the equality of the chemical
+  potentials in the coexisting phases. Molecules are rigid bodies with
+  continuous positions and orientations, interacting through a precalculated
+  numerical pair potential. Ships with FSMP-kMC Studio, a desktop workbench
+  covering the whole workflow.
+type: software
+authors:
+  - family-names: Akimenko
+    given-names: "Sergey"
+  - family-names: Gorbunov
+    given-names: "Vitaly"
+version: 1.0.2
+date-released: "2026-07-21"
+license: GPL-3.0-only
+repository-code: "https://github.com/IakOBiaN/fsmp-kmc"
+url: "https://github.com/IakOBiaN/fsmp-kmc"
+keywords:
+  - kinetic Monte Carlo
+  - statistical thermodynamics
+  - chemical potential
+  - self-assembled monolayer
+  - molecular crystal
+  - adsorption
+  - trimesic acid
+preferred-citation:
+  type: article
+  title: "Equilibrium structure of a dense trimesic acid monolayer on a homogeneous solid surface: from atomistic simulation to thermodynamics"
+  authors:
+    - family-names: Akimenko
+      given-names: "Sergey"
+    - family-names: Gorbunov
+      given-names: "Vitaly"
+    - family-names: Ustinov
+      given-names: "Eugene"
+  journal: "Physical Chemistry Chemical Physics"
+  year: 2023
+  volume: 25
+  start: 31352
+  end: 31362
+  doi: "10.1039/D3CP03955B"
