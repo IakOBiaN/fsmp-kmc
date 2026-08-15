@@ -1,0 +1,65 @@
+name: Bug report
+description: Something crashes, refuses to start, or does not do what it says
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a result that runs fine but looks physically wrong, use the
+        "Unexpected physics" template instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+      placeholder: |
+        I pressed Start on the Run tab and the run ended after a second with
+        an empty statistics file.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce it
+      description: >-
+        The shortest path you know. If it involves a parameter file or a
+        project, paste the parameter file: it is plain text and it is usually
+        the whole answer.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: What the program printed
+      description: >-
+        The console output, or the run log from the run folder. Long logs are
+        better as an attachment than as a wall of text.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: >-
+        The contents of BUILD_INFO.txt from the archive, or the output of
+        `fsmp --version`, or the commit you built from.
+      placeholder: "FSMP-kMC 1.0.2, fsmp-kmc-v1.0.2-windows-x86_64"
+    validations:
+      required: true
+  - type: dropdown
+    id: how
+    attributes:
+      label: How are you running it
+      options:
+        - The Studio from a release archive
+        - The command-line engine from a release archive
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, Ubuntu 24.04, macOS 15"
+    validations:
+      required: true

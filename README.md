@@ -357,6 +357,16 @@ assembled bundle and refuses to publish one that lost a file. Development
 continues with bug fixes and small features; what changed in each release is
 in [CHANGELOG.md](CHANGELOG.md).
 
+## Contributing
+
+Bug reports, questions and patches are welcome:
+[CONTRIBUTING.md](CONTRIBUTING.md) covers building, the test suites and the
+pinned energies a patch has to keep intact. A result that looks physically
+wrong has [its own issue template](.github/ISSUE_TEMPLATE/unexpected_physics.yml),
+separate from ordinary bugs. See also the
+[code of conduct](CODE_OF_CONDUCT.md), the
+[security policy](SECURITY.md) and the [roadmap](ROADMAP.md).
+
 ## License
 
 Released under the GNU General Public License v3.0. See [LICENSE](LICENSE).

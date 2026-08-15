@@ -1,0 +1,66 @@
+name: Unexpected physics
+description: The program runs, but the numbers or the structure look wrong
+labels: ["physics"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A simulation that produces a suspicious number is not the same kind of
+        problem as a crash, and it is investigated differently: usually by
+        reproducing your system rather than by reading the stack. The more of
+        the setup you can share, the faster that goes.
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and where that expectation comes from
+      description: >-
+        A published value, an earlier run, another code, a physical argument.
+        Please give the source: a DOI, a figure number, or the reasoning.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What the simulation gave
+      description: >-
+        The numbers, with units. The statistics file, or the relevant rows of
+        it, is ideal.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: The setup
+      description: >-
+        The parameter file, and how the unit cell was obtained (a named
+        structure, the optimizer, your own cell).
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: potential
+    attributes:
+      label: Which potential
+      description: >-
+        The grid file and where it came from. If it is one of the published
+        ones, its name is enough; if you generated it, say with what.
+      placeholder: "TMA_simple_2020.v2.bin, downloaded; or: generated in the Studio from a site model"
+    validations:
+      required: true
+  - type: textarea
+    id: convergence
+    attributes:
+      label: Convergence
+      description: >-
+        Steps, relaxation length, cell size, and whether the result changed
+        when you made the run longer or the cell larger. A short run on a
+        coarse grid is the most common explanation, including on the bundled
+        demonstration potential, which is deliberately coarse.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: BUILD_INFO.txt, `fsmp --version`, or the commit.
+    validations:
+      required: true
