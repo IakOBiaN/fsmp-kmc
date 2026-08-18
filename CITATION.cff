@@ -30,6 +30,21 @@ keywords:
   - molecular crystal
   - adsorption
   - trimesic acid
+references:
+  - type: data
+    title: "Numerical pair potentials for FSMP-kMC: benzene carboxylic acid monolayers"
+    authors:
+      - family-names: Akimenko
+        given-names: "Sergey"
+      - family-names: Gorbunov
+        given-names: "Vitaly"
+      - family-names: Ustinov
+        given-names: "Eugene"
+    doi: "10.5281/zenodo.21959125"
+    year: 2026
+    publisher:
+      name: Zenodo
+    license: CC-BY-4.0
 preferred-citation:
   type: article
   title: "Equilibrium structure of a dense trimesic acid monolayer on a homogeneous solid surface: from atomistic simulation to thermodynamics"

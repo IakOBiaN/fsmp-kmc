@@ -12,6 +12,7 @@
 [![Latest release](https://img.shields.io/github/v/release/IakOBiaN/fsmp-kmc)](https://github.com/IakOBiaN/fsmp-kmc/releases/latest)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 ![Platforms: Windows, Linux, macOS](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+[![Potentials on Zenodo](https://img.shields.io/badge/potentials-10.5281%2Fzenodo.21959125-1682D4)](https://doi.org/10.5281/zenodo.21959125)
 
 **The free energy, entropy and chemical potential of a dense molecular
 monolayer, straight from an atomistic simulation you can start by pressing
@@ -254,10 +255,17 @@ The intermolecular interaction is supplied as a precalculated *numerical
 potential*. Ready-to-use potentials in the compact binary format (v2) are read by
 the program directly; download and unpack them into the `forcefields/` folder:
 
-[Download numerical forcefields (binary, v2)](https://1drv.ms/f/c/18917b5147a88b6c/IgC8SnvBaZORTYWhHGeVLxWQAUzqPePWJhDM3ah1dJotJos?e=5CZNiR)
+[**Numerical pair potentials for FSMP-kMC**](https://doi.org/10.5281/zenodo.21959125) (Zenodo, 10.5281/zenodo.21959125)
+
+The dataset holds trimesic acid in two models (the simplified analytic model
+and an atomistic one with DFT-derived charges) plus terephthalic, isophthalic
+and phthalic acid, 66 MB to 2.2 GB each, under CC BY 4.0. Its own README
+documents every grid and the binary format down to the byte offsets. The DOI
+above always resolves to the latest version of the record, and citing it is
+how these potentials should be credited.
 
 The original ASCII grids of the DFT potentials are kept in a
-[separate folder](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
+[separate cloud folder](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
 They are only needed to repack a potential yourself, for example with different
 folding or in double precision.
 

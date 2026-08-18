@@ -26,8 +26,9 @@ a potential to publish numbers from.
 For real calculations
 ---------------------
 Download the full potentials into the forcefields/ folder next to this one
-and point your configuration or project at them; the link is in
-forcefields/readme.txt. Or build your own potential: the Studio generates
+and point your configuration or project at them; they are published as a
+citable dataset, https://doi.org/10.5281/zenodo.21959125, and the same link
+is in forcefields/readme.txt. Or build your own potential: the Studio generates
 one from a molecule model on the "Create potential" tab, and
 tools/pack_forcefield converts an existing ASCII grid.
 

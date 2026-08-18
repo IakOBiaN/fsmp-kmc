@@ -32,6 +32,10 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 - `BUILD_INFO.txt` in every archive, naming the version, the platform, the
   commit and the frozen library versions it was built from.
 - `CITATION.cff`, so the repository offers a citation, and this changelog.
+- The full potentials are published as a citable Zenodo dataset
+  ([10.5281/zenodo.21959125](https://doi.org/10.5281/zenodo.21959125),
+  CC BY 4.0) instead of a personal cloud folder, with a README documenting
+  every grid and the binary format.
 
 ### Changed
 
