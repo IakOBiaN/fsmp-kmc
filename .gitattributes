@@ -1,2 +1,13 @@
-# Shell scripts must keep Unix line endings even on Windows checkouts
+# Line endings: LF in the repository, whatever the platform wants in the
+# working copy. Batch files are the exception, cmd.exe cannot run a script
+# with LF endings.
+* text=auto
+
 *.sh text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.bin binary
+*.png binary
+*.gif binary
+*.ico binary
