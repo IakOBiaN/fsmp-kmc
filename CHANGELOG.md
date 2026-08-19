@@ -9,7 +9,7 @@ interfaces that a major version protects.
 Every release is published with ready-made archives for Windows, Linux and
 macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
-## Unreleased
+## v1.1.0 (2026-08-20)
 
 ### Added
 
@@ -44,6 +44,12 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
   from lattice kMC codes.
 - The Studio's Run tab keeps the relaxation length from exceeding the run
   length.
+- `build.cmd` finds a Python for the test and bundle targets: the Studio
+  environment, then `python` on PATH, then the `py` launcher, and it says what
+  to install when there is none instead of failing with `python3: not found`.
+- One line-ending convention, enforced by `.gitattributes` rather than by each
+  machine's git configuration: LF in the repository, and CRLF for batch files,
+  which `cmd.exe` cannot run otherwise.
 
 ### Fixed
 
