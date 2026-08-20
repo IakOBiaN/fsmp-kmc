@@ -5,7 +5,7 @@ TMA_simple_2020_coarse_demo.v2.bin (1 MB) is the only numerical potential
 small enough to ship with the program. It is what makes the quickstart work
 with no downloads:
 
-    fsmp.exe configs\tma_quickstart_demo.txt     (or ./fsmp.out on Linux/macOS)
+    .\fsmp.exe configs\tma_quickstart_demo.txt   (or ./fsmp.out on Linux/macOS)
 
 and it is the potential attached to the ready-to-open Studio project
 samples/projects/TMA_quickstart.

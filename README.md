@@ -169,8 +169,8 @@ the bundled molecule models, unit cells and demonstration potential. Download
 the archive for your system, unpack it and start the Studio
 (`FSMP-kMC Studio.exe` on Windows), or run the engine from the command line:
 
-```
-fsmp.exe configs\tma_quickstart_demo.txt
+```powershell
+.\fsmp.exe configs\tma_quickstart_demo.txt
 ```
 
 The same release also carries a `-cli` archive per platform: the engine, the

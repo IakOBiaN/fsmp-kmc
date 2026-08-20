@@ -42,7 +42,7 @@ Quick start, with nothing to download
    a trajectory, live plots and a statistics table for a trimesic acid
    monolayer at 300 K.
    The same run from the command line:
-       fsmp.exe configs\tma_quickstart_demo.txt      (Windows)
+       .\fsmp.exe configs\tma_quickstart_demo.txt    (Windows)
        ./fsmp configs/tma_quickstart_demo.txt        (Linux, macOS)
 2. For real numbers, download a full potential (links in
    forcefields/readme.txt), unpack it into the forcefields folder and open
@@ -52,8 +52,11 @@ Quick start, with nothing to download
 Command line, without the Studio: every file in configs/ is a documented
 parameter file, and the engine takes one as its only argument.
 
-    fsmp.exe configs\tma_acid_hcp.txt      (Windows)
+    .\fsmp.exe configs\tma_acid_hcp.txt    (Windows)
     ./fsmp configs/tma_acid_hcp.txt        (Linux, macOS)
+
+(the leading .\ matters: PowerShell will not run a program from the
+current folder without it, and cmd.exe accepts it too)
 
 That one is the published trimesic acid setup and needs the full potential
 downloaded into forcefields/; configs/tma_quickstart_demo.txt does not.

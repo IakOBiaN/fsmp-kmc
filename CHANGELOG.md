@@ -9,6 +9,18 @@ interfaces that a major version protects.
 Every release is published with ready-made archives for Windows, Linux and
 macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
+## Unreleased
+
+### Fixed
+
+- The documented Windows command line now works in PowerShell too:
+  `.\fsmp.exe configs\...` instead of a bare `fsmp.exe configs\...`.
+  PowerShell never runs a program from the current folder without the
+  prefix, so the quickstart in the release readmes failed for anyone who
+  does not use cmd.exe. The same form also survives a machine where
+  `NoDefaultCurrentDirectoryInExePath` is set, which makes cmd.exe behave
+  the same way.
+
 ## v1.1.0 (2026-08-20)
 
 ### Added

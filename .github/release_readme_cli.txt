@@ -24,8 +24,12 @@ BUILD_INFO.txt    what this archive was built from
 
 Quick start, with nothing to download
 
-    fsmp.exe configs\tma_quickstart_demo.txt      (Windows)
+    .\fsmp.exe configs\tma_quickstart_demo.txt    (Windows)
     ./fsmp configs/tma_quickstart_demo.txt        (Linux, macOS)
+
+The leading .\ is not decoration: PowerShell never runs a program
+from the current folder without it, and cmd.exe accepts it too, so this
+one form works in both.
 
 Run it from the folder you unpacked, not from inside configs/: paths in a
 parameter file are relative to the working directory, and the run writes its
