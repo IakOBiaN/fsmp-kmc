@@ -30,7 +30,10 @@ jobs:
 
   # The Studio suite: offscreen GUI tests (PySide6, rdkit, the MMFF
   # generator). The engine is built first so the end-to-end tests run
-  # instead of skipping; dependencies come from gui/pyproject.toml.
+  # instead of skipping; dependencies come from gui/pyproject.toml. The
+  # neural-potential tool rides along here: it lives outside the bundle, but
+  # its grid machinery is deliberately testable without PyTorch, on the same
+  # numpy and rdkit this job already installs.
   test-gui:
     runs-on: ubuntu-latest
     steps:
@@ -55,6 +58,9 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: python -m unittest discover -s gui/tests -v
+
+      - name: Neural-potential tool suite
+        run: python -m unittest discover -s nnpot/tests -v
 
   test-macos:
     runs-on: macos-latest
