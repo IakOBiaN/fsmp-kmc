@@ -8,7 +8,8 @@ import nnpot
 from fsmp_gui.generate import GridSpec, MMFFBackend, generate
 from fsmp_gui.molecule import Atom, Molecule
 from nnpot.backend import CAP_JMOL, KE, NNBackend, _switch
-from nnpot.geometry import orbit_map, rotational_order, symmetrize, symmetry_error
+from nnpot.geometry import (ATOMIC_NUMBER, dimer_coords, orbit_map,
+                           rotational_order, symmetrize, symmetry_error)
 from nnpot.reference import MMFFCalculator
 
 MODEL = Path(__file__).resolve().parents[2] / "samples" / "models" / "trimesic_acid.xyz"
@@ -151,6 +152,35 @@ class LongRangeCorrectionTest(unittest.TestCase):
                                     bare.slab(9.0, angles()),
                                     rtol=1e-9, atol=1e-6))
         self.assertEqual(whole.stats["rows_beyond_reach"], 0)
+
+
+class AIMNet2Test(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            import aimnet2calc  # noqa: F401
+        except ImportError:
+            raise unittest.SkipTest("aimnet2calc is not installed")
+        from nnpot.aimnet import AIMNet2
+        cls.calc = AIMNet2()
+        cls.mol = c3_tma()
+        cls.xy = np.array([(a.x, a.y) for a in cls.mol.atoms])
+        cls.z = np.array([ATOMIC_NUMBER[a.element] for a in cls.mol.atoms])
+
+    def test_simple_coulomb_means_no_declared_cutoff(self):
+        described = self.calc.describe()
+        self.assertEqual(described["coulomb"], "simple")
+        self.assertIsNone(described["declared_cutoff"])
+        self.assertGreater(described["short_cutoff"], 0.0)
+
+    def test_far_apart_molecules_barely_interact(self):
+        mono = np.concatenate([self.xy, np.zeros((len(self.xy), 1))], axis=1)
+        alone = self.calc.energies(self.z, mono[None])[0]
+        t = np.deg2rad(np.array([0.0, 37.0, 91.0, 150.0]))
+        coords = dimer_coords(self.xy, 60.0, t, t[::-1])
+        pair = self.calc.energies(np.concatenate([self.z, self.z]), coords)
+        self.assertLess(np.abs(pair - 2.0 * alone).max(), 20.0)
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ from .geometry import (ATOMIC_NUMBER, dimer_coords, orbit_map, pair_distances,
 
 CAP_JMOL = 1.0e4 * 4184.0
 KE = 8.9875517923e19 * 6.02214076e23 * (1.602176634e-19) ** 2
+ATOM_BUDGET = 90000
 
 
 def _switch(d, lo, hi):
@@ -15,7 +16,7 @@ def _switch(d, lo, hi):
 class NNBackend:
 
     def __init__(self, elements, xy, calculator, da, charges=None, order=None,
-                 wall=1.3, cap=CAP_JMOL, lr_window=1.0, chunk=4096,
+                 wall=1.3, cap=CAP_JMOL, lr_window=1.0, chunk=None,
                  progress=None):
         self.elements = list(elements)
         self.xy = np.ascontiguousarray(xy, dtype=float)
@@ -24,7 +25,7 @@ class NNBackend:
         self.wall = float(wall)
         self.cap = float(cap)
         self.lr_window = float(lr_window)
-        self.chunk = int(chunk)
+        self.chunk = int(chunk) if chunk else max(1, ATOM_BUDGET // (2 * len(self.xy)))
         self.progress = progress
         self.charges = None if charges is None else np.asarray(charges, float)
         self.order = (rotational_order(self.xy, self.elements)
