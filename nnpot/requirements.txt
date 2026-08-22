@@ -1,0 +1,11 @@
+--extra-index-url https://download.pytorch.org/whl/cu128
+--find-links https://data.pyg.org/whl/torch-2.8.0+cu128.html
+
+torch==2.8.0+cu128
+torch-cluster==1.6.3+pt28cu128
+aimnet2calc @ git+https://github.com/zubatyuk/aimnet2calc.git
+numpy
+numba
+ase
+requests
+rdkit

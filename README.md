@@ -306,6 +306,20 @@ cohesion energies and transition temperatures shift. For production numbers,
 compute the grid with your own method and attach the packed file: the engine
 reads any v2 binary regardless of its origin.
 
+### Generating a potential with a neural network
+
+The repository also carries `nnpot`, a separate command-line tool that builds
+the same kind of grid with a machine-learned potential instead of a classical
+force field. On the trimesic acid dimer the two disagree about the strength of
+the hydrogen bond by 23 kJ/mol, which propagates straight into the cohesion
+energy and the transition temperatures. A production grid takes about
+forty minutes on a laptop GPU.
+
+It is deliberately not part of the Studio or of the release bundles: PyTorch
+with CUDA is four gigabytes against the sixty megabytes of a bundle. It is
+installed on its own and produces an ordinary v2 file, attached to a project
+like any other potential. See [nnpot/README.md](nnpot/README.md).
+
 ## Tests
 
 ```bash
@@ -349,6 +363,7 @@ it ships, so the first thing a new user tries is covered by the suite too.
 | `docs/` | README screenshots, rendered straight from the app. |
 | `tools/` | `pack_forcefield.cpp` converts an ASCII potential into the compact binary grid; `make_bundle.py` assembles the release archives (CI and `make bundle`); `fsmp.rc`/`pack.rc` are the version resources of the Windows binaries. |
 | `tests/` | Regression tests (`python3 tests/run_tests.py`); they run on the demonstration grid in `samples/potentials/`. |
+| `nnpot/` | Standalone tool that computes a pair potential with a machine-learned model (AIMNet2); installed separately, never part of the Studio or the bundles (see [nnpot/README.md](nnpot/README.md)). |
 | `xyz_modification/` | Post-processing: a time-averaged density map from an XYZ trajectory. |
 
 ## Status

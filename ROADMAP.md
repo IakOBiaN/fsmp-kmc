@@ -20,11 +20,12 @@ this file says what is intended today, not what is promised.
   has to fit in a 32-bit integer, which caps a run at a few million steps for
   a few hundred molecules. The engine refuses such a run instead of
   overflowing, but the ceiling itself should go.
-- **Better pair potentials without leaving the app.** The built-in generator
-  uses MMFF94, which is honest but underbinds. A neural-network backend
-  (AIMNet2 or ANI-2x) would sit behind the same interface as an optional
-  install, never bundled: adding a gigabyte of PyTorch to a demonstration app
-  would be the wrong trade.
+- **The neural potential inside the app.** `nnpot` now computes pair
+  potentials with AIMNet2 from the command line, which is where that work
+  belongs: PyTorch with CUDA is four gigabytes against the sixty megabytes of
+  a bundle. Driving it from the Studio, as an optional install the app finds
+  rather than ships, is possible but not scheduled; the file it produces is
+  already attached like any other potential.
 - **More worked examples** reproducing published systems, in the same
   open-and-run form as the bundled quickstart.
 

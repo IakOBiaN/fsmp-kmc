@@ -11,6 +11,18 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
 ## Unreleased
 
+### Added
+
+- `nnpot`, a standalone command-line tool that computes a pair potential with
+  a machine-learned potential (AIMNet2) instead of a classical force field,
+  and writes the same v2 binary the engine already reads. On the trimesic acid
+  dimer it and the Studio's MMFF94 generator disagree about the strength of
+  the hydrogen bond by 23 kJ/mol, which propagates into every energy the
+  method reports. The grid follows from the molecule and the model alone, with
+  nothing calibrated in between. The tool is installed separately and is never
+  part of the Studio or of the release bundles, which keep their current size.
+  See `nnpot/README.md`.
+
 ### Fixed
 
 - The documented Windows command line now works in PowerShell too:
