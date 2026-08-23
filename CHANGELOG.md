@@ -15,16 +15,25 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
 - `nnpot`, a standalone command-line tool that computes a pair potential with
   a machine-learned potential (AIMNet2) instead of a classical force field,
-  and writes the same v2 binary the engine already reads. On the trimesic acid
-  dimer it and the Studio's MMFF94 generator disagree about the strength of
-  the hydrogen bond by 23 kJ/mol, which propagates into every energy the
-  method reports. The grid follows from the molecule and the model alone, with
-  nothing calibrated in between. The tool is installed separately and is never
-  part of the Studio or of the release bundles, which keep their current size.
-  See `nnpot/README.md`.
+  and writes the same v2 binary the engine already reads. The three
+  descriptions this project can now put on the trimesic acid dimer place its
+  hydrogen bond 38 kJ/mol apart, and that spread propagates into every energy
+  the method reports. The grid follows from the molecule and the model alone,
+  with nothing calibrated in between. A grid that is interrupted, by Ctrl-C or
+  by a reboot, is finished rather than started over on the next run. The tool
+  is installed separately and is never part of the Studio or of the release
+  bundles, which keep their current size. See `nnpot/README.md`.
+- Molecule models for isophthalic and phthalic acid in `samples/models/`,
+  next to trimesic and terephthalic acid.
 
 ### Fixed
 
+- The readmes described the published potentials as DFT potentials. They are
+  not: the interactions come from the DREIDING force field with its explicit
+  hydrogen-bond term, and the quantum calculation behind them produced the
+  partial charges and nothing else. The file names always recorded this, `q`
+  for the charge calculation and `Dhb` for the hydrogen-bond distance, and the
+  prose now agrees with them.
 - The documented Windows command line now works in PowerShell too:
   `.\fsmp.exe configs\...` instead of a bare `fsmp.exe configs\...`.
   PowerShell never runs a program from the current folder without the

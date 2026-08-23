@@ -14,24 +14,38 @@ bundle: this is a separate program that produces a file.
 
 ## Why bother
 
-The trimesic acid dimer at its hydrogen-bonded minimum, scored by the two
-generators this repository ships, from the same molecule and the same
-geometry:
+The trimesic acid dimer at its hydrogen-bonded minimum, scored three ways: by
+the two generators this repository ships, and by the published grid the
+project distributes for the same molecule.
 
 | Generator | Well depth | Distance |
 | --- | --- | --- |
+| DREIDING with DFT charges, the published grid | -78.4 kJ/mol | 9.96 Å |
 | AIMNet2, this tool | -63.2 kJ/mol | 9.72 Å |
 | MMFF94, the Studio generator | -40.0 kJ/mol | 9.96 Å |
 
-Both find the same arrangement, the double hydrogen bond between two
-carboxyls, and they disagree about its strength by 23 kJ/mol. That gap is not
+All three find the same arrangement, the double hydrogen bond between two
+carboxyls, and they place its strength 38 kJ/mol apart. That spread is not
 cosmetic: the well depth feeds straight into the cohesion energy, the chemical
 potential and the transition temperatures the method exists to produce.
 
+The published grid is a classical force field as well, DREIDING with an
+explicit hydrogen-bond term; the quantum calculation behind it produced the
+partial charges and nothing else. Sitting deepest does not put it closest to
+the truth. It is a third description of the same dimer, carrying its own
+fitted parameters, and the three numbers are three answers rather than one
+answer and two errors.
+
 Nothing here is calibrated against anything. The grid is what the model says
-about the molecule you hand it, and that is the property worth having: the
-same molecule and the same model give the same numbers on any machine, with
-no step in between that someone has to trust.
+about the molecule you hand it, and that is the property worth having: there
+is no step in between that someone has to trust.
+
+It is not bit-reproducible, though. The model sums neighbour contributions on
+the GPU in whatever order the hardware happens to choose, so running the same
+command twice moves individual values by up to about 0.2 J/mol. That is ten
+thousand times smaller than kT at room temperature, and the same size as the
+model's own numerical floor, but it does mean two grids of the same molecule
+will not compare equal byte for byte.
 
 ## Installation
 
@@ -100,14 +114,19 @@ detected rotational symmetry, stored as float32. The options that matter:
 | `--model` | model name, default `aimnet2` |
 | `--coulomb` | `simple`, `dsf` or `ewald` |
 
-The geometry that went into the grid is part of the result. A parameter file
-that uses the potential should point `molecule_model` at the same relaxed and
-symmetrized `.xyz`, not at the one it was derived from, because the molecular
-area, the hard core and every drawing follow from it.
+A parameter file that uses the potential should point `molecule_model` at the
+same `.xyz` the grid was computed from, because the molecular area, the hard
+core and every drawing follow from it.
 
-Interrupting with Ctrl-C finishes the current distance, removes the partial
-file and exits. There is no resume: a full grid takes about half an hour, and
-adding one would mean a second implementation of the file format.
+The grid is written to `<name>.partial` and renamed only once it is complete,
+so an interrupted run never leaves behind something that looks like a finished
+grid. Ctrl-C stops after the current distance; a crash or a reboot stops
+wherever it happens to be. Either way, running the same command again picks up
+from the last finished distance, after checking that the header on disk still
+matches the settings you asked for. That check earns its keep: a grid takes
+hours, and a laptop that reboots itself in the middle of the night should not
+cost you all of them. A resumed grid is not byte-identical to one computed in
+a single run, for the reason above and by the same amount.
 
 ## Comparing with another grid
 
@@ -127,13 +146,14 @@ dominate every number.
 
 What this is for is worth stating plainly. Comparing against a published grid
 tells you how two descriptions differ. It does not tell you which one is
-right. Any hand-computed grid carries its own choices, a functional, a basis
-set, a charge model, an empirical correction, and none of them arrive with a
-guarantee. Read the output as information about the difference, never as an
-error to be minimised, and do not reach for a different geometry or different
-settings here until the numbers line up with someone else's. That would be
-fitting, and it would quietly destroy the one property that makes this tool
-worth having: that the grid follows from the molecule and the model alone.
+right. Every grid carries its own choices, a force field and the parameters
+fitted into it, a charge model, the geometry it was built on, and none of them
+arrive with a guarantee. Read the output as information about the difference,
+never as an error to be minimised, and do not reach for a different geometry
+or different settings here until the numbers line up with someone else's.
+That would be fitting, and it would quietly destroy the one property that
+makes this tool worth having: that the grid follows from the molecule and
+the model alone.
 
 ## What the tool does beyond calling the model
 
@@ -192,18 +212,20 @@ between 3 500 and 4 400 arrangements per second depending on the grid.
 python -m unittest discover -s nnpot/tests
 ```
 
-Twelve of the tests need only NumPy and RDKit, so they run in continuous
+Fifteen of the tests need only NumPy and RDKit, so they run in continuous
 integration alongside the Studio suite and PyTorch never enters it. They
 check the machinery against the Studio's own MMFF94 generator, and the
 decisive one compares the files byte for byte: the same grid computed through
 this tool and through the Studio has to be identical. That is what makes the
 symmetry shortcuts and the file writing trustworthy.
 
-They also cover the comparison: the same grid computed from a molecule
-turned by 30 degrees has to be recognised as the same grid, turned.
+They also cover the comparison, where the same grid computed from a molecule
+turned by 30 degrees has to be recognised as the same grid turned, and the
+resume, where a grid cut in two places has to be reassembled into exactly the
+bytes an uninterrupted run would have written.
 
 Two more tests exercise the model itself and are skipped when AIMNet2 is not
-installed. In the environment above the whole suite is fourteen tests.
+installed. In the environment above the whole suite is seventeen tests.
 
 ## Limits
 
@@ -214,6 +236,7 @@ plane, so a species whose real minimum is twisted is being approximated.
 AIMNet2 covers H, B, C, N, O, F, Si, P, S, Cl, As, Se, Br and I. The tool
 refuses anything outside the elements it can map.
 
-The accuracy of the result is the accuracy of the model. The agreement above
-is one molecule against one reference; a new system deserves its own check
-against whatever higher-level data exists for it.
+The accuracy of the result is the accuracy of the model. AIMNet2 was trained
+on one level of theory and one region of chemical space, and nothing here
+checks that your molecule sits inside it; a new species deserves its own look
+at whatever independent data exists for it.

@@ -56,6 +56,11 @@ gui/.venv/
 # Neural-potential tool: its own environment, kept out of gui/.venv so
 # PyTorch can never end up inside a Studio bundle
 nnpot/.venv/
+
+# Neural-potential tool: grids that are still being written (nnpot renames
+# them into place only once they are complete, and can resume from them)
+*.partial
+*.partial.chunk
 __pycache__/
 *.pyc
 *.egg-info/

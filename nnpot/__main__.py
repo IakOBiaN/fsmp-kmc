@@ -1,12 +1,14 @@
 import argparse
+import shutil
 import signal
+import struct
 import sys
 import time
 from pathlib import Path
 
 import numpy as np
 
-from fsmp_gui.generate import GridSpec, generate
+from fsmp_gui.generate import HEADER_BYTES, MAGIC, VERSION, GridSpec, generate
 from fsmp_gui.molecule import Atom, Molecule
 
 from .backend import NNBackend
@@ -83,6 +85,59 @@ def cmd_optimize(args):
     return 0
 
 
+def _absorb_chunk(partial, chunk, per_angle, row_bytes, spec, args):
+    if not chunk.exists():
+        return
+    if not partial.exists():
+        raise SystemExit(f"{chunk} continues a file that is gone; delete it to start over")
+    raw = chunk.read_bytes()[:HEADER_BYTES]
+    if len(raw) < HEADER_BYTES or raw[:4] != MAGIC:
+        raise SystemExit(f"{chunk} is not a v2 grid; delete it to start over")
+    version, dtype, n_dist, n_ang = struct.unpack("<4I", raw[4:20])
+    min_dist, dr, da, fold = struct.unpack("<4d", raw[20:52])
+    done = (partial.stat().st_size - HEADER_BYTES) // row_bytes
+    follows = (version == VERSION and n_ang == per_angle
+               and dtype == (0 if args.double else 1)
+               and abs(min_dist - (spec.r_min + done * spec.dr)) < 1e-9
+               and abs(dr - spec.dr) < 1e-12
+               and abs(da - spec.da) < 1e-12
+               and abs(fold - spec.fold_deg) < 1e-9)
+    if not follows:
+        raise SystemExit(f"{chunk} does not continue {partial.name}; "
+                         "delete it to start over")
+    rows = (chunk.stat().st_size - HEADER_BYTES) // row_bytes
+    if rows:
+        with partial.open("ab") as whole, chunk.open("rb") as rest:
+            rest.seek(HEADER_BYTES)
+            whole.write(rest.read(rows * row_bytes))
+    chunk.unlink()
+
+
+def _resume_point(partial, spec, per_angle, row_bytes, args):
+    if not partial.exists():
+        return 0
+    raw = partial.read_bytes()[:HEADER_BYTES]
+    if len(raw) < HEADER_BYTES or raw[:4] != MAGIC:
+        raise SystemExit(f"{partial} is not a v2 grid; delete it to start over")
+    version, dtype, n_dist, n_ang = struct.unpack("<4I", raw[4:20])
+    min_dist, dr, da, fold = struct.unpack("<4d", raw[20:52])
+    same = (version == VERSION and n_ang == per_angle and n_dist == spec.n_dist
+            and dtype == (0 if args.double else 1)
+            and abs(min_dist - spec.r_min) < 1e-9
+            and abs(dr - spec.dr) < 1e-12
+            and abs(da - spec.da) < 1e-12
+            and abs(fold - spec.fold_deg) < 1e-9)
+    if not same:
+        raise SystemExit(f"{partial} was written with different settings; "
+                         "delete it to start over")
+    ready = (partial.stat().st_size - HEADER_BYTES) // row_bytes
+    keep = HEADER_BYTES + ready * row_bytes
+    if partial.stat().st_size != keep:
+        with partial.open("r+b") as f:
+            f.truncate(keep)
+    return int(min(ready, spec.n_dist))
+
+
 def cmd_grid(args):
     mol = _load(args.molecule)
     elements, xy = _coords(mol)
@@ -115,12 +170,27 @@ def cmd_grid(args):
     spec = GridSpec(r_min=r_min, r_max=args.r_max, dr=args.dr, da=args.da,
                     fold_deg=fold, use_float=not args.double)
 
+    per_angle = int(round(fold / args.da)) + 1
     per_row = len(backend._orbit(int(round(360.0 / order / args.da)))[0])
     total = spec.n_dist * per_row
     _say(f"grid r {r_min} to {args.r_max} A step {args.dr}, angles every {args.da} deg, "
          f"folded to {fold:.0f} deg")
     _say(f"{spec.n_dist} distances, {per_row} configurations each, {total} in total, "
          f"batch {backend.chunk}")
+
+    out = Path(args.out)
+    partial = out.with_name(out.name + ".partial")
+    row_bytes = per_angle * per_angle * (8 if args.double else 4)
+    chunk = partial.with_name(partial.name + ".chunk")
+    _absorb_chunk(partial, chunk, per_angle, row_bytes, spec, args)
+    ready = _resume_point(partial, spec, per_angle, row_bytes, args)
+    if ready:
+        _say(f"resuming: {ready} of {spec.n_dist} distances are already on disk")
+        spec = GridSpec(r_min=r_min + ready * args.dr, r_max=args.r_max, dr=args.dr,
+                        da=args.da, fold_deg=fold, use_float=not args.double)
+        target = chunk
+    else:
+        target = partial
 
     stop = {"now": False}
 
@@ -131,21 +201,29 @@ def cmd_grid(args):
     signal.signal(signal.SIGINT, on_sigint)
     started = time.perf_counter()
 
-    def progress(done, count):
+    def progress(count, of):
         elapsed = time.perf_counter() - started
-        rate = done / elapsed if elapsed else 0.0
-        left = (count - done) / rate if rate else 0.0
-        print(f"\r  {done}/{count} distances, {_clock(elapsed)} elapsed, "
+        rate = count / elapsed if elapsed else 0.0
+        left = (of - count) / rate if rate else 0.0
+        print(f"\r  {ready + count}/{ready + of} distances, {_clock(elapsed)} elapsed, "
               f"{_clock(left)} left   ", end="", file=sys.stderr, flush=True)
 
-    out = Path(args.out)
-    done = generate(backend, spec, out, progress=progress, cancel=lambda: stop["now"])
+    finished = generate(backend, spec, target, progress=progress,
+                        cancel=lambda: stop["now"])
     print(file=sys.stderr)
     elapsed = time.perf_counter() - started
 
-    if not done:
-        _say("cancelled, the partial file was removed")
+    if not finished:
+        _say(f"stopped; {partial} keeps the finished distances, "
+             "run the same command again to continue")
         return 1
+
+    if target != partial:
+        with partial.open("ab") as whole, target.open("rb") as rest:
+            rest.seek(HEADER_BYTES)
+            shutil.copyfileobj(rest, whole)
+        target.unlink()
+    partial.replace(out)
 
     evaluated = backend.stats["evaluated"]
     _say(f"wrote {out}, {out.stat().st_size / 1e6:.1f} MB in {_clock(elapsed)}")

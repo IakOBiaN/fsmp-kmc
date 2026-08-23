@@ -1,19 +1,23 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 
 import nnpot
-from fsmp_gui.generate import GridSpec, MMFFBackend, generate
+from fsmp_gui.generate import HEADER_BYTES, GridSpec, MMFFBackend, generate
 from fsmp_gui.molecule import Atom, Molecule
 from nnpot.backend import CAP_JMOL, KE, NNBackend, _switch
 from nnpot.geometry import (ATOMIC_NUMBER, dimer_coords, orbit_map,
                            rotational_order, symmetrize, symmetry_error)
 from nnpot.reference import MMFFCalculator
+from nnpot.__main__ import _absorb_chunk, _resume_point
 
 MODEL = Path(__file__).resolve().parents[2] / "samples" / "models" / "trimesic_acid.xyz"
 DA = 15.0
+RESUME = GridSpec(r_min=8.0, r_max=9.0, dr=0.1, da=DA, fold_deg=120.0)
+ROW = (int(round(120.0 / DA)) + 1) ** 2 * 4
 
 
 def angles(da=DA):
@@ -181,6 +185,57 @@ class AIMNet2Test(unittest.TestCase):
         coords = dimer_coords(self.xy, 60.0, t, t[::-1])
         pair = self.calc.energies(np.concatenate([self.z, self.z]), coords)
         self.assertLess(np.abs(pair - 2.0 * alone).max(), 20.0)
+
+
+class ResumeTest(unittest.TestCase):
+
+    def test_a_continuation_reproduces_the_whole_grid(self):
+        kept = 4
+        with tempfile.TemporaryDirectory() as tmp:
+            complete, partial, chunk = self.interrupted(tmp, kept, None)
+            with partial.open("ab") as target:
+                target.write(chunk.read_bytes()[HEADER_BYTES:])
+            self.assertEqual(partial.read_bytes(), complete)
+
+    def test_an_orphaned_chunk_is_absorbed(self):
+        args = SimpleNamespace(double=False)
+        per_angle = int(round(120.0 / DA)) + 1
+        kept, extra = 4, 3
+        with tempfile.TemporaryDirectory() as tmp:
+            complete, partial, chunk = self.interrupted(tmp, kept, extra)
+            _absorb_chunk(partial, chunk, per_angle, ROW, RESUME, args)
+            self.assertFalse(chunk.exists())
+            self.assertEqual(partial.read_bytes(),
+                             complete[:HEADER_BYTES + (kept + extra) * ROW])
+            self.assertEqual(_resume_point(partial, RESUME, per_angle, ROW, args),
+                             kept + extra)
+
+    def test_a_chunk_that_does_not_continue_is_refused(self):
+        args = SimpleNamespace(double=False)
+        per_angle = int(round(120.0 / DA)) + 1
+        with tempfile.TemporaryDirectory() as tmp:
+            _, partial, chunk = self.interrupted(tmp, 4, 3, starts_at=5)
+            with self.assertRaises(SystemExit):
+                _absorb_chunk(partial, chunk, per_angle, ROW, RESUME, args)
+
+    def interrupted(self, tmp, kept, extra, starts_at=None):
+        mol = c3_tma()
+        whole = Path(tmp) / "whole.bin"
+        self.assertTrue(generate(MMFFBackend(mol), RESUME, whole))
+        complete = whole.read_bytes()
+
+        partial = Path(tmp) / "grid.bin.partial"
+        partial.write_bytes(complete[:HEADER_BYTES + kept * ROW])
+
+        first = kept if starts_at is None else starts_at
+        chunk = Path(tmp) / "grid.bin.partial.chunk"
+        self.assertTrue(generate(
+            MMFFBackend(mol),
+            GridSpec(r_min=RESUME.r_min + first * RESUME.dr, r_max=RESUME.r_max,
+                     dr=RESUME.dr, da=RESUME.da, fold_deg=RESUME.fold_deg), chunk))
+        if extra is not None:
+            chunk.write_bytes(chunk.read_bytes()[:HEADER_BYTES + extra * ROW])
+        return complete, partial, chunk
 
 
 if __name__ == "__main__":

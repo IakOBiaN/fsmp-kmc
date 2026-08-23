@@ -24,8 +24,8 @@ fields. Thermodynamics then follows from the equality of the chemical
 potentials in the two phases: the dense layer is referred to the ideal gas
 sitting in the same cell, rather than integrated along an artificial path.
 Molecules are rigid bodies free to sit and turn anywhere, and they interact
-through a precalculated numerical potential, so a DFT-quality pair
-interaction costs an interpolation during the run.
+through a precalculated numerical potential, so however expensively the pair
+interaction was computed, the run itself pays for an interpolation.
 
 <p align="center">
   <img src="docs/screenshots/run-trajectory.gif"
@@ -74,8 +74,8 @@ production path is the same program with a full potential, as in
   sites.
 - **Interactions from a table, not a formula.** The pair energy
   E(r, θ₁, θ₂) is precalculated on a grid, so the run inherits the accuracy of
-  whatever produced it (DFT, a classical force field, the built-in generator)
-  at the cost of an interpolation.
+  whatever produced it (a classical force field, a neural network, DFT, the
+  built-in generator) at the cost of an interpolation.
 - **Thermodynamics as the output**, not just structure: chemical potential,
   free energy, entropy and the pressure balance across the interface.
 - **The whole workflow in one desktop app**, and prebuilt binaries for
@@ -258,13 +258,16 @@ the program directly; download and unpack them into the `forcefields/` folder:
 [**Numerical pair potentials for FSMP-kMC**](https://doi.org/10.5281/zenodo.21959125) (Zenodo, 10.5281/zenodo.21959125)
 
 The dataset holds trimesic acid in two models (the simplified analytic model
-and an atomistic one with DFT-derived charges) plus terephthalic, isophthalic
-and phthalic acid, 66 MB to 2.2 GB each, under CC BY 4.0. Its own README
+and an atomistic one) plus terephthalic, isophthalic and phthalic acid, 66 MB
+to 2.2 GB each, under CC BY 4.0. The atomistic grids were computed with the
+DREIDING force field and its explicit hydrogen-bond term, on molecules whose
+partial charges come from a DFT calculation; the names record both, `q` for
+the charge calculation and `Dhb` for the hydrogen-bond distance. Its own README
 documents every grid and the binary format down to the byte offsets. The DOI
 above always resolves to the latest version of the record, and citing it is
 how these potentials should be credited.
 
-The original ASCII grids of the DFT potentials are kept in a
+The original ASCII grids of these potentials are kept in a
 [separate cloud folder](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
 They are only needed to repack a potential yourself, for example with different
 folding or in double precision.
@@ -300,20 +303,20 @@ external data.
 
 MMFF94 is a demonstration-grade backend with honest physics: hydrogen-bonded
 assemblies hold together, the tails behave correctly out to the grid cutoff,
-and for trimesic acid the dimer well lands at the same geometry as the DFT
-reference. It does underbind compared to a DFT-quality potential, so absolute
-cohesion energies and transition temperatures shift. For production numbers,
-compute the grid with your own method and attach the packed file: the engine
-reads any v2 binary regardless of its origin.
+and for trimesic acid the dimer well lands at the same arrangement as the
+published grid. It binds that dimer far more weakly, -40.0 kJ/mol against
+-78.4, so absolute cohesion energies and transition temperatures shift. For
+production numbers, compute the grid with your own method and attach the
+packed file: the engine reads any v2 binary regardless of its origin.
 
 ### Generating a potential with a neural network
 
 The repository also carries `nnpot`, a separate command-line tool that builds
 the same kind of grid with a machine-learned potential instead of a classical
-force field. On the trimesic acid dimer the two disagree about the strength of
-the hydrogen bond by 23 kJ/mol, which propagates straight into the cohesion
-energy and the transition temperatures. A production grid takes about
-forty minutes on a laptop GPU.
+force field. The three descriptions this project can put on the same trimesic
+acid dimer place its hydrogen bond 38 kJ/mol apart, and that spread propagates
+straight into the cohesion energy and the transition temperatures. A production
+grid takes about forty minutes on a laptop GPU.
 
 It is deliberately not part of the Studio or of the release bundles: PyTorch
 with CUDA is four gigabytes against the sixty megabytes of a bundle. It is
