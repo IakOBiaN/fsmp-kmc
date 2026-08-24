@@ -20,6 +20,18 @@ explicit hydrogen-bond term; the quantum calculation behind them produced the
 partial charges and nothing else. A name records both: q<method> is the
 charge calculation, Dhb the hydrogen-bond distance.
 
+The same record also holds a second set for the same four acids, computed
+with the AIMNet2 machine-learned potential and reaching out to 30 A:
+
+  TMA_aimnet2_...v2.bin                        66 MB   trimesic acid
+  TPA_aimnet2_...v2.bin                       161 MB   terephthalic acid
+  IPA_aimnet2_...v2.bin                       639 MB   isophthalic acid
+  PA_aimnet2_...v2.bin                        639 MB   phthalic acid
+
+They are a different description of the same molecules, not a correction of
+the first set, and the two disagree by 15 kJ/mol on the trimesic acid dimer.
+They were produced with nnpot/, see nnpot/README.md.
+
 Keep the file names as they are: the example configurations and the sample
 Studio projects point at them.
 

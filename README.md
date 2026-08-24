@@ -257,15 +257,17 @@ the program directly; download and unpack them into the `forcefields/` folder:
 
 [**Numerical pair potentials for FSMP-kMC**](https://doi.org/10.5281/zenodo.21959125) (Zenodo, 10.5281/zenodo.21959125)
 
-The dataset holds trimesic acid in two models (the simplified analytic model
-and an atomistic one) plus terephthalic, isophthalic and phthalic acid, 66 MB
-to 2.2 GB each, under CC BY 4.0. The atomistic grids were computed with the
+The dataset holds two independent sets of grids for the same four acids, 66 MB
+to 2.2 GB each, under CC BY 4.0. The classical set was computed with the
 DREIDING force field and its explicit hydrogen-bond term, on molecules whose
 partial charges come from a DFT calculation; the names record both, `q` for
-the charge calculation and `Dhb` for the hydrogen-bond distance. Its own README
-documents every grid and the binary format down to the byte offsets. The DOI
-above always resolves to the latest version of the record, and citing it is
-how these potentials should be credited.
+the charge calculation and `Dhb` for the hydrogen-bond distance. The second
+set was computed with the AIMNet2 machine-learned potential and reaches out
+to 30 Å. Trimesic acid also comes as the simplified analytic model. The two
+sets are different descriptions rather than a correction of one by the other.
+The dataset's own README documents every grid and the binary format down to
+the byte offsets. The DOI above always resolves to the latest version of the
+record, and citing it is how these potentials should be credited.
 
 The original ASCII grids of these potentials are kept in a
 [separate cloud folder](https://1drv.ms/f/s!AmyLqEdRe5EYgdkXdo7VUsFQxyMmng?e=6Vi3NS).
