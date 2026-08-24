@@ -25,6 +25,10 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
   bundles, which keep their current size. See `nnpot/README.md`.
 - Molecule models for isophthalic and phthalic acid in `samples/models/`,
   next to trimesic and terephthalic acid.
+- The published dataset now carries a second set of grids for the same four
+  acids, computed with `nnpot` and reaching out to 30 Å, next to the classical
+  set it already held. The DOI in the readme resolves to the new version on
+  its own, so nothing has to be relinked.
 
 ### Fixed
 
