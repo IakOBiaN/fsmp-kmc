@@ -5,14 +5,16 @@ this file says what is intended today, not what is promised.
 
 ## In flight
 
-- **A permanent home for the potentials.** The precalculated grids are large
-  (65 MB to 2 GB each) and currently live in personal cloud folders. They are
-  moving to a Zenodo record with a DOI, so they can be cited, verified and
-  linked from a paper without depending on one person's account.
-- **A citable version of the code.** A Zenodo deposit for the software
-  itself, and a submission to the
+- **A citable version of the code.** The potentials already have their own
+  Zenodo record, and the DOI carried by the badge, the readme and
+  `CITATION.cff` resolves to its latest version on its own. The program has
+  no such handle. It needs a Zenodo deposit tied to a release tag, and then a
+  submission to the
   [Journal of Open Source Software](https://joss.theoj.org/), which is where
-  a piece of research software of this size belongs.
+  a piece of research software of this size belongs. Everything JOSS asks of
+  the repository itself is in place: the license, the CI, the two test
+  suites, the contribution guide and a quickstart that needs no download.
+  The short paper it reviews is what is missing.
 
 ## Considered, not scheduled
 
@@ -20,17 +22,18 @@ this file says what is intended today, not what is promised.
   has to fit in a 32-bit integer, which caps a run at a few million steps for
   a few hundred molecules. The engine refuses such a run instead of
   overflowing, but the ceiling itself should go.
-- **The neural potential inside the app.** `nnpot` now computes pair
-  potentials with AIMNet2 from the command line, which is where that work
-  belongs: PyTorch with CUDA is four gigabytes against the sixty megabytes of
-  a bundle. Driving it from the Studio, as an optional install the app finds
-  rather than ships, is possible but not scheduled; the file it produces is
-  already attached like any other potential.
 - **More worked examples** reproducing published systems, in the same
   open-and-run form as the bundled quickstart.
 
 ## Not planned
 
+- **The neural potential inside the app.** `nnpot` computes pair potentials
+  with AIMNet2 from the command line, and it stays there. PyTorch with CUDA
+  is four gigabytes against the sixty megabytes of a release bundle, and a
+  workbench that installs like that is a worse program for everyone who never
+  asked for a neural potential. Nothing is lost by keeping them apart: the
+  grid `nnpot` writes is the same v2 binary as every other potential, and the
+  Studio attaches it the same way. The computation is what stays outside.
 - **Oblique unit cells.** The elongated two-phase cell and its periodicity
   along y require a rectangular box; tiling an oblique cell leaves a seam
   unless the tilt is commensurate. An oblique lattice is properly expressed as
