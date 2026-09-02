@@ -44,9 +44,10 @@ kMC = true
 # every release bundle: no download needed
 potential = samples/potentials/TMA_simple_2020_coarse_demo.v2.bin
 
-# Initial structure: a name from StructureGenerator.h, or "calculate" to
+# Initial structure: a .cell unit cell file (the reference cells are in
+# samples/cells/ and the Studio saves the same format), or "calculate" to
 # optimize a rough unit cell given by the unit_cell key
-structure = TMA_HCP_simple_2020
+structure = samples/cells/TMA_HCP_simple_2020.cell
 
 # Reference area for the chemical potential: manual (uses the sigma key, in A),
 # min_dist (pi*min_dist^2/4 from the potential's hard core), or molecule_area

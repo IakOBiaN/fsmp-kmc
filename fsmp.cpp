@@ -26,7 +26,7 @@ double mask_free_radius = 3.0;                          // A; no penalty within 
 double mask_ramp_width = 2.0;                           // A; smooth rise of the penalty
 double mask_penalty = 25000.0;                          // J/mol; penalty plateau far from the sites
 string p_name;                                         // numerical potential (binary v2)
-string structure_name;                                 // named structure or "calculate"
+string structure_name;                                 // path to a .cell file, or "calculate"
 string sigma_mode;                                     // reference area: manual | min_dist | molecule_area
 double sigma_manual = 0;                               // sigma in A (used with sigma_mode = manual)
 int uc_in_x = 0, uc_in_y = 0;                          // unit cells along x and y
@@ -38,17 +38,28 @@ bool widom_test_index = false;
 string unit_cell_name;                                 // xyz animation of the cell optimization
 string xyz_name;                                       // xyz trajectory
 string statistics_name;                                // optional; default is built below
-vector<double> unit_cell_params;                       // filled by the unit_cell key (calculate)
+vector<double> unit_cell_params;                       // the cell file, or the unit_cell key with "calculate"
 
+#include "cell_file.h"
 #include "read_parameters.h"
 
 stringstream name_of_file_for_statistics;
+
+static string structure_label()
+{
+	size_t slash = structure_name.find_last_of("/\\");
+	string base = (slash == string::npos) ? structure_name : structure_name.substr(slash + 1);
+	size_t dot = base.find_last_of('.');
+	if (dot != string::npos && dot > 0) { base = base.substr(0, dot); }
+	return base;
+}
+
 void complex_names()
 {
 	if (statistics_name.empty())
 	{
 		// unique_output_name in main shifts the name if the file already exists
-		name_of_file_for_statistics << "2_statistics_" << structure_name << ".dat";
+		name_of_file_for_statistics << "2_statistics_" << structure_label() << ".dat";
 	}
 	else
 	{

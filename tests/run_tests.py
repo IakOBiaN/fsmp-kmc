@@ -13,7 +13,10 @@
    seeded for determinism; pins the converged energy.
 6. The same optimization started from a cell with hard-core overlaps: the
    scaling stage must grow it out of the overlap and reach the same optimum.
-7. The quickstart: the configuration a first-time user runs, exactly as
+7. The cell the optimizer leaves behind is read back as the initial
+   structure of a second run, which closes the loop a command-line user
+   walks: optimize once, then run the cell that came out.
+8. The quickstart: the configuration a first-time user runs, exactly as
    shipped, on the demonstration potential that ships with it. Half a
    minute, and it pins the initial energy of its cell.
 
@@ -97,11 +100,11 @@ def pin(log, expected, tolerance, label=None):
 BUILD.mkdir(exist_ok=True)
 # the engine never overwrites existing outputs, so clear the previous run's
 # files to keep the output names canonical
-for pattern in ("0_*.xyz", "1_*.xyz", "2_*.dat"):
+for pattern in ("0_*.xyz", "0_*.cell", "1_*.xyz", "2_*.dat"):
     for stray in TESTS.glob(pattern):
         stray.unlink()
 
-print("== [1/8] pack_forcefield round-trip on a synthetic grid ==", flush=True)
+print("== [1/9] pack_forcefield round-trip on a synthetic grid ==", flush=True)
 compile_cpp(TESTS.parent / "tools" / "pack_forcefield.cpp",
             BUILD / ("pack" + EXE), "-Wall", "-Wextra")
 run([sys.executable, "test_pack_roundtrip.py", BUILD / ("pack" + EXE), BUILD])
@@ -109,27 +112,27 @@ run([sys.executable, "test_pack_roundtrip.py", BUILD / ("pack" + EXE), BUILD])
 compile_cpp(TESTS.parent / "fsmp.cpp", BUILD / ("fsmp" + EXE),
             "-ffp-contract=off")
 
-print("== [2/8] the engine reports its version ==", flush=True)
+print("== [2/9] the engine reports its version ==", flush=True)
 version = subprocess.run([str(BUILD / ("fsmp" + EXE)), "--version"],
                          cwd=TESTS, capture_output=True, text=True)
 if version.returncode != 0 or not version.stdout.startswith("FSMP-kMC "):
     sys.exit(f"--version failed: {version.stdout}{version.stderr}")
 print(version.stdout.strip())
 
-print("== [3/8] engine on the small committed grid ==", flush=True)
+print("== [3/9] engine on the small committed grid ==", flush=True)
 pin(engine("hcp_small.txt", "hcp_small.log"), -61.5091, 0.001)
 
-print("== [4/8] engine on the full TMA simple potential ==", flush=True)
+print("== [4/9] engine on the full TMA simple potential ==", flush=True)
 if (TESTS.parent / "forcefields" / "TMA_simple_2020.v2.bin").is_file():
     pin(engine("hcp_full.txt", "hcp_full.log"), -62.5926, 0.001)
 else:
     print("SKIP: forcefields/TMA_simple_2020.v2.bin not present")
 
-print("== [5/8] unit-cell optimizer on the small committed grid ==", flush=True)
+print("== [5/9] unit-cell optimizer on the small committed grid ==", flush=True)
 pin(engine("optimize_small.txt", "optimize_small.log"), -61.928, 0.05,
     "Final energy per molecule:")
 
-print("== [6/8] unit-cell optimizer from an overlapping start ==", flush=True)
+print("== [6/9] unit-cell optimizer from an overlapping start ==", flush=True)
 pin(engine("optimize_overlap.txt", "optimize_overlap.log"), -61.928, 0.05,
     "Final energy per molecule:")
 
@@ -137,7 +140,22 @@ pin(engine("optimize_overlap.txt", "optimize_overlap.log"), -61.928, 0.05,
 # too: the shipped configuration, from the repository root as its own
 # comment says, on the demonstration grid that ships next to it. Its output
 # files land in the working directory, so they are cleared around the run.
-print("== [7/8] the quickstart configuration, as shipped ==", flush=True)
+print("== [7/9] the optimized cell is written and can be run again ==", flush=True)
+OPT_CELL = TESTS / "0_optimize_small.cell"
+if not OPT_CELL.is_file():
+    sys.exit(f"FAIL: the optimizer did not write {OPT_CELL.name}")
+reuse = [line for line in (TESTS / "optimize_small.txt").read_text().splitlines()
+         if not line.startswith("unit_cell = ")]
+swap = {"structure": OPT_CELL.name, "unit_cell_name": "build/reuse_cell.xyz",
+        "xyz_name": "build/reuse.xyz", "statistics_name": "build/reuse.dat"}
+for i, line in enumerate(reuse):
+    key = line.split("=")[0].strip()
+    if key in swap:
+        reuse[i] = f"{key} = {swap[key]}"
+(BUILD / "reuse.txt").write_text("\n".join(reuse) + "\n")
+pin(engine("build/reuse.txt", "reuse.log"), -61.917, 0.05)
+
+print("== [8/9] the quickstart configuration, as shipped ==", flush=True)
 QUICKSTART_OUTPUT = ("quickstart_0_unit_cell.xyz", "quickstart_1_trajectory.xyz",
                      "quickstart_2_statistics.dat")
 for name in QUICKSTART_OUTPUT:
@@ -151,7 +169,7 @@ for name in QUICKSTART_OUTPUT:
 # A parameter file that parses but cannot be run with must stop the program
 # at once, naming the key and the line, instead of producing NaNs or looping
 # forever hours into a run.
-print("== [8/8] the engine refuses impossible parameters ==", flush=True)
+print("== [9/9] the engine refuses impossible parameters ==", flush=True)
 rejected({"temp_from": "nan"}, "is not a finite number")
 rejected({"um_to": "inf"}, "is not a finite number")
 rejected({"nSteps": "3000000000"}, "does not fit in a 32-bit integer")
@@ -161,6 +179,11 @@ rejected({"nStepsEq": "3"}, "must not exceed nSteps")
 rejected({"uc_in_x": "0"}, "must be at least one unit cell")
 rejected({"delta": "0"}, "must be a positive maximal displacement")
 rejected({"temperature_in_transition_zone": "0"}, "must be a positive temperature")
+# The unit cell comes from a .cell file, so a missing or malformed cell must
+# stop the run with a message naming the file.
+(BUILD / "bad.cell").write_text("2\n11.1 19.2\n0 0 90\n")
+rejected({"structure": "build/missing.cell"}, "cannot open the unit cell file")
+rejected({"structure": "build/bad.cell"}, "expected 2 molecules, the file ends after 1")
 # nSteps itself fits in an int, but nSteps x 264 particles does not
 rejected({"nSteps": "10000000"}, "iterations, which does not fit")
 

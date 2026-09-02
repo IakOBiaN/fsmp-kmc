@@ -27,7 +27,9 @@ kMC = true
 # Numerical potential (binary v2; see forcefields/readme.txt)
 potential = forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.v2.bin
 
-# Optimize the rough unit cell below before the run
+# Optimize the rough unit cell below before the run. The converged cell is
+# written as a .cell file next to the animation named by unit_cell_name, so a
+# later run can point its structure key straight at it.
 structure = calculate
 
 # Reference area for the chemical potential: manual (uses the sigma key, in A),
@@ -53,6 +55,7 @@ delta_angle = 60.0
 
 widom_test_index = false
 
-# Output files (xyz animation of the cell optimization, xyz trajectory)
+# Output files (xyz animation of the cell optimization, which also names the
+# .cell file the optimized cell is written to, and the xyz trajectory)
 unit_cell_name = 0_calculate_animation.xyz
 xyz_name = 1_xyz_for_calculations_TPA_chain.xyz

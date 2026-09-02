@@ -225,7 +225,7 @@ int main(int argc, char ** argv)
 	// Generating the initial structure for sequential MC simulation
   if (structure_name != "calculate")
   {
-	   generate_structure(unit_cell_params, structure_name, coordinates, Lx, Ly);
+	   generate_elongated_cell(unit_cell_params, coordinates, Lx, Ly);
   }
   else
   {

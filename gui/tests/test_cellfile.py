@@ -1,5 +1,5 @@
 """The .cell unit-cell format: round trip, error reporting, and the
-committed reference cells extracted from StructureGenerator.h.
+committed reference cells in samples/cells/.
 
 Run from the repository root:
     gui/.venv/Scripts/python gui/tests/test_cellfile.py

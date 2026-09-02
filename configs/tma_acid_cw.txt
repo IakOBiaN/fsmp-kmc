@@ -45,7 +45,7 @@ stabilization_mask = true
 potential = forcefields/TMA_simple_2020.v2.bin
 
 # Initial structure: chicken-wire cell optimized for the simplified 2020 model
-structure = TMA_CW_simple_2020
+structure = samples/cells/TMA_CW_simple_2020.cell
 
 # Reference area for the chemical potential (sigma in A)
 sigma_mode = manual

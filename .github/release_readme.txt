@@ -23,7 +23,8 @@ _internal/        the Studio runtime (do not edit)
 configs/          example parameter files for command-line runs
 samples/          example data to explore:
                     models/     molecule models (atomistic .xyz and site .site)
-                    cells/      reference unit cells (.cell) to open in the Studio
+                    cells/      reference unit cells (.cell); open them in the
+                                Studio, or point a config's structure key at one
                     potentials/ the small demonstration potential the
                                 quickstart runs on (see the readme inside)
                     projects/   ready-to-open Studio projects; TMA_quickstart

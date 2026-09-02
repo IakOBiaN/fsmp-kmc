@@ -347,6 +347,7 @@ it ships, so the first thing a new user tries is covered by the suite too.
 | `fsmp.cpp` | Program entry point: reads the parameter file, runs the simulation. |
 | `program_body.cpp` | Core simulation loop. |
 | `read_parameters.h` | Strict parser of the run-time parameter file. |
+| `cell_file.h` | Reader and writer of the `.cell` unit cell files: what a configuration's `structure` key points at, and what the optimizer leaves behind. |
 | `configs/` | Ready-to-run parameter files (see [Building and running](#building-and-running)). |
 | `Makefile` | Build helper: the program, the converter, and the tests. |
 | `includes.h` | Master list of headers pulled into `program_body.cpp`. |
@@ -355,13 +356,13 @@ it ships, so the first thing a new user tries is covered by the suite too.
 | `interpolation.h`, `read_forcefield.h` | Grid interpolation and loading of the binary numerical potential. |
 | `fields.h` | Damping field, external field, and the pressure change across the gas-solid interface. |
 | `Rosenbluth_iteration.h`, `Metropolis_iteration.h` | Kinetic Monte Carlo (Rosenbluth) and Metropolis moves. |
-| `StructureGenerator.h` | Generation of the initial molecular structure and unit cell. |
+| `StructureGenerator.h` | Tiling of the unit cell into the elongated simulation box, and the unit cell optimizer. |
 | `pressure_balance.h` | Mechanical equilibrium and pressure balancing. |
 | `Widom_test.h` | Widom insertion check of the chemical potential. |
 | `Weighted_averages.h` | Time averaging of the run statistics. |
 | `write_xyz_file.h` | Trajectory and configuration output (XYZ). |
 | `random/` | SFMT random number generator (by Agner Fog). |
-| `samples/` | Example data shipped in every bundle: `models/` (atomistic `.xyz` and site `.site`, picked by a configuration's `molecule_model` key and drawn in all visual output), `cells/` (reference unit cells), `potentials/` (the small demonstration grid the quickstart runs on), and `projects/` (ready-to-open Studio projects: `TMA_quickstart` needs no download, the others reproduce the paper). |
+| `samples/` | Example data shipped in every bundle: `models/` (atomistic `.xyz` and site `.site`, picked by a configuration's `molecule_model` key and drawn in all visual output), `cells/` (reference unit cells, what a configuration's `structure` key points at), `potentials/` (the small demonstration grid the quickstart runs on), and `projects/` (ready-to-open Studio projects: `TMA_quickstart` needs no download, the others reproduce the paper). |
 | `molecule_model.h` | Loader of the molecule model. |
 | `forcefields/` | Numerical potential files (downloaded separately). |
 | `logo/` | Project logo, GitHub preview artwork and the graphical abstract. |

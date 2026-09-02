@@ -11,7 +11,8 @@ pack.exe / pack   converts an ASCII potential to the binary format (optional)
 configs/          example parameter files, each documenting every key
 samples/          example data:
                     models/     molecule models (atomistic .xyz and site .site)
-                    cells/      reference unit cells (.cell)
+                    cells/      reference unit cells (.cell); a config's
+                                structure key points at one of these
                     potentials/ the small demonstration potential the
                                 quickstart runs on (see the readme inside)
                     projects/   Studio projects; useful here only as a record

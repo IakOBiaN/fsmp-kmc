@@ -26,8 +26,8 @@ kMC = true
 # Numerical potential (binary v2; see forcefields/readme.txt)
 potential = forcefields/TPA_qPBE_crystal_Dhb5.0_r5.5_16_dr01_da5.v2.bin
 
-# Initial structure from StructureGenerator.h
-structure = TPA_horizontal_ladder_qPBE_Dreiding_Dhb5.0
+# Initial structure: one of the reference cells in samples/cells/
+structure = samples/cells/TPA_horizontal_ladder_qPBE_Dreiding_Dhb5.0.cell
 
 # Reference area for the chemical potential: manual (uses the sigma key, in A),
 # min_dist (pi*min_dist^2/4 from the potential's hard core), or molecule_area

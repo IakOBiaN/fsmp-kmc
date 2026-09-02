@@ -6,6 +6,10 @@
 // error naming the file and line. A production run must never fall back to a
 // silent default because of a typo.
 //
+// The structure key holds the path to a .cell unit cell file (the reference
+// cells are in samples/cells/, and the Studio saves the same format), or the
+// word "calculate", which optimizes the rough cell given by the unit_cell key.
+//
 // Optional keys: statistics_name (default is built from the structure name),
 // seed (fixes the random sequence for reproducible runs; otherwise the wall
 // clock or the FSMP_RANDOM_SEED compile flag is used), constant_pressure_value
@@ -244,13 +248,13 @@ void read_parameters(const char * path)
 	if (structure_name != "calculate" && seen.count("unit_cell"))
 	{
 		cerr << "ERROR: " << file << ": the unit_cell key is only used with structure = calculate "
-		     << "(a named structure carries its own cell)" << endl;
+		     << "(a cell file carries its own cell)" << endl;
 		exit(1);
 	}
 	if (optimize_only && structure_name != "calculate")
 	{
 		cerr << "ERROR: " << file << ": optimize_only = true requires structure = calculate "
-		     << "(a named structure has nothing to optimize)" << endl;
+		     << "(a cell read from a file is used as it is)" << endl;
 		exit(1);
 	}
 
@@ -292,4 +296,9 @@ void read_parameters(const char * path)
 	}
 
 	cout << "Parameters read from " << file << endl;
+
+	if (structure_name != "calculate")
+	{
+		read_cell_file(structure_name, unit_cell_params);
+	}
 }

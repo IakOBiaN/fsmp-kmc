@@ -23,6 +23,12 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
   by a reboot, is finished rather than started over on the next run. The tool
   is installed separately and is never part of the Studio or of the release
   bundles, which keep their current size. See `nnpot/README.md`.
+- The unit cell optimizer writes the cell it converged on as a `.cell` file,
+  next to its xyz animation and named after it. A command-line optimization
+  and a production run are two steps of one workflow now: optimize once, then
+  point a configuration's `structure` key at the file that came out. The
+  Studio has always had that loop, the command line had no way to keep the
+  result except by copying numbers out of the log.
 - Molecule models for isophthalic and phthalic acid in `samples/models/`,
   next to trimesic and terephthalic acid.
 - The published dataset now carries a second set of grids for the same four
@@ -32,14 +38,32 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
 ### Changed
 
+- The initial structure now comes from a `.cell` file: a configuration's
+  `structure` key holds the path to one, and `samples/cells/` carries the
+  sixteen reference cells. The Studio has been reading and writing that same
+  format all along, so a cell built there runs from the command line
+  unchanged, and a reference cell can be opened, edited and saved back. Until
+  now every one of those cells was also written out as C++ inside
+  `StructureGenerator.h`, which is where a configuration looked them up by
+  name; that second copy is gone, and with it the risk of the two disagreeing.
+  **This breaks parameter files that name a structure**: replace
+  `structure = TMA_HCP_simple_2020` with
+  `structure = samples/cells/TMA_HCP_simple_2020.cell`. A name that no longer
+  resolves stops the run at once with a message pointing at `samples/cells/`.
+  `structure = calculate`, which optimizes the rough cell given by the
+  `unit_cell` key, is untouched. One consequence is worth naming: a cell file
+  keeps every molecule inside the cell, while the header sometimes placed one
+  a whole cell to the left of it. The lattice is identical either way, but the
+  two free edges of the starting block are then built from different
+  molecules. That is an edge effect and falls off as 1/`uc_in_x`: it reaches
+  0.5 kJ/mol per molecule at twenty cells across for the worst of the sixteen
+  cells, and 0.0005 for the configurations as they ship. The first Monte Carlo
+  steps relax the edge in any case.
 - Every reference unit cell in `samples/cells/` was optimized again on the
-  corrected potential, and the two that existed only as files, the trimesic
-  acid flower of the simplified model and its honeycomb on the AIMNet2 grid,
-  are named structures now as well. All sixteen live in both places and hold
-  the same numbers. Only the honeycomb of the simplified model was already at
-  its minimum; the rest had been left behind by an earlier optimizer and gain
-  between 0.02 and 2.4 kJ/mol per molecule, the vertical chain of isophthalic
-  acid most of all.
+  corrected potential. Only the honeycomb of the simplified model was already
+  at its minimum; the rest had been left behind by an earlier optimizer and
+  gain between 0.02 and 2.4 kJ/mol per molecule, the vertical chain of
+  isophthalic acid most of all.
 
 ### Fixed
 

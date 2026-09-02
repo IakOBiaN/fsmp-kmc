@@ -3,8 +3,8 @@ the cell, move and rotate the copies (the canvas and the placements table
 share one selection). The Optimize button hands the rough cell to
 the engine (structure = calculate, optimize_only) and plays its animation
 back live until the optimized cell lands in the editor. Cells are exchanged
-with .cell files; the repository samples/cells/ folder holds the reference
-structures from StructureGenerator.h in that format.
+with .cell files, the format the engine itself reads; the repository
+samples/cells/ folder holds the reference cells.
 
 Every copy is an instance of the project molecule model; the cell stores each
 copy's position and orientation.
