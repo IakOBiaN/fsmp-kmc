@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from fsmp_gui.cellfile import load_cell
 from fsmp_gui.engine import find_engine
 from fsmp_gui.runs import (DONE, INTERRUPTED, RUNNING, STOPPED, LogWatch,
                            create_run, is_alive, loop_points, loop_values,
@@ -115,7 +116,7 @@ class TestStatistics(unittest.TestCase):
 
 class TestParameters(unittest.TestCase):
     def test_round_trip_and_required_keys(self):
-        text = run_parameters(FORM, "../grid.bin", "1 10 10 0 0 84", SIM)
+        text = run_parameters(FORM, "../grid.bin", "unit_cell.cell", SIM)
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "run.txt"
             path.write_text(text)
@@ -126,9 +127,10 @@ class TestParameters(unittest.TestCase):
                     "nSteps", "nStepsEq", "constant_pressure", "kMC",
                     "uc_in_x", "uc_in_y", "free_space", "molecule_model",
                     "delta", "delta_angle", "widom_test_index",
-                    "unit_cell_name", "xyz_name", "unit_cell", "seed"):
+                    "unit_cell_name", "xyz_name", "seed"):
             self.assertIn(key, params, msg=key)
-        self.assertEqual(params["structure"], "calculate")
+        self.assertEqual(params["structure"], "unit_cell.cell")
+        self.assertNotIn("unit_cell", params)
         self.assertEqual(params["kMC"], "true")
         self.assertNotIn("stabilization_mask", params)
         self.assertNotIn("constant_pressure_value", params)
@@ -136,7 +138,7 @@ class TestParameters(unittest.TestCase):
     def test_optional_blocks(self):
         form = dict(FORM, mask=True, constant_pressure=True, seed=0,
                     sigma_mode="min_dist")
-        params_text = run_parameters(form, "g.bin", "1 10 10 0 0 0", SIM)
+        params_text = run_parameters(form, "g.bin", "unit_cell.cell", SIM)
         self.assertIn("stabilization_mask = true", params_text)
         self.assertIn("mask_penalty = 25000", params_text)
         self.assertIn("constant_pressure_value = 0", params_text)
@@ -218,6 +220,16 @@ class TestEndToEnd(unittest.TestCase):
             self.assertEqual(watch.state(), DONE)
             self.assertEqual(watch.points_started, 1)
             self.assertTrue((run_dir / "engine.pid").is_file())
+
+            # the run starts from the project cell as it is: the engine
+            # reads the file written next to the parameters and never
+            # optimizes it first
+            cell_x, cell_y, placements, _ = load_cell(run_dir / "unit_cell.cell")
+            self.assertEqual((cell_x, cell_y), (11.6, 19.8))
+            self.assertEqual(len(placements), 2)
+            log = (run_dir / "run.log").read_text(errors="replace")
+            self.assertIn("Unit cell read from", log)
+            self.assertNotIn("Unit cell optimization", log)
 
             names, rows = read_statistics(run_dir / "statistics.dat")
             self.assertEqual(names[0], "T, K")

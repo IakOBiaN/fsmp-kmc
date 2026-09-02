@@ -54,11 +54,11 @@ make
 ./fsmp.out configs/tma_quickstart_demo.txt
 ```
 
-Half a minute later you have an xyz trajectory, the optimized unit cell and a
-statistics table. The crystal starts at `Density: 1.56  Energy: -61.68`
-(kJ/mol per molecule) and holds near the published density of
-1.558 µmol/m² through the field sweep, and the statistics file carries one
-row per external-field value, chemical potential included.
+Half a minute later you have an xyz trajectory and a statistics table. The
+crystal starts at `Density: 1.56  Energy: -61.45` (kJ/mol per molecule) and
+holds near the published density of 1.558 µmol/m² through the field sweep,
+and the statistics file carries one row per external-field value, chemical
+potential included.
 
 That run is a demonstration, not a publication setup: the bundled potential is
 a coarse copy of the real one and the run is far too short to converge. The

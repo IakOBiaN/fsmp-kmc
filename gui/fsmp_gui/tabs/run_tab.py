@@ -119,7 +119,7 @@ class RunCard(QFrame):
         w = self.watch
         if state == runs.RUNNING and w.points_started == 0:
             self.bar.setValue(0)
-            self.status.setText("optimizing the unit cell…")
+            self.status.setText("reading the potential…")
             return
         if state == runs.RUNNING:
             index = w.points_started - 1

@@ -7,7 +7,8 @@
     run.log         engine stdout+stderr; the launcher appends FSMP_EXIT:<code>
     engine.pid      PID of the engine process
     statistics.dat  one row per (T, u_m) point
-    trajectory.xyz, unit_cell.xyz
+    trajectory.xyz
+    unit_cell.cell  the cell the run starts from, as the engine reads it
 
 The engine is launched detached from the GUI, so closing the window does not
 kill multi-day runs; the GUI recovers every run's state from these files.
@@ -24,7 +25,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .engine import find_engine, placements_to_chain, write_model
+from . import cellfile
+from .engine import find_engine, write_model
 from .project import Project, safe_filename
 
 RUNS_DIR = "runs"
@@ -35,6 +37,7 @@ PIDFILE = "engine.pid"
 STATISTICS = "statistics.dat"
 TRAJECTORY = "trajectory.xyz"
 CELL_ANIMATION = "unit_cell.xyz"
+CELL = "unit_cell.cell"
 EXIT_MARK = "FSMP_EXIT:"
 
 # CREATE_NO_WINDOW alone: combined with DETACHED_PROCESS Windows ignores it
@@ -98,16 +101,17 @@ def read_params(path: Path) -> dict:
     return out
 
 
-def run_parameters(form: dict, potential: str, unit_cell: str,
+def run_parameters(form: dict, potential: str, cell: str,
                    sim: dict) -> str:
     """The parameter file of a production run: the project potential and
-    unit cell, the simulation-cell settings from tab 5 and the run form."""
+    the cell file written next to it, the simulation-cell settings from tab 5
+    and the run form. The run starts from that cell as it is; the optimizer
+    belongs to tab 4 and never runs behind the user's back."""
     flag = lambda v: "true" if v else "false"
     lines = [
         "# Written by FSMP-kMC Studio: production run",
         f"potential = {potential}",
-        "structure = calculate",
-        f"unit_cell = {unit_cell}",
+        f"structure = {cell}",
         "molecule_model = model.xyz",
         f"uc_in_x = {int(sim['uc_in_x'])}",
         f"uc_in_y = {int(sim['uc_in_y'])}",
@@ -420,10 +424,10 @@ def create_run(project: Project, label: str, form: dict) -> Path:
         rel = os.path.relpath(potential, run_dir).replace("\\", "/")
     except ValueError:
         raise RunError("the potential must be on the same drive as the project")
-    chain = placements_to_chain(uc["cell_x"], uc["cell_y"],
-                                [(m["x"], m["y"], m["phi"])
-                                 for m in uc["molecules"]])
-    (run_dir / PARAMS).write_text(run_parameters(form, rel, chain, sim),
+    cellfile.save_cell(run_dir / CELL, uc["cell_x"], uc["cell_y"],
+                       [(m["x"], m["y"], m["phi"]) for m in uc["molecules"]],
+                       comment=" ".join(label.split()))
+    (run_dir / PARAMS).write_text(run_parameters(form, rel, CELL, sim),
                                   encoding="utf-8")
     (run_dir / META).write_text(json.dumps({
         "label": label, "kind": "native",

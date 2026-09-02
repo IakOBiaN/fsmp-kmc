@@ -2,9 +2,11 @@
 
 Notable changes per release. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
-follows [semantic versioning](https://semver.org/spec/v2.0.0.html): the
-parameter file, the binary potential format and the project file are the
-interfaces that a major version protects.
+follows [semantic versioning](https://semver.org/spec/v2.0.0.html). What a
+major version protects is the data a user accumulates: the binary potential
+format and the project file. A key in the parameter file can change in a
+minor release, but only when the program refuses the old form with a message
+saying what to write instead, and only with an entry here.
 
 Every release is published with ready-made archives for Windows, Linux and
 macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
@@ -38,6 +40,11 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
 ### Changed
 
+- A production run started from the Studio uses the cell on the Unit cell tab
+  as it is. It used to hand that cell to the optimizer first, so a deliberately
+  imperfect cell, the kind you build to watch a particular behaviour, was
+  quietly replaced by the nearest minimum before the Monte Carlo began.
+  Optimizing is what the button on tab 4 is for, and it stays there.
 - The initial structure now comes from a `.cell` file: a configuration's
   `structure` key holds the path to one, and `samples/cells/` carries the
   sixteen reference cells. The Studio has been reading and writing that same
@@ -46,10 +53,11 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
   now every one of those cells was also written out as C++ inside
   `StructureGenerator.h`, which is where a configuration looked them up by
   name; that second copy is gone, and with it the risk of the two disagreeing.
-  **This breaks parameter files that name a structure**: replace
+  **Parameter files that name a structure have to be updated**: replace
   `structure = TMA_HCP_simple_2020` with
   `structure = samples/cells/TMA_HCP_simple_2020.cell`. A name that no longer
-  resolves stops the run at once with a message pointing at `samples/cells/`.
+  resolves stops the run at once with a message saying exactly that. Nothing
+  changes for the Studio, which has always worked in cell files.
   `structure = calculate`, which optimizes the rough cell given by the
   `unit_cell` key, is untouched. One consequence is worth naming: a cell file
   keeps every molecule inside the cell, while the header sometimes placed one
