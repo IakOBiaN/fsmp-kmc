@@ -656,10 +656,12 @@ void generate_structure(vector <double> &params, vector <state> &coordinates, do
   cout << "Final energy per molecule: " << energy / 1000.0 / nPart_in_central_cell << " kJ/mol" << endl;
   cout << "Final density: " << nPart_in_central_cell * (1.0e+26) / (Lx * Ly) / N_a << " mkmol/m2" << endl;
   cout << "Final params: " << endl;
+  streamsize params_prec = cout.precision(17);
   for (size_t i = 0; i < params.size(); i++)
   {
     cout << "Number " << i << ": " << params[i] << endl;
   }
+  cout.precision(params_prec);
 
   generate_elongated_cell(params, coordinates, Lx, Ly);
   E_INF = temp_E_INF;   // restore the hard-core cap disabled for the optimization

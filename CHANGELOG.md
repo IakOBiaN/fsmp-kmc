@@ -32,6 +32,16 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
 ### Fixed
 
+- The tail correction read the potential at the nearest angular grid node
+  while the energy itself was interpolated between nodes, and the slope term
+  multiplied that mismatch by (r - cutoff)/dr, which is of order a thousand
+  for close pairs. A pair energy therefore jumped by up to 1.9 kJ/mol whenever
+  an orientation crossed the midpoint between two grid nodes: the potential
+  was discontinuous in orientation, and the unit-cell optimizer could settle
+  on one of those steps instead of on a geometry. Both are now read the same
+  way. Energies move by a few thousandths of a kJ/mol on the demonstration
+  grid and by up to 0.4 on the published ones; the pinned test energies were
+  updated to match.
 - The readmes described the published potentials as DFT potentials. They are
   not: the interactions come from the DREIDING force field with its explicit
   hydrogen-bond term, and the quantum calculation behind them produced the

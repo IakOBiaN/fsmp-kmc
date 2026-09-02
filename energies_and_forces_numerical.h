@@ -42,14 +42,16 @@ void energy_calculation(const state &molA, const state &molB, double & /*Lx*/, d
 							{
 								if (tail_correction)
 									{
-										u_cut = FF(cut_index, a1, a2);
-										u_before_cut = FF(cut_index - 1, a1, a2);
 										if (interpol)
 										{
+											u_cut = interpolation((double)cut_index, ang1, ang2, beta);
+											u_before_cut = interpolation((double)(cut_index - 1), ang1, ang2, beta);
 											en = interpolation(dist_n, ang1, ang2, beta) - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
 										}
 										else
 										{
+											u_cut = FF(cut_index, a1, a2);
+											u_before_cut = FF(cut_index - 1, a1, a2);
 											en = FF(dist, a1, a2) - u_cut + (u_cut - u_before_cut) * (r - max_dist) / dr;
 										}
 									}
