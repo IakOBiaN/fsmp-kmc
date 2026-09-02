@@ -32,6 +32,17 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
 ### Fixed
 
+- The tail correction had the sign of its slope term flipped, from the commit
+  that first wrote it (`c29a8fc`, April 2023) until now. A shifted-force
+  truncation subtracts the slope at the cutoff, `u(r) - u(rc) - u'(rc)(r - rc)`,
+  so that the force vanishes there. The code added that term instead, which
+  doubled the discontinuity of the force rather than removing it and tilted
+  every pair energy by a ramp of the wrong sign, growing linearly with the
+  distance inside the cutoff. The ramp reaches 3.8 kJ/mol on a single pair of
+  the trimesic acid grid, and it accumulates over close neighbours, so it
+  favoured dense packings: lattice energies were too deep by 0.2 to 11 kJ/mol
+  per molecule, the more tightly packed the structure the more so. Every
+  energy the engine reports moves.
 - The tail correction read the potential at the nearest angular grid node
   while the energy itself was interpolated between nodes, and the slope term
   multiplied that mismatch by (r - cutoff)/dr, which is of order a thousand

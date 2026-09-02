@@ -117,20 +117,20 @@ if version.returncode != 0 or not version.stdout.startswith("FSMP-kMC "):
 print(version.stdout.strip())
 
 print("== [3/8] engine on the small committed grid ==", flush=True)
-pin(engine("hcp_small.txt", "hcp_small.log"), -61.7914, 0.001)
+pin(engine("hcp_small.txt", "hcp_small.log"), -61.4703, 0.001)
 
 print("== [4/8] engine on the full TMA simple potential ==", flush=True)
 if (TESTS.parent / "forcefields" / "TMA_simple_2020.v2.bin").is_file():
-    pin(engine("hcp_full.txt", "hcp_full.log"), -62.8777, 0.001)
+    pin(engine("hcp_full.txt", "hcp_full.log"), -62.5761, 0.001)
 else:
     print("SKIP: forcefields/TMA_simple_2020.v2.bin not present")
 
 print("== [5/8] unit-cell optimizer on the small committed grid ==", flush=True)
-pin(engine("optimize_small.txt", "optimize_small.log"), -62.211, 0.05,
+pin(engine("optimize_small.txt", "optimize_small.log"), -61.928, 0.05,
     "Final energy per molecule:")
 
 print("== [6/8] unit-cell optimizer from an overlapping start ==", flush=True)
-pin(engine("optimize_overlap.txt", "optimize_overlap.log"), -62.211, 0.05,
+pin(engine("optimize_overlap.txt", "optimize_overlap.log"), -61.928, 0.05,
     "Final energy per molecule:")
 
 # The quickstart is the first thing a new user runs, so the suite runs it
@@ -143,7 +143,7 @@ QUICKSTART_OUTPUT = ("quickstart_0_unit_cell.xyz", "quickstart_1_trajectory.xyz"
 for name in QUICKSTART_OUTPUT:
     (REPO / name).unlink(missing_ok=True)
 pin(engine(Path("configs") / "tma_quickstart_demo.txt", "quickstart.log",
-           cwd=REPO), -61.7304, 0.001)
+           cwd=REPO), -61.4097, 0.001)
 for name in QUICKSTART_OUTPUT:
     (REPO / name).unlink(missing_ok=True)
 
