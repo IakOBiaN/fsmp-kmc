@@ -73,18 +73,18 @@ void generate_structure(vector <double> &params, string structure_name, vector <
   if (structure_name == "TMA_HCP_simple_2020")
 {
   unit_cell_params.push_back(2);
-  unit_cell_params.push_back(11.100);
-  unit_cell_params.push_back(19.200);
+  unit_cell_params.push_back(11.1);
+  unit_cell_params.push_back(19.2258);
   unit_cell_params.push_back(0);
   unit_cell_params.push_back(0);
   unit_cell_params.push_back(90);
-  unit_cell_params.push_back(11.089);
-  unit_cell_params.push_back(59.967);
+  unit_cell_params.push_back(11.1);
+  unit_cell_params.push_back(60.0003);
   unit_cell_params.push_back(90);
 }
-  // Chicken-wire (honeycomb) cell for the simplified 2020 model, optimized with
-  // configs/tma_acid_cw_optimize.txt (seed 12345): E = -49.98 kJ/mol, density
-  // 1.064 umol/m2 at T = 0. Metastable: run with stabilization_mask = true.
+  // Chicken-wire (honeycomb) cell for the simplified 2020 model: E = -49.56
+  // kJ/mol, density 1.064 umol/m2 at T = 0. Metastable in this model, so
+  // run it with stabilization_mask = true.
   if (structure_name == "TMA_CW_simple_2020")
 {
   unit_cell_params.push_back(4);
@@ -92,282 +92,378 @@ void generate_structure(vector <double> &params, string structure_name, vector <
   unit_cell_params.push_back(32.8801);
   unit_cell_params.push_back(0);
   unit_cell_params.push_back(0);
-  unit_cell_params.push_back(29.9998);
+  unit_cell_params.push_back(29.9997);
   unit_cell_params.push_back(10.9602);
   unit_cell_params.push_back(29.9997);
-  unit_cell_params.push_back(89.9999);
+  unit_cell_params.push_back(89.9995);
   unit_cell_params.push_back(10.96);
-  unit_cell_params.push_back(90.0001);
-  unit_cell_params.push_back(30.0003);
+  unit_cell_params.push_back(90.0002);
+  unit_cell_params.push_back(30.0002);
   unit_cell_params.push_back(10.9602);
-  unit_cell_params.push_back(150.001);
+  unit_cell_params.push_back(150);
   unit_cell_params.push_back(90.0001);
+}
+  if (structure_name == "TMA_FL2_simple_2020")
+{
+  unit_cell_params.push_back(24);
+  unit_cell_params.push_back(41.1867);
+  unit_cell_params.push_back(71.3478);
+  unit_cell_params.push_back(9.28874);
+  unit_cell_params.push_back(45);
+  unit_cell_params.push_back(89.9474);
+  unit_cell_params.push_back(11.1117);
+  unit_cell_params.push_back(0.0783955);
+  unit_cell_params.push_back(90.0303);
+  unit_cell_params.push_back(11.0802);
+  unit_cell_params.push_back(120.109);
+  unit_cell_params.push_back(90.1096);
+  unit_cell_params.push_back(11.1178);
+  unit_cell_params.push_back(0.297238);
+  unit_cell_params.push_back(90.2973);
+  unit_cell_params.push_back(15.6402);
+  unit_cell_params.push_back(135.81);
+  unit_cell_params.push_back(30.5047);
+  unit_cell_params.push_back(11.1392);
+  unit_cell_params.push_back(0.392199);
+  unit_cell_params.push_back(30.394);
+  unit_cell_params.push_back(19.057);
+  unit_cell_params.push_back(-59.9215);
+  unit_cell_params.push_back(29.811);
+  unit_cell_params.push_back(10.9601);
+  unit_cell_params.push_back(29.9136);
+  unit_cell_params.push_back(90.6418);
+  unit_cell_params.push_back(10.9614);
+  unit_cell_params.push_back(90.6417);
+  unit_cell_params.push_back(29.9372);
+  unit_cell_params.push_back(10.9612);
+  unit_cell_params.push_back(149.516);
+  unit_cell_params.push_back(89.5164);
+  unit_cell_params.push_back(15.6136);
+  unit_cell_params.push_back(164.98);
+  unit_cell_params.push_back(30.0546);
+  unit_cell_params.push_back(11.0907);
+  unit_cell_params.push_back(179.919);
+  unit_cell_params.push_back(29.8062);
+  unit_cell_params.push_back(11.1199);
+  unit_cell_params.push_back(59.8066);
+  unit_cell_params.push_back(30.2144);
+  unit_cell_params.push_back(15.5407);
+  unit_cell_params.push_back(-15.3172);
+  unit_cell_params.push_back(90.1936);
+  unit_cell_params.push_back(11.1325);
+  unit_cell_params.push_back(0.0313265);
+  unit_cell_params.push_back(89.9321);
+  unit_cell_params.push_back(19.2179);
+  unit_cell_params.push_back(149.95);
+  unit_cell_params.push_back(89.7438);
+  unit_cell_params.push_back(11.0999);
+  unit_cell_params.push_back(-0.129291);
+  unit_cell_params.push_back(89.7815);
+  unit_cell_params.push_back(11.1);
+  unit_cell_params.push_back(-0.0898669);
+  unit_cell_params.push_back(89.8569);
+  unit_cell_params.push_back(21.9915);
+  unit_cell_params.push_back(30.0337);
+  unit_cell_params.push_back(29.8465);
+  unit_cell_params.push_back(11.0899);
+  unit_cell_params.push_back(-0.153647);
+  unit_cell_params.push_back(29.8451);
+  unit_cell_params.push_back(11.0856);
+  unit_cell_params.push_back(-0.0879708);
+  unit_cell_params.push_back(29.8566);
+  unit_cell_params.push_back(19.2019);
+  unit_cell_params.push_back(149.865);
+  unit_cell_params.push_back(30.023);
+  unit_cell_params.push_back(11.0829);
+  unit_cell_params.push_back(-0.0615314);
+  unit_cell_params.push_back(29.947);
+  unit_cell_params.push_back(15.5846);
+  unit_cell_params.push_back(-15.3659);
+  unit_cell_params.push_back(90.1694);
 }
   //old optimization
 	if (structure_name == "TMA_fCW_qB3LYP_PBE_Dreiding_Dhb5.4")
 	{
     unit_cell_params.push_back(6);
-    unit_cell_params.push_back(17.2785);
-    unit_cell_params.push_back(29.858);
-    unit_cell_params.push_back(-1.43758);
+    unit_cell_params.push_back(17.2328);
+    unit_cell_params.push_back(29.8526);
+    unit_cell_params.push_back(-1.43533);
     unit_cell_params.push_back(0.294197);
-    unit_cell_params.push_back(33.1213);
-    unit_cell_params.push_back(9.95879);
-    unit_cell_params.push_back(29.927);
-    unit_cell_params.push_back(93.1209);
-    unit_cell_params.push_back(9.92876);
-    unit_cell_params.push_back(149.515);
-    unit_cell_params.push_back(97.0724);
-    unit_cell_params.push_back(9.9157);
-    unit_cell_params.push_back(29.5732);
-    unit_cell_params.push_back(33.6068);
-    unit_cell_params.push_back(9.91344);
-    unit_cell_params.push_back(149.785);
-    unit_cell_params.push_back(93.7853);
-    unit_cell_params.push_back(9.42189);
-    unit_cell_params.push_back(20.2558);
-    unit_cell_params.push_back(90.3681);
+    unit_cell_params.push_back(32.9886);
+    unit_cell_params.push_back(9.94999);
+    unit_cell_params.push_back(30.0169);
+    unit_cell_params.push_back(93.4888);
+    unit_cell_params.push_back(9.89061);
+    unit_cell_params.push_back(149.3);
+    unit_cell_params.push_back(101.053);
+    unit_cell_params.push_back(9.88199);
+    unit_cell_params.push_back(29.5589);
+    unit_cell_params.push_back(32.9726);
+    unit_cell_params.push_back(9.94001);
+    unit_cell_params.push_back(149.96);
+    unit_cell_params.push_back(93.6463);
+    unit_cell_params.push_back(9.42501);
+    unit_cell_params.push_back(20.3877);
+    unit_cell_params.push_back(89.8877);
 	}
   //optimized
   if (structure_name == "TMA_CW_qB3LYP_PBE_Dreiding_Dhb5.4")
   {
      unit_cell_params.push_back(4);
-     unit_cell_params.push_back(17.258);
-     unit_cell_params.push_back(29.948);
+     unit_cell_params.push_back(17.2603);
+     unit_cell_params.push_back(29.8952);
 
-     unit_cell_params.push_back(0.235903);
+     unit_cell_params.push_back(0.235947);
      unit_cell_params.push_back(-0.764381);
-     unit_cell_params.push_back(27.0098);
+     unit_cell_params.push_back(26.9998);
 
-     unit_cell_params.push_back(9.96516);
-     unit_cell_params.push_back(30.0011);
+     unit_cell_params.push_back(9.9654);
+     unit_cell_params.push_back(29.9989);
+     unit_cell_params.push_back(86.9999);
+
+     unit_cell_params.push_back(9.96507);
+     unit_cell_params.push_back(89.9999);
+     unit_cell_params.push_back(27.0004);
+
+     unit_cell_params.push_back(9.96543);
+     unit_cell_params.push_back(150.001);
      unit_cell_params.push_back(87.0006);
-
-     unit_cell_params.push_back(9.96484);
-     unit_cell_params.push_back(90.1917);
-     unit_cell_params.push_back(27.192);
-
-     unit_cell_params.push_back(9.99148);
-     unit_cell_params.push_back(149.835);
-     unit_cell_params.push_back(87.5855);
   }
+  if (structure_name == "TMA_CW_aimnet2")
+{
+  unit_cell_params.push_back(4);
+  unit_cell_params.push_back(16.7522);
+  unit_cell_params.push_back(29.0156);
+  unit_cell_params.push_back(0.361861);
+  unit_cell_params.push_back(50.1356);
+  unit_cell_params.push_back(33.0001);
+  unit_cell_params.push_back(9.67166);
+  unit_cell_params.push_back(150);
+  unit_cell_params.push_back(93.0012);
+  unit_cell_params.push_back(9.67205);
+  unit_cell_params.push_back(90.002);
+  unit_cell_params.push_back(33.0008);
+  unit_cell_params.push_back(9.67171);
+  unit_cell_params.push_back(150);
+  unit_cell_params.push_back(93.0001);
+}
   //optimized
   if (structure_name == "TMA_SF_qB3LYP_PBE_Dreiding_Dhb5.4")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(9.76494);
-     unit_cell_params.push_back(16.9659);
-     unit_cell_params.push_back(-1.4425);
+     unit_cell_params.push_back(9.73934);
+     unit_cell_params.push_back(16.869);
+     unit_cell_params.push_back(-1.44277);
      unit_cell_params.push_back(1.15426);
-     unit_cell_params.push_back(38.7484);
-     unit_cell_params.push_back(9.77999);
-     unit_cell_params.push_back(60.1552);
-     unit_cell_params.push_back(39.2479);
+     unit_cell_params.push_back(39.4999);
+     unit_cell_params.push_back(9.73936);
+     unit_cell_params.push_back(60);
+     unit_cell_params.push_back(39.5);
   }
   //optimized
   if (structure_name == "TPA_horizontal_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(9.90997);
-     unit_cell_params.push_back(11.698);
-     unit_cell_params.push_back(0.771123);
+     unit_cell_params.push_back(9.9);
+     unit_cell_params.push_back(11.6897);
+     unit_cell_params.push_back(0.770517);
      unit_cell_params.push_back(-0.837901);
-     unit_cell_params.push_back(1.00002);
-     unit_cell_params.push_back(7.59232);
-     unit_cell_params.push_back(50.475);
+     unit_cell_params.push_back(-1.5);
+     unit_cell_params.push_back(7.57459);
+     unit_cell_params.push_back(50.4947);
      unit_cell_params.push_back(1.00003);
   }
   //optimized
   if (structure_name == "TPA_vertical_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(11.6946);
-     unit_cell_params.push_back(9.90999);
-     unit_cell_params.push_back(-0.74105);
+     unit_cell_params.push_back(11.6935);
+     unit_cell_params.push_back(9.9);
+     unit_cell_params.push_back(-0.740467);
      unit_cell_params.push_back(91.1906);
-     unit_cell_params.push_back(91);
-     unit_cell_params.push_back(7.58993);
-     unit_cell_params.push_back(140.459);
-     unit_cell_params.push_back(90.9999);
+     unit_cell_params.push_back(88.5061);
+     unit_cell_params.push_back(7.5782);
+     unit_cell_params.push_back(140.506);
+     unit_cell_params.push_back(91.0062);
   }
   if (structure_name == "TPA_horizontal_ladder_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(9.85863);
-     unit_cell_params.push_back(14.9832);
-     unit_cell_params.push_back(0.460148);
+     unit_cell_params.push_back(9.85001);
+     unit_cell_params.push_back(14.9538);
+     unit_cell_params.push_back(0.459786);
      unit_cell_params.push_back(2.47113);
-     unit_cell_params.push_back(2.56578);
-     unit_cell_params.push_back(9.41467);
-     unit_cell_params.push_back(51.4863);
-     unit_cell_params.push_back(80.2502);
+     unit_cell_params.push_back(3.00003);
+     unit_cell_params.push_back(9.35784);
+     unit_cell_params.push_back(51.7222);
+     unit_cell_params.push_back(79.5001);
   }
   if (structure_name == "TPA_vertical_ladder_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(15.0487);
-     unit_cell_params.push_back(9.85162);
-     unit_cell_params.push_back(3.16403);
+     unit_cell_params.push_back(14.9387);
+     unit_cell_params.push_back(9.85001);
+     unit_cell_params.push_back(3.1566);
      unit_cell_params.push_back(0.749759);
-     unit_cell_params.push_back(93.0274);
-     unit_cell_params.push_back(9.65954);
-     unit_cell_params.push_back(37.2725);
-     unit_cell_params.push_back(-11.2231);
+     unit_cell_params.push_back(93.0001);
+     unit_cell_params.push_back(9.54028);
+     unit_cell_params.push_back(37.2721);
+     unit_cell_params.push_back(-10.4999);
   }
   //optimized
   if (structure_name == "IPA_horizontal_chain_qPBE_Dreiding_Dhb5.0")
   {
      unit_cell_params.push_back(2);
-     unit_cell_params.push_back(16.9632);
-     unit_cell_params.push_back(7.33756);
-     unit_cell_params.push_back(3.1684);
+     unit_cell_params.push_back(16.9262);
+     unit_cell_params.push_back(7.33665);
+     unit_cell_params.push_back(3.16404);
      unit_cell_params.push_back(-2.30584);
-     unit_cell_params.push_back(147.618);
-     unit_cell_params.push_back(9.85106);
-     unit_cell_params.push_back(30.6955);
-     unit_cell_params.push_back(327.696);
+     unit_cell_params.push_back(147.971);
+     unit_cell_params.push_back(9.85001);
+     unit_cell_params.push_back(30.9713);
+     unit_cell_params.push_back(328.471);
   }
 	//optimized
 	if (structure_name == "IPA_vertical_chain_qPBE_Dreiding_Dhb5.0")
 	{
 		 unit_cell_params.push_back(2);
-		 unit_cell_params.push_back(7.41172);
-		 unit_cell_params.push_back(16.7164);
-		 unit_cell_params.push_back(0.472696);
+		 unit_cell_params.push_back(7.49);
+		 unit_cell_params.push_back(16.3537);
+		 unit_cell_params.push_back(0.472783);
 		 unit_cell_params.push_back(-0.646095);
-		 unit_cell_params.push_back(59.7553);
-		 unit_cell_params.push_back(9.84645);
-		 unit_cell_params.push_back(57.8756);
-		 unit_cell_params.push_back(240.191);
+		 unit_cell_params.push_back(58.999);
+		 unit_cell_params.push_back(9.80001);
+		 unit_cell_params.push_back(56.4236);
+		 unit_cell_params.push_back(240.423);
 	}
 	// optimized
 	if (structure_name == "IPA_hexagones_qPBE_Dreiding_Dhb5.0")
 	{
 		unit_cell_params.push_back(24);
-		unit_cell_params.push_back(42.6379);
-		unit_cell_params.push_back(49.1998);
+		unit_cell_params.push_back(42.6024);
+		unit_cell_params.push_back(49.1144);
 		//1
-		unit_cell_params.push_back(11.4791);
+		unit_cell_params.push_back(11.4812);
 		unit_cell_params.push_back(0.0714106);
-		unit_cell_params.push_back(238.214);
+		unit_cell_params.push_back(238.318);
 		//2
-		unit_cell_params.push_back(9.88775);
-		unit_cell_params.push_back(120.151);
-		unit_cell_params.push_back(298.021);
+		unit_cell_params.push_back(9.87994);
+		unit_cell_params.push_back(120.165);
+		unit_cell_params.push_back(297.665);
 		//3
-		unit_cell_params.push_back(7.69802);
-		unit_cell_params.push_back(89.9078);
-		unit_cell_params.push_back(178.57);
+		unit_cell_params.push_back(7.59915);
+		unit_cell_params.push_back(90.1868);
+		unit_cell_params.push_back(178.4);
 		//4
-		unit_cell_params.push_back(9.87203);
-		unit_cell_params.push_back(59.6657);
-		unit_cell_params.push_back(237.711);
+		unit_cell_params.push_back(9.88002);
+		unit_cell_params.push_back(59.9001);
+		unit_cell_params.push_back(237.656);
 		//5
-		unit_cell_params.push_back(9.87488);
-		unit_cell_params.push_back(120.171);
-		unit_cell_params.push_back(299.081);
+		unit_cell_params.push_back(9.87003);
+		unit_cell_params.push_back(120.157);
+		unit_cell_params.push_back(298.199);
 		//6
-		unit_cell_params.push_back(7.33438);
-		unit_cell_params.push_back(89.9816);
-		unit_cell_params.push_back(177.82);
+		unit_cell_params.push_back(7.34052);
+		unit_cell_params.push_back(89.7872);
+		unit_cell_params.push_back(177.856);
 		//7
-		unit_cell_params.push_back(12.41);
-		unit_cell_params.push_back(22.2247);
-		unit_cell_params.push_back(-2.32758);
+		unit_cell_params.push_back(12.4172);
+		unit_cell_params.push_back(22.7796);
+		unit_cell_params.push_back(-1.50074);
 		//8
-		unit_cell_params.push_back(9.86637);
-		unit_cell_params.push_back(240.134);
-		unit_cell_params.push_back(58.0192);
+		unit_cell_params.push_back(9.88001);
+		unit_cell_params.push_back(240.147);
+		unit_cell_params.push_back(58.102);
 		//9
-		unit_cell_params.push_back(9.90949);
-		unit_cell_params.push_back(300.02);
-		unit_cell_params.push_back(118.865);
+		unit_cell_params.push_back(9.87999);
+		unit_cell_params.push_back(300.102);
+		unit_cell_params.push_back(118.585);
 		//10
-		unit_cell_params.push_back(7.55);
-		unit_cell_params.push_back(270.095);
-		unit_cell_params.push_back(-1.97112);
+		unit_cell_params.push_back(7.54303);
+		unit_cell_params.push_back(270.085);
+		unit_cell_params.push_back(-1.72634);
 		//11
-		unit_cell_params.push_back(9.85007);
-		unit_cell_params.push_back(240.122);
-		unit_cell_params.push_back(57.8898);
+		unit_cell_params.push_back(9.87142);
+		unit_cell_params.push_back(240.131);
+		unit_cell_params.push_back(57.4818);
 		//12
-		unit_cell_params.push_back(9.85007);
-		unit_cell_params.push_back(299.999);
-		unit_cell_params.push_back(118.172);
+		unit_cell_params.push_back(9.87005);
+		unit_cell_params.push_back(299.981);
+		unit_cell_params.push_back(118.103);
 		//13
-		unit_cell_params.push_back(9.85);
-		unit_cell_params.push_back(0.659447);
-		unit_cell_params.push_back(177.63);
+		unit_cell_params.push_back(9.86024);
+		unit_cell_params.push_back(0.777899);
+		unit_cell_params.push_back(178.55);
 		//14
-		unit_cell_params.push_back(9.86994);
-		unit_cell_params.push_back(59.9726);
-		unit_cell_params.push_back(238.041);
+		unit_cell_params.push_back(9.88015);
+		unit_cell_params.push_back(60.0499);
+		unit_cell_params.push_back(237.807);
 		//15
-		unit_cell_params.push_back(9.8696);
-		unit_cell_params.push_back(120);
-		unit_cell_params.push_back(298.249);
+		unit_cell_params.push_back(9.87447);
+		unit_cell_params.push_back(120.041);
+		unit_cell_params.push_back(298.541);
 		//16
-		unit_cell_params.push_back(7.55138);
-		unit_cell_params.push_back(90.0516);
-		unit_cell_params.push_back(178.538);
+		unit_cell_params.push_back(7.55718);
+		unit_cell_params.push_back(90.0471);
+		unit_cell_params.push_back(178.355);
 		//17
-		unit_cell_params.push_back(9.85537);
+		unit_cell_params.push_back(9.87826);
 		unit_cell_params.push_back(60.0484);
-		unit_cell_params.push_back(238.541);
+		unit_cell_params.push_back(237.732);
 		//18
-		unit_cell_params.push_back(9.93114);
-		unit_cell_params.push_back(120.218);
-		unit_cell_params.push_back(298.191);
+		unit_cell_params.push_back(9.87009);
+		unit_cell_params.push_back(120.232);
+		unit_cell_params.push_back(298.183);
 		//19
-		unit_cell_params.push_back(7.54902);
-		unit_cell_params.push_back(29.177);
-		unit_cell_params.push_back(57.7393);
+		unit_cell_params.push_back(7.48786);
+		unit_cell_params.push_back(29.3029);
+		unit_cell_params.push_back(57.8625);
 		//20
-		unit_cell_params.push_back(9.85);
-		unit_cell_params.push_back(299.651);
-		unit_cell_params.push_back(117.65);
+		unit_cell_params.push_back(9.86602);
+		unit_cell_params.push_back(299.677);
+		unit_cell_params.push_back(117.237);
 		//21
-		unit_cell_params.push_back(7.52084);
-		unit_cell_params.push_back(269.726);
-		unit_cell_params.push_back(-1.65575);
+		unit_cell_params.push_back(7.47892);
+		unit_cell_params.push_back(269.811);
+		unit_cell_params.push_back(-1.65904);
 		//22
-		unit_cell_params.push_back(9.85);
-		unit_cell_params.push_back(239.844);
-		unit_cell_params.push_back(57.5787);
+		unit_cell_params.push_back(9.88013);
+		unit_cell_params.push_back(239.841);
+		unit_cell_params.push_back(57.6999);
 		//23
-		unit_cell_params.push_back(9.85);
-		unit_cell_params.push_back(300.191);
-		unit_cell_params.push_back(117.997);
+		unit_cell_params.push_back(9.87092);
+		unit_cell_params.push_back(300.2);
+		unit_cell_params.push_back(118.231);
 		//24
-		unit_cell_params.push_back(7.50352);
-		unit_cell_params.push_back(269.753);
-		unit_cell_params.push_back(-1.95989);
+		unit_cell_params.push_back(7.41976);
+		unit_cell_params.push_back(270.111);
+		unit_cell_params.push_back(-1.8894);
 	}
 	//optimized
 	if (structure_name == "PA_horizontal_chain_qPBE_Dreiding_Dhb5.0")
 	{
 		unit_cell_params.push_back(2);
-	  unit_cell_params.push_back(12.48);
-	  unit_cell_params.push_back(9.85);
-		unit_cell_params.push_back(0.547938);
+	  unit_cell_params.push_back(12.5557);
+	  unit_cell_params.push_back(9.67631);
+		unit_cell_params.push_back(0.547972);
 		unit_cell_params.push_back(0.0439552);
-		unit_cell_params.push_back(127.03);
-		unit_cell_params.push_back(9.93052);
-		unit_cell_params.push_back(51.4783);
-		unit_cell_params.push_back(307.031);
+		unit_cell_params.push_back(127.331);
+		unit_cell_params.push_back(9.91771);
+		unit_cell_params.push_back(51.2729);
+		unit_cell_params.push_back(307.331);
 	}
 	//optimized
 	if (structure_name == "PA_vertical_chain_qPBE_Dreiding_Dhb5.0")
 	{
 		unit_cell_params.push_back(2);
-		unit_cell_params.push_back(9.43172);
-		unit_cell_params.push_back(12.8256);
-		unit_cell_params.push_back(2.95425);
+		unit_cell_params.push_back(9.16996);
+		unit_cell_params.push_back(12.9454);
+		unit_cell_params.push_back(2.95443);
 		unit_cell_params.push_back(0.146893);
-		unit_cell_params.push_back(35.2501);
-		unit_cell_params.push_back(9.92587);
-		unit_cell_params.push_back(40.2124);
-		unit_cell_params.push_back(214.654);
+		unit_cell_params.push_back(34.7622);
+		unit_cell_params.push_back(9.89);
+		unit_cell_params.push_back(40.7623);
+		unit_cell_params.push_back(214.762);
 	}
 
   generate_elongated_cell(params, coordinates, Lx, Ly);

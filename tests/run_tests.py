@@ -117,11 +117,11 @@ if version.returncode != 0 or not version.stdout.startswith("FSMP-kMC "):
 print(version.stdout.strip())
 
 print("== [3/8] engine on the small committed grid ==", flush=True)
-pin(engine("hcp_small.txt", "hcp_small.log"), -61.4703, 0.001)
+pin(engine("hcp_small.txt", "hcp_small.log"), -61.5091, 0.001)
 
 print("== [4/8] engine on the full TMA simple potential ==", flush=True)
 if (TESTS.parent / "forcefields" / "TMA_simple_2020.v2.bin").is_file():
-    pin(engine("hcp_full.txt", "hcp_full.log"), -62.5761, 0.001)
+    pin(engine("hcp_full.txt", "hcp_full.log"), -62.5926, 0.001)
 else:
     print("SKIP: forcefields/TMA_simple_2020.v2.bin not present")
 
@@ -143,7 +143,7 @@ QUICKSTART_OUTPUT = ("quickstart_0_unit_cell.xyz", "quickstart_1_trajectory.xyz"
 for name in QUICKSTART_OUTPUT:
     (REPO / name).unlink(missing_ok=True)
 pin(engine(Path("configs") / "tma_quickstart_demo.txt", "quickstart.log",
-           cwd=REPO), -61.4097, 0.001)
+           cwd=REPO), -61.4484, 0.001)
 for name in QUICKSTART_OUTPUT:
     (REPO / name).unlink(missing_ok=True)
 

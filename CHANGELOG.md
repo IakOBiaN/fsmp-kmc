@@ -30,6 +30,17 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
   set it already held. The DOI in the readme resolves to the new version on
   its own, so nothing has to be relinked.
 
+### Changed
+
+- Every reference unit cell in `samples/cells/` was optimized again on the
+  corrected potential, and the two that existed only as files, the trimesic
+  acid flower of the simplified model and its honeycomb on the AIMNet2 grid,
+  are named structures now as well. All sixteen live in both places and hold
+  the same numbers. Only the honeycomb of the simplified model was already at
+  its minimum; the rest had been left behind by an earlier optimizer and gain
+  between 0.02 and 2.4 kJ/mol per molecule, the vertical chain of isophthalic
+  acid most of all.
+
 ### Fixed
 
 - The tail correction had the sign of its slope term flipped, from the commit

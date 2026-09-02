@@ -46,12 +46,12 @@ class TestReferenceCells(unittest.TestCase):
     @unittest.skipUnless(HCP.is_file(), "cells/ not present")
     def test_hcp_matches_the_engine_chain(self):
         cell_x, cell_y, placements, comment = load_cell(HCP)
-        self.assertEqual((cell_x, cell_y), (11.1, 19.2))
+        self.assertEqual((cell_x, cell_y), (11.1, 19.2258))
         self.assertEqual(len(placements), 2)
         self.assertEqual(placements[0], (0.0, 0.0, 90.0))
-        # 11.089 A at 59.967 deg from the first molecule
+        # 11.1 A at 60 deg from the first molecule
         self.assertAlmostEqual(placements[1][0], 5.5500, places=3)
-        self.assertAlmostEqual(placements[1][1], 9.6002, places=3)
+        self.assertAlmostEqual(placements[1][1], 9.6129, places=3)
         self.assertEqual(placements[1][2], 90.0)
         self.assertIn("TMA_HCP_simple_2020", comment)
 
