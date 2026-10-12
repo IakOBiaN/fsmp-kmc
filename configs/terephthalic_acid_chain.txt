@@ -55,6 +55,13 @@ delta_angle = 60.0
 
 widom_test_index = false
 
+# The optimizer is a local search, so what it finds depends on the random
+# sequence: from this rough cell most sequences settle for a shallow minimum
+# near -24 kJ/mol, and this seed reaches the real chain at -97.3. Fixing the
+# seed makes the example repeatable; if your own rough cell reports a poor
+# final energy, change the seed and run it again.
+seed = 42
+
 # Output files (xyz animation of the cell optimization, which also names the
 # .cell file the optimized cell is written to, and the xyz trajectory)
 unit_cell_name = 0_calculate_animation.xyz

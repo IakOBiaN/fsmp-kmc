@@ -11,7 +11,7 @@ saying what to write instead, and only with an entry here.
 Every release is published with ready-made archives for Windows, Linux and
 macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
-## Unreleased
+## v1.2.0 (2026-10-13)
 
 ### Added
 
@@ -109,6 +109,22 @@ macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
   does not use cmd.exe. The same form also survives a machine where
   `NoDefaultCurrentDirectoryInExePath` is set, which makes cmd.exe behave
   the same way.
+- Three comments in the example configurations said things that are not
+  true. The chicken-wire file explained the stabilization mask by gas
+  molecules filling the hexagon pores: in the simplified model that file
+  uses, a molecule in a pore is far worse off than one in the framework and
+  the pores stay empty on their own, while what the mask really prevents is
+  the framework densifying into the layer the model prefers. The same file
+  called its eleven-point field sweep a single point at zero field. And the
+  four examples that read their cell from a file still described
+  `unit_cell_name` as the animation of an optimization that does not happen
+  in them.
+- The terephthalic acid chain example reached the structure it is named
+  after only about one run in three. The unit cell optimizer is a local
+  search, and from the rough cell in that file most random sequences settle
+  near -24 kJ/mol instead of the -97.3 of the real chain. The example fixes
+  its seed now, and says to try another one when a rough cell of your own
+  lands shallow.
 
 ## v1.1.0 (2026-08-20)
 

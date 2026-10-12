@@ -48,6 +48,7 @@ delta_angle = 60.0
 
 widom_test_index = false
 
-# Output files (xyz animation of the cell optimization, xyz trajectory)
+# Output files. unit_cell_name belongs to the optimizer and stays unused here:
+# the cell comes from a file, so nothing is optimized and no animation appears.
 unit_cell_name = 0_calculate_animation.xyz
 xyz_name = 1_xyz_for_calculations_TPA_ladder.xyz

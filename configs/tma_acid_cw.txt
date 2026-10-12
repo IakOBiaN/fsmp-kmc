@@ -4,16 +4,18 @@
 # Paths are relative to the working directory; output is written there too.
 #
 # The chicken-wire polymorph is metastable in this model (the stable phase is
-# HCP), so the stabilization mask below is essential: without it gas molecules
-# fill the hexagon pores and denser phases nucleate at the interface, and the
-# structure decays.
+# HCP), so the stabilization mask below is what holds it together: without it
+# the framework densifies into the jammed layer the model actually prefers.
+# The hexagon pores are not the weak point here: in this model a molecule in a
+# pore is far worse off than one in the framework, so the pores stay empty
+# without any help.
 
 # Crystal temperature loop, K
 temp_from = 300
 temp_to = 301
 temp_step = 10
 
-# External field strength loop, J/mol (single point at u_m = 0)
+# External field strength loop, J/mol (eleven points, -1 to -21 kJ/mol)
 um_from = -1000.0
 um_to = -21000.0
 um_step = 2000.0
@@ -31,8 +33,8 @@ constant_pressure_value = 0
 kMC = true
 
 # Keep the metastable chicken-wire framework intact: a periodic lattice of
-# free wells built from the initial structure. Off-site positions (pore
-# centers, HCP arrangements at the interface) cost up to mask_penalty; the
+# free wells built from the initial structure. Off-site positions (the denser
+# arrangements the model prefers, pore centers) cost up to mask_penalty; the
 # penalty is damped by lambda(x) and vanishes in the ideal gas phase.
 stabilization_mask = true
 # Optional tuning (defaults shown): no penalty within mask_free_radius (A) of
@@ -66,7 +68,8 @@ delta_angle = 60.0
 
 widom_test_index = false
 
-# Output files (xyz animation of the cell optimization, xyz trajectory)
+# Output files. unit_cell_name belongs to the optimizer and stays unused here:
+# the cell comes from a file, so nothing is optimized and no animation appears.
 unit_cell_name = 0_calculate_animation.xyz
 xyz_name = 1_xyz_for_calculations_TMA_cw.xyz
 statistics_name = 2_my_statistics_cw.dat

@@ -73,8 +73,9 @@ widom_test_index = false
 # A fixed seed makes the demonstration reproducible run after run
 seed = 12345
 
-# Output files (xyz animation of the cell optimization, xyz trajectory,
-# statistics table)
+# Output files (xyz trajectory, statistics table). unit_cell_name belongs to
+# the optimizer and stays unused here: the cell comes from a file, so nothing
+# is optimized and no animation appears.
 unit_cell_name = quickstart_0_unit_cell.xyz
 xyz_name = quickstart_1_trajectory.xyz
 statistics_name = quickstart_2_statistics.dat
