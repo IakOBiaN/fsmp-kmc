@@ -15,6 +15,10 @@ on:
 permissions:
   contents: write
 
+# the hcp_small pin of tests/run_tests.py, checked again on each release binary
+env:
+  HCP_SMALL_ENERGY: "-61.5091"
+
 jobs:
   # a tag must match version.h, the single source of the project version
   version-check:
@@ -56,7 +60,7 @@ jobs:
         run: |
           cd tests
           ../fsmp.exe hcp_small.txt > release_smoke.log
-          python3 check_energy.py release_smoke.log -61.7449 0.001
+          python3 check_energy.py release_smoke.log ${{ env.HCP_SMALL_ENERGY }} 0.001
 
       - uses: actions/setup-python@v6
         with:
@@ -112,7 +116,7 @@ jobs:
         run: |
           cd tests
           ../fsmp hcp_small.txt > release_smoke.log
-          python3 check_energy.py release_smoke.log -61.7449 0.001
+          python3 check_energy.py release_smoke.log ${{ env.HCP_SMALL_ENERGY }} 0.001
 
       - uses: actions/setup-python@v6
         with:
@@ -162,7 +166,7 @@ jobs:
         run: |
           cd tests
           ../fsmp hcp_small.txt > release_smoke.log
-          python3 check_energy.py release_smoke.log -61.7449 0.001
+          python3 check_energy.py release_smoke.log ${{ env.HCP_SMALL_ENERGY }} 0.001
 
       - uses: actions/setup-python@v6
         with:

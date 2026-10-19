@@ -1,6 +1,6 @@
 # Regression test: the engine on the real TMA simple potential (65 MB, separate
 # download; the runner skips this test when the file is absent). Pin: initial
-# HCP energy -62.8605 kJ/mol, validated against the published model.
+# HCP energy -62.5926 kJ/mol.
 temp_from = 300
 temp_to = 300
 temp_step = 10

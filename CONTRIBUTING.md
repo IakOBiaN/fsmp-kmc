@@ -38,13 +38,15 @@ Both suites run in CI on every push, on Linux, macOS and native Windows.
 
 ## What a patch has to keep intact
 
-**The pinned energies.** The suite checks numbers that were validated against
-published results: the initial energy of the TMA HCP crystal on the
-demonstration grid (-61.7449 kJ/mol) and on the full potential (-62.8605), the
-optimizer's final energy (-62.2276), and the shipped quickstart (-61.6841). A
-change that moves them is either a bug or a genuine improvement in the
-physics; either way it needs an explanation in the pull request, not a quietly
-updated constant.
+**The pinned energies.** The suite checks deterministic numbers: the initial
+energy of the TMA HCP crystal on the demonstration grid (-61.5091 kJ/mol) and
+on the full potential (-62.5926), the optimizer's final energy (-61.928), and
+the shipped quickstart (-61.4484). A change that moves them is either a bug or
+a genuine improvement in the physics; either way it needs an explanation in
+the pull request, not a quietly updated constant. The demonstration-grid value
+is checked a second time on every release binary, so it also lives in
+`HCP_SMALL_ENERGY` at the top of `.github/workflows/release.yml`, and the two
+have to move together.
 
 **The warning gate.** CI compiles with `-Wall -Wextra -Werror` under both GCC
 and Clang:

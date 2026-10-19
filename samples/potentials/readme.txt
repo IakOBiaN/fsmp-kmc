@@ -19,8 +19,8 @@ dr = 0.08 A, da = 4 deg, 32-bit values, folded to one 120 deg period.
 
 It is a COARSE grid, kept for demonstration and for the regression suite.
 The crystal is stable on it and the numbers land close to the published
-ones (initial HCP energy -61.68 kJ/mol against -62.86 on the full grid, a
-2 % difference that comes entirely from the coarse sampling), but it is not
+ones (initial HCP energy -61.45 kJ/mol against -62.53 on the full grid, a
+1.7 % difference that comes entirely from the coarse sampling), but it is not
 a potential to publish numbers from.
 
 For real calculations

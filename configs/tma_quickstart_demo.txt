@@ -6,7 +6,7 @@
 #
 # It takes about half a minute and writes the three output files listed at
 # the bottom into the working directory. What to expect: the central cell of
-# the TMA HCP crystal starts at "Density: 1.56  Energy: -61.68" (kJ/mol per
+# the TMA HCP crystal starts at "Density: 1.56  Energy: -61.45" (kJ/mol per
 # molecule, before any Monte Carlo step), the monolayer stays near the
 # published density of 1.558 mkmol/m2 through the field sweep, and the
 # statistics file ends up with one row per external-field value, chemical

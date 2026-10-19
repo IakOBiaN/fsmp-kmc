@@ -11,7 +11,7 @@ saying what to write instead, and only with an entry here.
 Every release is published with ready-made archives for Windows, Linux and
 macOS at <https://github.com/IakOBiaN/fsmp-kmc/releases>.
 
-## v1.2.0 (2026-10-13)
+## v1.2.0 (2026-10-20)
 
 ### Added
 
